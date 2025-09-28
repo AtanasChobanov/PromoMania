@@ -376,7 +376,6 @@ export default function ProductPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
   },
   backgroundImage: {
     flex: 1,
@@ -388,17 +387,17 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     backgroundColor: 'white',
-        marginTop:wp(15),
+    marginTop: wp(15),
     alignItems: 'center',
     paddingVertical: 0,
     marginBottom: hp(2),
     alignSelf: 'center', 
-    height:hp(40),
-    width:wp(94),
+    height: hp(40),
+    width: wp(94),
     position: 'relative',
     shadowColor: '#000',
     overflow: 'hidden',  
-    borderRadius:wp(4),
+    borderRadius: wp(4),
     shadowOffset: {
       width: 0,
       height: 2,
@@ -408,7 +407,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   productImage: {
-    
     height: '100%',
     width: '100%', 
     resizeMode: 'contain',
@@ -431,12 +429,12 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    width:wp(95),
-    alignSelf:'center',
-    borderRadius:wp(4),
+    width: wp(95),
+    alignSelf: 'center',
+    borderRadius: wp(4),
     padding: 20,
     marginBottom: hp(2),
-        shadowColor: '#000',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -470,15 +468,13 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 16,
-    color: '#666',
+    color: '#1F2937',
   },
-
   priceContainer: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-
   },
-    unitContainer: {
+  unitContainer: {
     flexDirection: 'column',
     alignItems: 'flex-start',
     marginBottom: hp(2),
@@ -486,7 +482,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#96D4F7',
+    color: '#006D77',
     marginRight: 10,
   },
   sectionTitle: {
@@ -513,7 +509,7 @@ const styles = StyleSheet.create({
   quantityButtonText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#1F2937', 
   },
   quantityText: {
     fontSize: 20,
@@ -523,9 +519,9 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius:wp(4),
-      width:wp(95),
-      alignSelf:'center',
+    borderRadius: wp(4),
+    width: wp(95),
+    alignSelf: 'center',
     padding: 20,
     marginBottom: hp(2),
     shadowColor: '#000',
@@ -553,7 +549,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    marginTop:40,
+    marginTop: 40,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -588,12 +584,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 6,
   },
- 
   text: {
     fontSize: 20,
     fontWeight: "bold",
   },
- retailsContainer: {
+  retailsContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: wp(4),
     flexDirection: 'column',
@@ -624,8 +619,7 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     alignItems: 'flex-end',
-    paddingHorizontal:5,
-    
+    paddingHorizontal: 5,
   },
   retailImages: {
     width: wp(10),
@@ -635,45 +629,44 @@ const styles = StyleSheet.create({
     paddingLeft: wp(2),
     fontWeight: 'bold',
     fontSize: getFontSize(16),
-    color: '#000000',
+    color: '#1F2937', // changed
   },
   discountText: {
-    color: 'black',
+    color: '#1F2937', // changed
     fontWeight: 'bold',
     fontSize: 12,
   },
   retailPrice: {
     fontSize: getFontSize(20),
     fontWeight: 'bold',
-    color: '#96D4F7',
+    color: '#006D77',
     marginBottom: 2,
   },
-    discountContainer:{
+  discountContainer: {
     backgroundColor: 'rgba(143,228,201,1)',
-    padding:5,
-    borderRadius:5,
+    padding: 5,
+    borderRadius: 5,
     alignSelf: 'center',
   },
-    originalPrice: {
+  originalPrice: {
     fontSize: getFontSize(18),
     color: '#999',
     textDecorationLine: 'line-through',
   },
-OneRetailBox:{
-  paddingVertical:hp(0.5),
-  flexDirection:'row',
+  OneRetailBox: {
+    paddingVertical: hp(0.5),
+    flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.1)',
-    
-},
-retailTitle:{
-   fontSize: 20,
+  },
+  retailTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
-    alignSelf:'flex-start'
-},
- loadingContainer: {
+    alignSelf: 'flex-start'
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -694,5 +687,5 @@ retailTitle:{
     color: '#333',
     textAlign: 'center',
   },
-
 });
+

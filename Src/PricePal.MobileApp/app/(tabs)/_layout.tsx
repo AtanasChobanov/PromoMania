@@ -64,7 +64,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
       activeOpacity={0.8}
     >
       <BlurView 
-        intensity={20} 
+        intensity={30} 
         tint="light"
         experimentalBlurMethod="dimezisBlurView"
         style={styles.searchButtonBlur}
