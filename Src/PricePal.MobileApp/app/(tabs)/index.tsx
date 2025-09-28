@@ -65,6 +65,136 @@ const getFontSize = (size: number): number => {
   return size; 
 };
 
+interface SkeletonCardProps {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const SkeletonCard: React.FC<SkeletonCardProps> = ({ x, y, width, height }) => (
+  <Rect 
+    x={x} 
+    y={y} 
+    rx="15" 
+    ry="15" 
+    width={width} 
+    height={height} 
+  />
+);
+
+const Skeleton: React.FC = () => {
+  const cardWidth = wp(45);
+  const cardHeight = hp(30);
+  
+  return (
+    <View style={{ flex: 1, paddingTop: hp(7) }}>
+      <ContentLoader 
+        speed={2}
+        width={screenWidth}
+        height={screenHeight}
+        viewBox={`0 0 ${screenWidth} ${screenHeight}`}
+        backgroundColor="#e0e0e0"
+        foregroundColor="#f5f5f5"
+      >
+        {/* Main Title - "Тази седмица" */}
+        <Rect 
+          x={wp(20)} 
+          y={hp(2)} 
+          rx="6" 
+          ry="6" 
+          width={wp(60)} 
+          height={hp(4)} 
+        />
+        
+        {/* Subtitle - "Топ категории" */}
+        <Rect 
+          x={wp(30)} 
+          y={hp(7)} 
+          rx="4" 
+          ry="4" 
+          width={wp(40)} 
+          height={hp(2.5)} 
+        />
+        
+        {/* Section Title 1 - "Нашия избор" */}
+        <Rect 
+          x={wp(35)} 
+          y={hp(15)} 
+          rx="5" 
+          ry="5" 
+          width={wp(30)} 
+          height={hp(2.5)} 
+        />
+        
+        {/* Product Cards Row 1 */}
+        <SkeletonCard 
+          x={wp(4)} 
+          y={hp(20)} 
+          width={cardWidth} 
+          height={cardHeight} 
+        />
+        <SkeletonCard 
+          x={wp(51)} 
+          y={hp(20)} 
+          width={cardWidth} 
+          height={cardHeight} 
+        />
+
+        {/* Section Title 2 - "Топ продукти" */}
+        <Rect 
+          x={wp(33)} 
+          y={hp(55)} 
+          rx="5" 
+          ry="5" 
+          width={wp(34)} 
+          height={hp(2.5)} 
+        />
+        
+        {/* Product Cards Row 2 */}
+        <SkeletonCard 
+          x={wp(4)} 
+          y={hp(60)} 
+          width={cardWidth} 
+          height={cardHeight} 
+        />
+        <SkeletonCard 
+          x={wp(51)} 
+          y={hp(60)} 
+          width={cardWidth} 
+          height={cardHeight} 
+        />
+
+        {/* Section Title 3 - "Най-купувани продукти" */}
+        <Rect 
+          x={wp(20)} 
+          y={hp(95)} 
+          rx="5" 
+          ry="5" 
+          width={wp(60)} 
+          height={hp(2.5)} 
+        />
+        
+        {/* Product Cards Row 3 */}
+        <SkeletonCard 
+          x={wp(4)} 
+          y={hp(100)} 
+          width={cardWidth} 
+          height={cardHeight} 
+        />
+        <SkeletonCard 
+          x={wp(51)} 
+          y={hp(100)} 
+          width={cardWidth} 
+          height={cardHeight} 
+        />
+      </ContentLoader>
+    </View>
+  );
+};
+
+
+
 const ProductBox: React.FC<ProductBoxProps> = React.memo(({ 
   id,
   productName, 
@@ -132,14 +262,16 @@ const ProductBox: React.FC<ProductBoxProps> = React.memo(({
           start={{ x: 0, y: 1 }}
         >
           <View style={styles.productContent}>
-            <View style={styles.productNameContainer}>
-              <Text style={[styles.productName, { fontSize: getFontSize(16) }]} numberOfLines={2}>
-                {productName}
-              </Text>
-            </View>
-                       {/* <View style={styles.unitContainer}>
-                            <Text>{unit}</Text>
-                        </View> */}
+     <View style={styles.productNameContainer}>
+  <Text style={[styles.productName, { fontSize: getFontSize(16) }]} numberOfLines={2}>
+    {productName}
+  </Text>
+  {unit && (
+    <View style={styles.unitContainerAccent}>
+      <Text style={styles.unitTextAccent}>{unit}</Text>
+    </View>
+  )}
+</View>
             <View style={styles.priceCartContainer}>
               <View style={styles.priceContainer}>
                 <Text style={[styles.priceLabel, { fontSize: getFontSize(12) }]}>От</Text>
@@ -153,7 +285,7 @@ const ProductBox: React.FC<ProductBoxProps> = React.memo(({
                 <Svg viewBox="0 0 24 24" width={20} height={20}>
                   <Path
                     d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                    fill={isAddingToCart ? "#000" : "#000"}
+                    fill={isAddingToCart ? "#1F2937" : "#1F2937"}
                   />
                 </Svg>
               </TouchableOpacity>
@@ -182,8 +314,8 @@ const HeartIcon: React.FC<HeartIconProps> = React.memo(({ filled = false }) => {
       <Svg viewBox="0 0 24 24" width={24} height={24}>
         <Path
           d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-          fill={isFavorite ? "#FF6B6B" : "transparent"}
-          stroke={isFavorite ? "#FF6B6B" : "#666"}
+          fill={isFavorite ? "#1F2937" : "transparent"}
+          stroke={isFavorite ? "#1F2937" : "#1F2937"}
           strokeWidth={2}
         />
       </Svg>
@@ -323,27 +455,7 @@ const Index: React.FC = () => {
         resizeMode="cover"
       >
         <View style={styles.loadingContainer}>
- <ContentLoader 
-    speed={2}
-    width={360}
-    height={800}
-    viewBox="0 0 360 800"
-    backgroundColor="#ababab"
-    foregroundColor="#ecebeb"
-
-  >
-    <Rect x="64" y="20" rx="6" ry="6" width="220" height="28" /> 
-    <Rect x="104" y="65" rx="6" ry="6" width="140" height="18" /> 
-    <Rect x="18" y="100" rx="12" ry="12" width="108" height="44" /> 
-    <Rect x="109" y="154" rx="5" ry="5" width="140" height="18" /> 
-    <Rect x="17" y="185" rx="12" ry="12" width="160" height="271" /> 
-    <Rect x="194" y="185" rx="12" ry="12" width="160" height="271" /> 
-    <Rect x="118" y="462" rx="5" ry="5" width="140" height="18" /> 
-    <Rect x="197" y="494" rx="12" ry="12" width="160" height="288" /> 
-    <Rect x="18" y="493" rx="12" ry="12" width="160" height="293" /> 
-    <Rect x="135" y="98" rx="12" ry="12" width="108" height="44" /> 
-    <Rect x="250" y="97" rx="12" ry="12" width="108" height="44" />
-  </ContentLoader>
+ <Skeleton></Skeleton>
         </View>
       </ImageBackground>
     );
@@ -462,7 +574,8 @@ const Index: React.FC = () => {
           products={displayProducts.tmarket}
           gradientColors={['rgba(203,230,246,1)', 'rgba(143,228,201,1)']}
         />
- 
+  <Skeleton></Skeleton>
+
         
         
         {/* Bottom spacing */}
@@ -496,10 +609,12 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontWeight: 'bold',
     textAlign: 'center',
+   color:'#1F2937',
     paddingVertical: hp(1),
   },
   subtitle: {
     fontWeight: '600',
+       color:'#1F2937',
     textAlign: 'center',
     paddingVertical: hp(1),
   },
@@ -509,16 +624,19 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: '600',
+       color:'#1F2937',
+
   },
   categories: {
     padding: wp(3),
     alignItems: 'center',
     justifyContent: 'center',
+       color:'#1F2937',
     borderRadius: 15,
     height: hp(6),
   },
   categoryText: {
-    color: 'black',
+    color: '#1F2937',
     fontWeight: '500',
   },
   imageContainer: {
@@ -537,14 +655,15 @@ const styles = StyleSheet.create({
   products: {
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
-    padding: wp(3),
+    paddingHorizontal: wp(3),
+    paddingBottom: hp(1)
   },
   productContent: {
     width: '100%',
   },
   productNameContainer: {
     alignItems: 'center',
-    minHeight: getFontSize(16) * 2.4,
+    minHeight: hp(3.6) * 2.4,
     justifyContent:'center'
   },
   productName: {
@@ -555,11 +674,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   priceLabel: {
-    color: 'black',
+    color: '#1F2937',
   },
   price: {
     fontWeight: 'bold',
-    color: 'black',
+    color: '#1F2937',
   },
   favoriteButton: {
     position: 'absolute',
@@ -634,6 +753,22 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
   },
+  unitContainerAccent: {
+  backgroundColor: 'rgba(31, 41, 55, 0.1)',
+  paddingHorizontal: wp(2),
+  paddingVertical: wp(0.5),
+  borderRadius: 8,
+  alignSelf: 'flex-start',
+  marginTop: hp(0.5),
+  borderWidth: 1,
+  borderColor: 'rgba(31, 41, 55, 0.2)',
+},
+unitTextAccent: {
+  fontSize: getFontSize(10),
+  color: '#1F2937',
+  fontWeight: '600',
+  textAlign: 'center',
+},
   //     unitContainer: {
   //   flexDirection: 'column',
   //   backgroundColor:'#96D4F7',
