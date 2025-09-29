@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useMemo } from 'react';
-import { Dimensions, FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Animated, Dimensions, FlatList, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -417,26 +417,81 @@ const getCategoryColors = (categoryText: string): [string, string] => {
 // Fixed 2 columns
 const numColumns = 2;
 
-// Memoized category item component
+// Memoized category item component with animations
 const CategoryItem = React.memo(({ 
   item, 
-  onPress 
+  onPress,
+  index,
+  isScreenFocused
 }: { 
   item: CategoriesProps; 
   onPress: (category: CategoriesProps) => void;
+  index: number;
+  isScreenFocused: boolean;
 }) => {
   const colors = useMemo(() => getCategoryColors(item.text), [item.text]);
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+  
+  // Combined entrance and reset animation
+  React.useEffect(() => {
+    if (isScreenFocused) {
+      scaleAnim.setValue(0);
+      const animation = Animated.spring(scaleAnim, {
+        toValue: 1,
+        delay: index * 50,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 40,
+      });
+      animation.start();
+      
+      return () => {
+        animation.stop();
+      };
+    } else {
+      scaleAnim.setValue(0);
+      pressScale.setValue(1);
+    }
+  }, [index, scaleAnim, isScreenFocused, pressScale]);
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(pressScale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 100,
+    }).start();
+  }, [pressScale]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(pressScale, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 100,
+    }).start();
+  }, [pressScale]);
   
   const handlePress = useCallback(() => {
+    pressScale.setValue(1);
     onPress(item);
-  }, [item, onPress]);
+  }, [item, onPress, pressScale]);
+
+  const animatedStyle = {
+    transform: [
+      { scale: Animated.multiply(scaleAnim, pressScale) }
+    ],
+    opacity: scaleAnim,
+  };
 
   return (
-    <View style={styles.itemContainer}>
-      <TouchableOpacity 
-        onPress={handlePress} 
+    <Animated.View style={[styles.itemContainer, animatedStyle]}>
+      <Pressable 
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         style={styles.button}
-        activeOpacity={0.7}
       >
         <LinearGradient
           colors={colors}
@@ -445,15 +500,31 @@ const CategoryItem = React.memo(({
         >
           <Text style={styles.categoryText}>{item.text}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </View>
+      </Pressable>
+    </Animated.View>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.item.id === nextProps.item.id;
+  return prevProps.item.id === nextProps.item.id && 
+         prevProps.index === nextProps.index &&
+         prevProps.isScreenFocused === nextProps.isScreenFocused;
 });
+
+CategoryItem.displayName = "CategoryItem";
 
 const Categories = () => {
   const router = useRouter();
+  const [isScreenFocused, setIsScreenFocused] = React.useState(true);
+  const flatListRef = useRef<FlatList>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsScreenFocused(true);
+      
+      return () => {
+        setIsScreenFocused(false);
+      };
+    }, [])
+  );
 
   const handleCategoryPress = useCallback((category: CategoriesProps) => {
     router.push({
@@ -466,46 +537,47 @@ const Categories = () => {
     });
   }, [router]);
 
-  const renderCategoryItem = useCallback(({ item }: { item: CategoriesProps }) => (
-    <CategoryItem item={item} onPress={handleCategoryPress} />
-  ), [handleCategoryPress]);
+  const renderCategoryItem = useCallback(({ item, index }: { item: CategoriesProps; index: number }) => (
+    <CategoryItem item={item} onPress={handleCategoryPress} index={index} isScreenFocused={isScreenFocused} />
+  ), [handleCategoryPress, isScreenFocused]);
 
   const keyExtractor = useCallback((item: CategoriesProps) => item.id, []);
 
-  const getItemLayout = useCallback((data: any, index: number) => ({
-    length: hp(10) + 16,
-    offset: (hp(10) + 16) * Math.floor(index / numColumns),
-    index,
-  }), []);
-
-  const ListHeaderComponent = useMemo(() => (
-    <View style={styles.titleContainer}>
-      <Text style={styles.title}>Избери си категория</Text>
-    </View>
-  ), []);
+  const getItemLayout = useCallback((_: any, index: number) => {
+    const itemHeight = hp(10) + 16;
+    return {
+      length: itemHeight,
+      offset: itemHeight * Math.floor(index / numColumns),
+      index,
+    };
+  }, []);
 
   return (
     <ImageBackground
       source={require("../../assets/images/background2.png")}
       style={styles.backgroundImage}
     >
-      <View style={styles.container}>
-        <FlatList
-          data={categoriesArray}
-          renderItem={renderCategoryItem}
-          keyExtractor={keyExtractor}
-          ListHeaderComponent={ListHeaderComponent}
-          numColumns={numColumns}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.flatListContainer}
-          columnWrapperStyle={styles.row}
-          removeClippedSubviews={true}
-          initialNumToRender={8}
-          maxToRenderPerBatch={6}
-          windowSize={5}
-          getItemLayout={getItemLayout}
-        />
-      </View>
+      <FlatList
+        ref={flatListRef}
+        data={categoriesArray}
+        renderItem={renderCategoryItem}
+        keyExtractor={keyExtractor}
+        numColumns={numColumns}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.flatListContainer}
+        columnWrapperStyle={styles.row}
+        removeClippedSubviews={true}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        updateCellsBatchingPeriod={50}
+        getItemLayout={getItemLayout}
+        ListHeaderComponent={
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Избери си категория</Text>
+          </View>
+        }
+      />
     </ImageBackground>
   );
 };
@@ -516,13 +588,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  container: {
-    flex: 1,
-    paddingTop: 55,
-  },
   titleContainer: {
     alignItems: 'center',
     paddingVertical: 20,
+    paddingTop: 75,
   },
   title: {
     fontSize: getFontSize(32),
@@ -545,6 +614,14 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   categoryText: {
     fontSize: getFontSize(16),
