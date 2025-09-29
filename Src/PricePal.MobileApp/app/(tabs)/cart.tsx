@@ -97,7 +97,6 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
         onPress={onClose}
       >
         <View style={styles.bottomSheet}>
-          {/* Restore original blur intensity */}
           <BlurView
             intensity={30}
             tint="light"
@@ -204,12 +203,10 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
               <Text style={styles.brand}>{brand}</Text>
               <Text style={styles.name}>{name}</Text>
               <Text style={styles.price}>{price} €</Text>
-                            <Text style={styles.price}>{price} лв.</Text>
-
+              <Text style={styles.price}>{price} лв.</Text>
             </View>
 
             <View style={styles.quantityRow}>
-              {/* Reduce blur intensity */}
               <BlurView intensity={50} tint="light" style={styles.blurButton}>
                 <TouchableHighlight 
                   underlayColor="transparent" 
@@ -244,6 +241,14 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
         onSaveForLater={handleSaveForLater}
       />
     </>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison - only re-render if these props change
+  return (
+    prevProps.name === nextProps.name &&
+    prevProps.brand === nextProps.brand &&
+    prevProps.price === nextProps.price &&
+    prevProps.index === nextProps.index
   );
 });
 
@@ -281,7 +286,7 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
   );
 });
 
-const OverviewPrice: React.FC<OverviewPriceProps> = ({
+const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   price,
 }) => {
   return (
@@ -296,11 +301,10 @@ const OverviewPrice: React.FC<OverviewPriceProps> = ({
         overflow-hidden 
         border border-white
         shadow-lg
-        left-0 right-0  mx-3"
+        left-0 right-0 mx-3"
       style={{ bottom: wp(29) }}
     >
-      <View className=' flex-row 
-        justify-between   items-center  '>
+      <View className='flex-row justify-between items-center'>
         <Text className="text-lg font-bold text-black">
           Обща цена
         </Text>
@@ -312,15 +316,15 @@ const OverviewPrice: React.FC<OverviewPriceProps> = ({
         intensity={55}
         tint="systemThickMaterialLight"
         experimentalBlurMethod="dimezisBlurView"
-        className='items-center bg-gray-200 h-[50px] rounded-[10px] m-5 justify-center  shadow-lg overflow-hidden border border-white '
+        className='items-center bg-gray-200 h-[50px] rounded-[10px] m-5 justify-center shadow-lg overflow-hidden border border-white'
       >
-        <TouchableHighlight className='justify-center' >
+        <TouchableHighlight className='justify-center'>
           <Text className='font-bold'>Продължи</Text>
         </TouchableHighlight>
       </BlurView>
     </BlurView>
-  )
-}
+  );
+});
 
 const Cart: React.FC = () => {
   const [products, setProducts] = useState<ProductBoxProps[]>([
@@ -391,6 +395,12 @@ const Cart: React.FC = () => {
     </>
   ), [finalPrice]);
 
+  const getItemLayout = useCallback((data: any, index: number) => ({
+    length: DIMENSIONS.productHeight + 16,
+    offset: (DIMENSIONS.productHeight + 16) * index,
+    index,
+  }), []);
+
   return (
     <ImageBackground
       source={require("../../assets/images/background2.png")}
@@ -407,9 +417,10 @@ const Cart: React.FC = () => {
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           removeClippedSubviews={true}
-          maxToRenderPerBatch={5}
-          windowSize={10}
+          maxToRenderPerBatch={3}
+          windowSize={5}
           initialNumToRender={3}
+          getItemLayout={getItemLayout}
         />
         
         <OverviewPrice price={price} />
@@ -434,7 +445,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop:hp(2)
+    marginTop: hp(2)
   },
   products: {
     width: DIMENSIONS.productWidth,
@@ -447,7 +458,6 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.productWidth,
     height: DIMENSIONS.overviewHeight,
     borderRadius: 15,
-  
   },
   mainTitle: {
     fontWeight: 'bold',
@@ -526,7 +536,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
   },
-  // Summary styles
   summaryContainer: {
     flex: 1,
     justifyContent: 'space-between',
@@ -553,61 +562,6 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginTop: 4,
   },
-  // Overview price styles
-  overviewPriceContainer: {
-    position: 'absolute',
-    bottom: wp(29),
-    left: 12,
-    right: 12,
-    borderRadius: 15,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  overviewPriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  overviewPriceTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  overviewPriceValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'black',
-  },
-  continueButton: {
-    height: 50,
-    borderRadius: 10,
-    margin: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: 'white',
-    overflow: 'hidden',
-  },
-  continueButtonInner: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  continueButtonText: {
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  // Options Menu Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -672,4 +626,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-export default Cart;
+
+export default React.memo(Cart);

@@ -1,10 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Dimensions, FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-//  Width and height functions
+// Width and height functions
 const wp = (percentage: number): number => {
   return (percentage * screenWidth) / 100;
 };
@@ -364,99 +365,81 @@ export const categoriesArray: CategoriesProps[] = [
   },
 ];
 
-// Function to determine category type decides on colors
-const getCategoryColors = (categoryText: string): string[] => {
+// Memoize color mapping to avoid recalculation
+const CATEGORY_COLOR_MAP = new Map<string, [string, string]>([
+  // Food & Beverages - Green gradient
+  ["🍎Плодове и зеленчуци", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🥩Месо и птици", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🐟Риба и морски дарове", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🧀Млечни продукти", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🍞Хлебни изделия", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["❄️Замразени храни", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🥫Консерви и пакетирани храни", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🥖Основни продукти и подправки", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🍿Снаксове", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🍫Сладки и десерти", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🥣Закуска и зърнени продукти", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🥤Напитки", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
+  ["🍷Алкохол", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
   
-  // Food & Beverages
-  const foodCategories = [
-    "🍎Плодове и зеленчуци",
-    "🥩Месо и птици",
-    "🐟Риба и морски дарове",
-    "🧀Млечни продукти",
-    "🍞Хлебни изделия",
-    "❄️Замразени храни",
-    "🥫Консерви и пакетирани храни",
-    "🥖Основни продукти и подправки",
-    "🍿Снаксове",
-    "🍫Сладки и десерти",
-    "🥣Закуска и зърнени продукти",
-    "🥤Напитки",
-    "🍷Алкохол"
-  ];
+  // Household - Blue gradient
+  ["🧼Почистващи и перилни препарати", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
+  ["🧻Хартиени продукти", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
+  ["🥡Еднократни съдове и опаковки", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
+  ["📦Организация и съхранение", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
+  ["🐾Грижа за домашни любимци", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
+  
+  // Personal Care - Purple gradient
+  ["🧴Тоалетни принадлежности", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
+  ["💆‍♀️Грижа за кожата", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
+  ["💇‍♀️Грижа за косата", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
+  ["💊Здраве и уелнес", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
+  ["👶Бебешки продукти", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
+  
+  // General Merchandise - Orange gradient
+  ["🍳Кухня и сервиране", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🔌Електроуреди", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🔋Електроника и аксесоари", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🧦Текстил и облекло", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🖊️Офис и канцеларски материали", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🚗Автомобилни продукти", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🌱Сезонни и градински продукти", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+  ["🏋️‍♂️Спорт и свободно време", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
+]);
 
-  // Non-Food Household Products  
-  const householdCategories = [
-    "🧼Почистващи и перилни препарати",
-    "🧻Хартиени продукти",
-    "🥡Еднократни съдове и опаковки",
-    "📦Организация и съхранение",
-    "🐾Грижа за домашни любимци"
-  ];
+const DEFAULT_COLORS: [string, string] = ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'];
 
-  // Personal Care & Health
-  const personalCareCategories = [
-    "🧴Тоалетни принадлежности",
-    "💆‍♀️Грижа за кожата",
-    "💇‍♀️Грижа за косата",
-    "💊Здраве и уелнес",
-    "👶Бебешки продукти"
-  ];
-
-  // Non-Food General Merchandise
-  const generalMerchandiseCategories = [
-    "🍳Кухня и сервиране",
-    "🔌Електроуреди",
-    "🔋Електроника и аксесоари",
-    "🧦Текстил и облекло",
-    "🖊️Офис и канцеларски материали",
-    "🚗Автомобилни продукти",
-    "🌱Сезонни и градински продукти",
-    "🏋️‍♂️Спорт и свободно време"
-  ];
-
-  if (foodCategories.includes(categoryText)) {
-    // Green gradient 
-    return ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'] as [string, string];
-  } else if (householdCategories.includes(categoryText)) {
-    // Blue gradient 
-    return ['rgba(255,218,185,1)', 'rgba(255,182,193,1)'] as [string, string];
-  } else if (personalCareCategories.includes(categoryText)) {
-    // Pink/Purple gradient 
-    return ['rgba(221,214,243,1)', 'rgba(196,181,253,1)'] as [string, string];
-  } else if (generalMerchandiseCategories.includes(categoryText)) {
-    // Orange gradient
-    return ['rgba(143,228,201,1)', 'rgba(150,210,255,1)'] as [string, string];
-  } else {
-    // Default gradient
-    return ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'] as [string, string];
-  }
+// Optimized color getter
+const getCategoryColors = (categoryText: string): [string, string] => {
+  return CATEGORY_COLOR_MAP.get(categoryText) || DEFAULT_COLORS;
 };
 
 // Fixed 2 columns
 const numColumns = 2;
 
-const Categories = () => {
-  const router = useRouter();
+// Memoized category item component
+const CategoryItem = React.memo(({ 
+  item, 
+  onPress 
+}: { 
+  item: CategoriesProps; 
+  onPress: (category: CategoriesProps) => void;
+}) => {
+  const colors = useMemo(() => getCategoryColors(item.text), [item.text]);
+  
+  const handlePress = useCallback(() => {
+    onPress(item);
+  }, [item, onPress]);
 
-  const handleCategoryPress = (category: CategoriesProps) => {
-    router.push({
-      pathname: '/subcategories/[subcategoryid]',
-      params: { 
-        subcategoryid: category.id,
-        categoryName: category.text,
-        subcategories: JSON.stringify(category.subcategories)
-      }
-    });
-  };
-
-  const renderCategoryItem = ({ item }: { item: CategoriesProps }) => (
+  return (
     <View style={styles.itemContainer}>
       <TouchableOpacity 
-        onPress={() => handleCategoryPress(item)} 
+        onPress={handlePress} 
         style={styles.button}
+        activeOpacity={0.7}
       >
         <LinearGradient
-          colors={getCategoryColors(item.text) as [string, string]}
+          colors={colors}
           start={{ x: 0, y: 1 }}
           style={styles.categories}
         >
@@ -465,12 +448,41 @@ const Categories = () => {
       </TouchableOpacity>
     </View>
   );
+}, (prevProps, nextProps) => {
+  return prevProps.item.id === nextProps.item.id;
+});
 
-  const getItemLayout = (data: any, index: number) => ({
-    length: hp(10) + 16, // item height + margins
+const Categories = () => {
+  const router = useRouter();
+
+  const handleCategoryPress = useCallback((category: CategoriesProps) => {
+    router.push({
+      pathname: '/subcategories/[subcategoryid]',
+      params: { 
+        subcategoryid: category.id,
+        categoryName: category.text,
+        subcategories: JSON.stringify(category.subcategories)
+      }
+    });
+  }, [router]);
+
+  const renderCategoryItem = useCallback(({ item }: { item: CategoriesProps }) => (
+    <CategoryItem item={item} onPress={handleCategoryPress} />
+  ), [handleCategoryPress]);
+
+  const keyExtractor = useCallback((item: CategoriesProps) => item.id, []);
+
+  const getItemLayout = useCallback((data: any, index: number) => ({
+    length: hp(10) + 16,
     offset: (hp(10) + 16) * Math.floor(index / numColumns),
     index,
-  });
+  }), []);
+
+  const ListHeaderComponent = useMemo(() => (
+    <View style={styles.titleContainer}>
+      <Text style={styles.title}>Избери си категория</Text>
+    </View>
+  ), []);
 
   return (
     <ImageBackground
@@ -478,24 +490,20 @@ const Categories = () => {
       style={styles.backgroundImage}
     >
       <View style={styles.container}>
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Избери си категория</Text>
-        </View>
-        
-        {/* Categories FlatList */}
         <FlatList
           data={categoriesArray}
           renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={ListHeaderComponent}
           numColumns={numColumns}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.flatListContainer}
           columnWrapperStyle={styles.row}
           removeClippedSubviews={true}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={10}
+          initialNumToRender={8}
+          maxToRenderPerBatch={6}
+          windowSize={5}
+          getItemLayout={getItemLayout}
         />
       </View>
     </ImageBackground>
@@ -547,4 +555,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Categories;
+export default React.memo(Categories);
