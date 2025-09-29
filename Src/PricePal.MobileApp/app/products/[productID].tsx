@@ -1,11 +1,23 @@
-
 import { useProduct } from '@/services/useProducts'; // Use the new hook
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dimensions, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from 'react-native-gifted-charts';
-import Animated, { SlideInRight, SlideOutRight } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  SlideInRight,
+  SlideOutRight,
+  ZoomIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming
+} from "react-native-reanimated";
 import { enableScreens } from 'react-native-screens';
 import Svg, { Path } from "react-native-svg";
 
@@ -50,12 +62,46 @@ export default function ProductPage() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [quantity, setQuantity] = useState(1);
   
+  // Animation values
+  const heartScale = useSharedValue(1);
+  const buttonScale = useSharedValue(1);
+  
   const params = useLocalSearchParams();
   const productNameParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
   const productName = decodeURIComponent(productNameParam || '');
   
 
   const { product, found, dataReady } = useProduct(productName);
+
+  // Animate heart when favorited
+  useEffect(() => {
+    if (isFavorite) {
+      heartScale.value = withSequence(
+        withSpring(1.3, { damping: 2, stiffness: 100 }),
+        withSpring(1, { damping: 2, stiffness: 100 })
+      );
+    }
+  }, [isFavorite]);
+
+  // Pulse animation for cart button
+  useEffect(() => {
+    buttonScale.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const heartAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }]
+  }));
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }]
+  }));
 
 
   if (!dataReady) {
@@ -113,7 +159,10 @@ export default function ProductPage() {
           contentContainerStyle={styles.scrollContent}
         >
           {/* Product Image Section */}
-          <View style={styles.imageContainer}>
+          <Animated.View 
+            entering={FadeInDown.delay(100).duration(600).springify()}
+            style={styles.imageContainer}
+          >
             {product.imageUrl ? (
               <Image
                 source={typeof product.imageUrl === 'string' ? { uri: product.imageUrl } : product.imageUrl}
@@ -129,52 +178,79 @@ export default function ProductPage() {
             )}
             
             {/* Favorite Button */}
-            <TouchableOpacity 
-              style={styles.favoriteButton}
-              onPress={() => setIsFavorite(!isFavorite)}
-            >
-              <Svg viewBox="0 0 24 24" width={28} height={28}>
-                <Path
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                  fill={isFavorite ? "#FF6B6B" : "transparent"}
-                  stroke={isFavorite ? "#FF6B6B" : "#666"}
-                  strokeWidth={2}
-                />
-              </Svg>
-            </TouchableOpacity>
-          </View>
+            <Animated.View style={heartAnimatedStyle}>
+              <TouchableOpacity 
+                style={styles.favoriteButton}
+                onPress={() => setIsFavorite(!isFavorite)}
+              >
+                <Svg viewBox="0 0 24 24" width={28} height={28}>
+                  <Path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill={isFavorite ? "#FF6B6B" : "transparent"}
+                    stroke={isFavorite ? "#FF6B6B" : "#666"}
+                    strokeWidth={2}
+                  />
+                </Svg>
+              </TouchableOpacity>
+            </Animated.View>
+          </Animated.View>
 
           {/* Product Details Section */}
-          <View style={styles.detailsContainer}>
+          <Animated.View 
+            entering={FadeInDown.delay(200).duration(600).springify()}
+            style={styles.detailsContainer}
+          >
             {/* Product Name and Brand */}
-            <Text style={styles.productName}>{product.name}</Text>
+            <Animated.Text 
+              entering={FadeIn.delay(300).duration(500)}
+              style={styles.productName}
+            >
+              {product.name}
+            </Animated.Text>
             
             {/* Rating */}
-            <View style={styles.ratingContainer}>
+            <Animated.View 
+              entering={FadeIn.delay(350).duration(500)}
+              style={styles.ratingContainer}
+            >
               <View style={styles.starsContainer}>
                 {[...Array(5)].map((_, i) => (
-                  <Svg key={i} viewBox="0 0 24 24" width={20} height={20} style={styles.star}>
-                    <Path
-                      d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.868 1.486 8.279L12 18.896l-7.422 4.557 1.486-8.279-6.064-5.868 8.332-1.151z"
-                      fill={i < 4 ? "rgba(143,228,201,1)" : "#E0E0E0"}
-                    />
-                  </Svg>
+                  <Animated.View 
+                    key={i}
+                    entering={ZoomIn.delay(400 + i * 50).duration(400).springify()}
+                  >
+                    <Svg viewBox="0 0 24 24" width={20} height={20} style={styles.star}>
+                      <Path
+                        d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.868 1.486 8.279L12 18.896l-7.422 4.557 1.486-8.279-6.064-5.868 8.332-1.151z"
+                        fill={i < 4 ? "rgba(143,228,201,1)" : "#E0E0E0"}
+                      />
+                    </Svg>
+                  </Animated.View>
                 ))}
               </View>
               <Text style={styles.ratingText}>4.8 (124 reviews)</Text>
-            </View>
+            </Animated.View>
 
             {/* Price */}
-            <View style={styles.priceContainer}>
+            <Animated.View 
+              entering={FadeIn.delay(450).duration(500)}
+              style={styles.priceContainer}
+            >
               <Text style={styles.price}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
               <Text style={styles.price}>{product.priceEur.replace(/€.*/, '')} €</Text>
-            </View>
-            <View style={styles.unitContainer}>
+            </Animated.View>
+            <Animated.View 
+              entering={FadeIn.delay(500).duration(500)}
+              style={styles.unitContainer}
+            >
                 <Text>{product.unit}</Text>
-            </View>
+            </Animated.View>
 
             {/* Quantity Selection */}
-            <View style={styles.quantitySection}>
+            <Animated.View 
+              entering={FadeInUp.delay(550).duration(600).springify()}
+              style={styles.quantitySection}
+            >
               <Text style={styles.sectionTitle}>Брой</Text>
               <View style={styles.quantityContainer}>
                 <TouchableOpacity
@@ -191,11 +267,14 @@ export default function ProductPage() {
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
 
           {/* Retail Box */}
-          <View style={styles.retailsContainer}>
+          <Animated.View 
+            entering={FadeInDown.delay(300).duration(600).springify()}
+            style={styles.retailsContainer}
+          >
             <Text style={styles.retailTitle}>Цени в различните вериги</Text>
             <View style={styles.OneRetailBox}>
               <View style={styles.leftSection}>
@@ -219,10 +298,13 @@ export default function ProductPage() {
                 <Text style={styles.originalPrice}>{product.oldPriceEur.replace(/€.*/, '')} €</Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Charts */}
-        <View style={styles.chartContainer}>
+        <Animated.View 
+          entering={FadeInDown.delay(400).duration(600).springify()}
+          style={styles.chartContainer}
+        >
   <Text style={styles.chartTitle}>Ценова история</Text>
   <Text style={styles.chartSubtitle}>Последни 6 месеца</Text>
   
@@ -334,39 +416,43 @@ export default function ProductPage() {
     </Svg>
     <Text style={styles.trendText}>+15% спрямо миналия месец</Text>
   </View>
-</View>
+</Animated.View>
         </ScrollView>
 
         {/* Cart Button */}
-     <BlurView
-      intensity={40}
-      tint="light"
-      experimentalBlurMethod="dimezisBlurView" 
-      style={{
-        position: 'absolute',
-        bottom: wp(7),
-  width:wp(95),
-  alignSelf:'center',
-        borderRadius: 15,
-        padding: 20,
-        overflow: 'hidden',
-        borderWidth: 1.5,
-        borderColor: 'rgba(255, 255, 255, 1)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 8,
-      }}
-    >
-          <TouchableOpacity style={{ justifyContent: 'center', flexDirection: 'row', alignItems: 'center' }}>
-            <Svg width={24} height={24} viewBox="0 0 902.86 902.86" fill={'#000'}>
-              <Path d="M671.504,577.829l110.485-432.609H902.86v-68H729.174L703.128,179.2L0,178.697l74.753,399.129h596.751V577.829z M685.766,247.188l-67.077,262.64H131.199L81.928,246.756L685.766,247.188z" />
-              <Path d="M578.418,825.641c59.961,0,108.743-48.783,108.743-108.744s-48.782-108.742-108.743-108.742H168.717 c-59.961,0-108.744,48.781-108.744,108.742s48.782,108.744,108.744,108.744c59.962,0,108.743-48.783,108.743-108.744 c0-14.4-2.821-28.152-7.927-40.742h208.069c-5.107,12.59-7.928,26.342-7.928,40.742 C469.675,776.858,518.457,825.641,578.418,825.641z M209.46,716.897c0,22.467-18.277,40.744-40.743,40.744 c-22.466,0-40.744-18.277-40.744-40.744c0-22.465,18.277-40.742,40.744-40.742C191.183,676.155,209.46,694.432,209.46,716.897z M619.162,716.897c0,22.467-18.277,40.744-40.743,40.744s-40.743-18.277-40.743-40.744c0-22.465,18.277-40.742,40.743-40.742 S619.162,694.432,619.162,716.897z" />
-            </Svg>
-            <Text style={{ fontWeight: '600', fontSize: 20, marginLeft: 8}}>Добави към количката</Text>
-          </TouchableOpacity>
-        </BlurView>
+           <Animated.View
+          entering={ZoomIn.delay(500).duration(500).springify()}
+        >
+          <BlurView
+            intensity={40}
+            tint="light"
+            experimentalBlurMethod="dimezisBlurView" 
+            style={{
+              position: 'absolute',
+              bottom: wp(7),
+              width:wp(95),
+              alignSelf:'center',
+              borderRadius: 15,
+              padding: 20,
+              overflow: 'hidden',
+              borderWidth: 1.5,
+              borderColor: 'rgba(255, 255, 255, 1)',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 10,
+              elevation: 8,
+            }}
+          >
+            <TouchableOpacity style={{ justifyContent: 'center', flexDirection: 'row', alignItems: 'center' }}>
+              <Svg width={24} height={24} viewBox="0 0 902.86 902.86" fill={'#000'}>
+                <Path d="M671.504,577.829l110.485-432.609H902.86v-68H729.174L703.128,179.2L0,178.697l74.753,399.129h596.751V577.829z M685.766,247.188l-67.077,262.64H131.199L81.928,246.756L685.766,247.188z" />
+                <Path d="M578.418,825.641c59.961,0,108.743-48.783,108.743-108.744s-48.782-108.742-108.743-108.742H168.717 c-59.961,0-108.744,48.781-108.744,108.742s48.782,108.744,108.744,108.744c59.962,0,108.743-48.783,108.743-108.744 c0-14.4-2.821-28.152-7.927-40.742h208.069c-5.107,12.59-7.928,26.342-7.928,40.742 C469.675,776.858,518.457,825.641,578.418,825.641z M209.46,716.897c0,22.467-18.277,40.744-40.743,40.744 c-22.466,0-40.744-18.277-40.744-40.744c0-22.465,18.277-40.742,40.744-40.742C191.183,676.155,209.46,694.432,209.46,716.897z M619.162,716.897c0,22.467-18.277,40.744-40.743,40.744s-40.743-18.277-40.743-40.744c0-22.465,18.277-40.742,40.743-40.742 S619.162,694.432,619.162,716.897z" />
+              </Svg>
+              <Text style={{ fontWeight: '600', fontSize: 20, marginLeft: 8}}>Добави към количката</Text>
+            </TouchableOpacity>
+          </BlurView>
+        </Animated.View>
       </ImageBackground>
     </Animated.View>
   );
@@ -629,10 +715,10 @@ const styles = StyleSheet.create({
     paddingLeft: wp(2),
     fontWeight: 'bold',
     fontSize: getFontSize(16),
-    color: '#1F2937', // changed
+    color: '#1F2937',
   },
   discountText: {
-    color: '#1F2937', // changed
+    color: '#1F2937',
     fontWeight: 'bold',
     fontSize: 12,
   },
@@ -688,4 +774,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
