@@ -7,17 +7,14 @@
     "icon": "./assets/images/icon.png",
     "scheme": "pricepalmobileapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "jsEngine": "hermes",
     "ios": {
-      "supportsTablet": true,
-          "newArchEnabled": false
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-           "newArchEnabled": false
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.PricePal.MobileApp"
