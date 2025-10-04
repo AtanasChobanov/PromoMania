@@ -1,7 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Animated, Dimensions, FlatList, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, FlatList, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -417,7 +424,7 @@ const getCategoryColors = (categoryText: string): [string, string] => {
 // Fixed 2 columns
 const numColumns = 2;
 
-// Memoized category item component with animations
+// Memoized category item component with Reanimated
 const CategoryItem = React.memo(({ 
   item, 
   onPress,
@@ -430,60 +437,48 @@ const CategoryItem = React.memo(({
   isScreenFocused: boolean;
 }) => {
   const colors = useMemo(() => getCategoryColors(item.text), [item.text]);
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const pressScale = useRef(new Animated.Value(1)).current;
+  const scale = useSharedValue(0);
+  const pressScale = useSharedValue(1);
   
-  // Combined entrance and reset animation
+  // Combined entrance and reset animation with Reanimated
   React.useEffect(() => {
     if (isScreenFocused) {
-      scaleAnim.setValue(0);
-      const animation = Animated.spring(scaleAnim, {
-        toValue: 1,
-        delay: index * 50,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 40,
-      });
-      animation.start();
-      
-      return () => {
-        animation.stop();
-      };
+      scale.value = 0;
+      scale.value = withDelay(
+        index * 50,
+        withTiming(1, {
+          duration: 500,
+        })
+      );
     } else {
-      scaleAnim.setValue(0);
-      pressScale.setValue(1);
+      scale.value = 0;
+      pressScale.value = 1;
     }
-  }, [index, scaleAnim, isScreenFocused, pressScale]);
+  }, [isScreenFocused, index]);
 
   const handlePressIn = useCallback(() => {
-    Animated.spring(pressScale, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      friction: 5,
-      tension: 100,
-    }).start();
-  }, [pressScale]);
+    pressScale.value = withSpring(0.95, {
+      damping: 5,
+      stiffness: 100,
+    });
+  }, []);
 
   const handlePressOut = useCallback(() => {
-    Animated.spring(pressScale, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 5,
-      tension: 100,
-    }).start();
-  }, [pressScale]);
+    pressScale.value = withSpring(1, {
+      damping: 5,
+      stiffness: 100,
+    });
+  }, []);
   
   const handlePress = useCallback(() => {
-    pressScale.setValue(1);
+    pressScale.value = 1;
     onPress(item);
-  }, [item, onPress, pressScale]);
+  }, [item, onPress]);
 
-  const animatedStyle = {
-    transform: [
-      { scale: Animated.multiply(scaleAnim, pressScale) }
-    ],
-    opacity: scaleAnim,
-  };
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value * pressScale.value }],
+    opacity: scale.value,
+  }));
 
   return (
     <Animated.View style={[styles.itemContainer, animatedStyle]}>
