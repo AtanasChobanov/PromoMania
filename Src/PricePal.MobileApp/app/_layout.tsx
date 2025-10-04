@@ -5,6 +5,7 @@ import "../globals.css";
 
 export default function RootLayout() {
   return (
+        
     <GestureHandlerRootView style={styles.container}>
       <Stack
         screenOptions={{
@@ -20,6 +21,7 @@ export default function RootLayout() {
         <Stack.Screen name="productsCategories" />
       </Stack>
     </GestureHandlerRootView>
+    
   );
 }
 

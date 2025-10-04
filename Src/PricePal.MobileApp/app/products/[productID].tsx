@@ -53,12 +53,12 @@ const chainLogos: Record<string, any> = {
 };
 
 const productPriceHistory = [
-  { value: 10, label: 'Янр', labelTextStyle: { color: '#666', fontSize: 12 } },
-  { value: 15, label: 'Фев', labelTextStyle: { color: '#666', fontSize: 12 } },
-  { value: 12, label: 'Мар', labelTextStyle: { color: '#666', fontSize: 12 } },
-  { value: 15, label: 'Апр', labelTextStyle: { color: '#666', fontSize: 12 } },
-  { value: 9, label: 'Май', labelTextStyle: { color: '#666', fontSize: 12 } },
-  { value: 10, label: 'Юни', labelTextStyle: { color: '#666', fontSize: 12 } },
+  { value: 10, label: 'Янр' },
+  { value: 15, label: 'Фев' },
+  { value: 12, label: 'Мар' },
+  { value: 15, label: 'Апр' },
+  { value: 9, label: 'Май' },
+  { value: 10, label: 'Юни' },
 ];
 
 export default function ProductPage() {
@@ -296,99 +296,94 @@ export default function ProductPage() {
             <Text style={styles.chartTitle}>Ценова история</Text>
             <Text style={styles.chartSubtitle}>Последни 6 месеца</Text>
 
-            <LineChart
-    // Animation settings
-    isAnimated
-    animateOnDataChange
-    animationDuration={1200}
-    onDataChangeAnimationDuration={500}
-    
-    // Data and styling
-    data={productPriceHistory}
-    thickness={4}
-    color="#8FE4C9"
-    color1="#8FE4C9"
-
-    // Chart dimensions and spacing
-    width={wp(85)}
-    height={200}
-    spacing={45}
-    initialSpacing={20}
-    endSpacing={20}
-    
-    // Area chart settings
-    areaChart
-    startFillColor="rgba(143, 228, 201, 0.3)"
-    endFillColor="rgba(143, 228, 201, 0.1)"
-    startOpacity={0.4}
-    endOpacity={0.05}
-    
-    // Data points
-    hideDataPoints={false}
-    dataPointsColor="#8FE4C9"
-    dataPointsRadius={6}
-    dataPointsWidth={2}
-    dataPointsColor1="#8FE4C9"
-    focusEnabled
-    showDataPointOnFocus
-    showStripOnFocus
-    showTextOnFocus
-    stripColor="rgba(143, 228, 201, 0.5)"
-    stripHeight={200}
-    stripOpacity={0.3}
-    
-    // Grid and axes
-    rulesType="dashed"
-    rulesColor="rgba(255, 255, 255, 0.3)"
-    showVerticalLines={false}
-    verticalLinesColor="rgba(255, 255, 255, 0.1)"
-    
-    // Y-axis settings
-    maxValue={20}
-    noOfSections={4}
-    yAxisThickness={1}
-    yAxisColor="rgba(255, 255, 255, 0.4)"
-    yAxisTextStyle={{
-      color: '#999', 
-      fontSize: 12,
-      fontWeight: '500'
-    }}
-    yAxisLabelPrefix="€"
-    formatYLabel={(value: string) => `${Math.round(Number(value))}`}
-    
-    // X-axis settings
-    xAxisThickness={1}
-    xAxisColor="rgba(255, 255, 255, 0.4)"
-    xAxisLabelTextStyle={{
-      color: '#999',
-      fontSize: 12,
-      fontWeight: '500'
-    }}
-    
-    // Background
-    backgroundColor="rgba(255, 255, 255, 0.05)"
-    curved
-    curvature={0.2}
-    
-    // Pointer config for interaction
-    pointerConfig={{
-      pointerStripHeight: 200,
-      pointerStripColor: 'rgba(203,230,246,1)',
-      pointerStripWidth: 2,
-      pointerColor: 'rgba(203,230,246,1) ',
-      radius: 8,
-      pointerLabelWidth: 100,
-      pointerLabelHeight: 90,
-      pointerLabelComponent: (items: any[]) => {
-        return (
-          <View style={styles.pointerLabel}>
-            <Text style={styles.pointerLabelText}>€{items[0].value}</Text>
-            <Text style={styles.pointerLabelMonth}>{items[0].label}</Text>
-          </View>
-        );
-      },
-    }}
-  />
+<LineChart
+//TODO ANIMATIONS
+  
+  // Data
+  data={productPriceHistory}
+  
+  // Line styling
+  thickness={4}
+  color="#8FE4C9"
+  
+  // Dimensions
+  width={wp(85)}
+  height={200}
+  spacing={45}
+  initialSpacing={20}
+  endSpacing={20}
+  
+  // Area chart
+  areaChart
+  startFillColor="rgba(143, 228, 201, 0.3)"
+  endFillColor="rgba(143, 228, 201, 0.1)"
+  startOpacity={0.4}
+  endOpacity={0.05}
+  
+  // Data points
+  hideDataPoints={false}
+  dataPointsColor="#8FE4C9"
+  dataPointsRadius={6}
+  
+  // Focus
+  focusEnabled
+  showDataPointOnFocus
+  showStripOnFocus
+  showTextOnFocus
+  stripColor="rgba(143, 228, 201, 0.5)"
+  stripHeight={200}
+  stripOpacity={0.3}
+  
+  // Grid
+  rulesType="dashed"
+  rulesColor="rgba(255, 255, 255, 0.3)"
+  showVerticalLines={false}
+  
+  // Y-axis
+  maxValue={20}
+  noOfSections={4}
+  yAxisThickness={1}
+  yAxisColor="rgba(255, 255, 255, 0.4)"
+  yAxisTextStyle={{
+    color: '#999', 
+    fontSize: 12,
+    fontWeight: '500'
+  }}
+  yAxisLabelPrefix="€"
+  
+  // X-axis
+  xAxisThickness={1}
+  xAxisColor="rgba(255, 255, 255, 0.4)"
+  xAxisLabelTextStyle={{
+    color: '#999',
+    fontSize: 12,
+    fontWeight: '500'
+  }}
+  
+  // Background
+  backgroundColor="rgba(255, 255, 255, 0.05)"
+  curved
+  curvature={0.2}
+  
+  // Pointer config
+  pointerConfig={{
+    pointerStripHeight: 200,
+    pointerStripColor: 'rgba(143, 228, 201, 0.8)',
+    pointerStripWidth: 2,
+    pointerColor: 'rgba(143, 228, 201, 1)',
+    radius: 8,
+    pointerLabelWidth: 100,
+    pointerLabelHeight: 90,
+    pointerLabelComponent: (items: any[]) => {
+      return (
+        <View style={styles.pointerLabel}>
+          <Text style={styles.pointerLabelText}>€{items[0].value}</Text>
+          <Text style={styles.pointerLabelMonth}>{items[0].label}</Text>
+        </View>
+      );
+    },
+  }}
+/>
 
             <View style={styles.trendIndicator}>
               <Svg viewBox="0 0 24 24" width={16} height={16}>
