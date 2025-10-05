@@ -5,7 +5,7 @@ import { Image, ImageBackground, ScrollView, StyleSheet, Text, TextInput, View }
 const profile = () => {
   return (
     <ImageBackground
-           source={require("../../assets/images/background2.png")}
+           source={require("../../assets/images/background2.webp")}
            style={styles.backgroundImage}>
            <ScrollView
              className=" "

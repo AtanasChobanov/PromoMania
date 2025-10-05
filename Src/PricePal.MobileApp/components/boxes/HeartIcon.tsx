@@ -1,13 +1,13 @@
 import { styles } from '@/components/styles/homeStyles';
 import React, { useCallback, useState } from 'react';
 import {
-    TouchableOpacity
+  TouchableOpacity
 } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSequence,
-    withTiming
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming
 } from 'react-native-reanimated';
 import Svg, { Path } from "react-native-svg";
 
