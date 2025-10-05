@@ -403,7 +403,7 @@ const Cart: React.FC = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background2.png")}
+      source={require("../../assets/images/background2.webp")}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>

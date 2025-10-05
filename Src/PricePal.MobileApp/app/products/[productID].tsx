@@ -108,7 +108,7 @@ export default function ProductPage() {
     return (
       <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
         <ImageBackground
-          source={require('../../assets/images/background2.png')}
+          source={require('../../assets/images/background2.webp')}
           style={styles.backgroundImage}
         >
           <View style={styles.loadingContainer}>
@@ -124,7 +124,7 @@ export default function ProductPage() {
     return (
       <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
         <ImageBackground
-          source={require('../../assets/images/background2.png')}
+          source={require('../../assets/images/background2.webp')}
           style={styles.backgroundImage}
         >
           <View style={styles.notFoundContainer}>
@@ -142,7 +142,7 @@ export default function ProductPage() {
       exiting={SlideOutRight.duration(100)}
     >
       <ImageBackground
-        source={require('../../assets/images/background2.png')}
+        source={require('../../assets/images/background2.webp')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

@@ -1,9 +1,12 @@
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const wp = (percentage: number) => (percentage * screenWidth) / 100;
@@ -16,7 +19,9 @@ const getFontSize = (size: number) => {
 
 export default function SubcategoryProductLayout() {
   const router = useRouter();
-   const { categoryName } = useLocalSearchParams();
+  const { categoryName } = useLocalSearchParams();
+  const { isDarkMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
     <SafeAreaProvider>
@@ -24,8 +29,8 @@ export default function SubcategoryProductLayout() {
         {/* Custom Top Bar */}
         <View style={styles.topbar}>
           <LinearGradient
-             colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'transparent']}
-              locations={[0, 0.7, 1]}
+            colors={theme.colors.TopBarColors}
+            locations={[0, 0.6, 1]}
             style={StyleSheet.absoluteFill}
           />
 
@@ -34,17 +39,16 @@ export default function SubcategoryProductLayout() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-             <BlurView 
-                  intensity={20} 
-                  tint="light"
-                  experimentalBlurMethod="dimezisBlurView"
-                  style={StyleSheet.absoluteFillObject}
-                  
-                />
+            <BlurView 
+              intensity={20} 
+              tint={theme.colors.TabBarColors as 'light' | 'dark'}
+              experimentalBlurMethod="dimezisBlurView"
+              style={StyleSheet.absoluteFillObject}
+            />
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M15 18l-6-6 6-6"
-                stroke="#333"
+                stroke={theme.colors.textPrimary}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -53,19 +57,20 @@ export default function SubcategoryProductLayout() {
           </TouchableOpacity>
 
           {/* Title */}
-          <Text style={styles.title}>{categoryName}</Text>
+          <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
+            {categoryName}
+          </Text>
         </View>
 
         {/* Your stack screens */}
         <Stack
           screenOptions={{
-            headerShown: false, // hide default header
+            headerShown: false,
             animation: 'slide_from_right',
           }}
         >
           <Stack.Screen name="profile" />
-                    <Stack.Screen name="settings" />
-
+          <Stack.Screen name="settings" />
         </Stack>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -82,15 +87,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1000,
-    marginTop:hp(1.2)
+    marginTop: hp(1.2)
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderColor:'#E5E4E2',
-    borderStyle:'solid',
-    borderWidth:1,
+    borderColor: 'white',
+    borderStyle: 'solid',
+    borderWidth: 1,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -100,7 +105,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: getFontSize(18),
     fontWeight: 'bold',
-    color: '#333',
-    marginRight: 40, // keep space for back button
+    marginRight: 40,
   },
 });
