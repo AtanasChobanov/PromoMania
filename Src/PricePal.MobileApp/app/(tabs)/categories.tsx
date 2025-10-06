@@ -1,3 +1,5 @@
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef } from 'react';
@@ -9,6 +11,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -436,6 +439,8 @@ const CategoryItem = React.memo(({
   index: number;
   isScreenFocused: boolean;
 }) => {
+   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const colors = useMemo(() => getCategoryColors(item.text), [item.text]);
   const scale = useSharedValue(0);
   const pressScale = useSharedValue(1);
@@ -489,11 +494,11 @@ const CategoryItem = React.memo(({
         style={styles.button}
       >
         <LinearGradient
-          colors={colors}
+          colors={theme.colors.blueTeal}
           start={{ x: 0, y: 1 }}
           style={styles.categories}
         >
-          <Text style={styles.categoryText}>{item.text}</Text>
+          <Text style={[styles.categoryText,{color:theme.colors.textPrimary}]}>{item.text}</Text>
         </LinearGradient>
       </Pressable>
     </Animated.View>
@@ -520,7 +525,8 @@ const Categories = () => {
       };
     }, [])
   );
-
+  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const handleCategoryPress = useCallback((category: CategoriesProps) => {
     router.push({
       pathname: '/subcategories/[subcategoryid]',
@@ -549,7 +555,7 @@ const Categories = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background2.webp")}
+      source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
       <FlatList
@@ -569,7 +575,7 @@ const Categories = () => {
         getItemLayout={getItemLayout}
         ListHeaderComponent={
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Избери си категория</Text>
+            <Text style={[styles.title,{color:theme.colors.textPrimary}]}>Избери си категория</Text>
           </View>
         }
       />

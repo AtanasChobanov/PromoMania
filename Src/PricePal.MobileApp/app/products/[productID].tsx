@@ -1,3 +1,5 @@
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
 import { useProduct } from '@/services/useProducts';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams } from 'expo-router';
@@ -29,6 +31,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { enableScreens } from 'react-native-screens';
 import Svg, { Path } from 'react-native-svg';
+
 
 enableScreens();
 
@@ -62,6 +65,10 @@ const productPriceHistory = [
 ];
 
 export default function ProductPage() {
+
+    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+    const theme = isDarkMode ? darkTheme : lightTheme;
+
   const [isFavorite, setIsFavorite] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
@@ -82,7 +89,7 @@ export default function ProductPage() {
         withSpring(1, { damping: 2, stiffness: 100 })
       );
     }
-  }, [isFavorite]);
+  });
 
   useEffect(() => {
     buttonScale.value = withRepeat(
@@ -93,7 +100,7 @@ export default function ProductPage() {
       -1,
       true
     );
-  }, []);
+  });
 
   const heartAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heartScale.value }]
@@ -142,7 +149,7 @@ export default function ProductPage() {
       exiting={SlideOutRight.duration(100)}
     >
       <ImageBackground
-        source={require('../../assets/images/background2.webp')}
+        source={theme.backgroundImage}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -186,11 +193,11 @@ export default function ProductPage() {
           {/* Product Details */}
           <Animated.View
             entering={FadeInDown.delay(200).duration(600).springify()}
-            style={styles.detailsContainer}
+            style={[styles.detailsContainer,{backgroundColor:theme.colors.mainBackground}]}
           >
             <Animated.Text
               entering={FadeIn.delay(300).duration(500)}
-              style={styles.productName}
+              style={[styles.productName,{color:theme.colors.textPrimary}]}
             >
               {product.name}
             </Animated.Text>
@@ -209,13 +216,13 @@ export default function ProductPage() {
                     <Svg viewBox="0 0 24 24" width={20} height={20} style={styles.star}>
                       <Path
                         d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.868 1.486 8.279L12 18.896l-7.422 4.557 1.486-8.279-6.064-5.868 8.332-1.151z"
-                        fill={i < 4 ? 'rgba(143,228,201,1)' : '#E0E0E0'}
+                        fill={i < 4 ? theme.colors.textGreen : '#E0E0E0'}
                       />
                     </Svg>
                   </Animated.View>
                 ))}
               </View>
-              <Text style={styles.ratingText}>4.8 (124 reviews)</Text>
+              <Text style={[styles.ratingText,{color:theme.colors.textPrimary}]}>4.8 (124 reviews)</Text>
             </Animated.View>
 
             {/* Price */}
@@ -223,15 +230,15 @@ export default function ProductPage() {
               entering={FadeIn.delay(450).duration(500)}
               style={styles.priceContainer}
             >
-              <Text style={styles.price}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
-              <Text style={styles.price}>{product.priceEur.replace(/€.*/, '')} €</Text>
+              <Text style={[styles.price,{color:theme.colors.textGreen}]}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
+              <Text style={[styles.price,,{color:theme.colors.textGreen}]}>{product.priceEur.replace(/€.*/, '')} €</Text>
             </Animated.View>
 
             <Animated.View
               entering={FadeIn.delay(500).duration(500)}
               style={styles.unitContainer}
             >
-              <Text>{product.unit}</Text>
+              <Text style={{color:theme.colors.textPrimary}}>{product.unit}</Text>
             </Animated.View>
 
             {/* Quantity */}
@@ -239,17 +246,17 @@ export default function ProductPage() {
               entering={FadeInUp.delay(550).duration(600).springify()}
               style={styles.quantitySection}
             >
-              <Text style={styles.sectionTitle}>Брой</Text>
+              <Text style={[styles.sectionTitle,{color:theme.colors.textPrimary}]}>Брой</Text>
               <View style={styles.quantityContainer}>
                 <TouchableOpacity
-                  style={styles.quantityButton}
+                  style={[styles.quantityButton,{backgroundColor:theme.colors.textGreen}]}
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
                 >
                   <Text style={styles.quantityButtonText}>-</Text>
                 </TouchableOpacity>
-                <Text style={styles.quantityText}>{quantity}</Text>
+                <Text style={[styles.quantityText,{color:theme.colors.textPrimary}]}>{quantity}</Text>
                 <TouchableOpacity
-                  style={styles.quantityButton}
+                   style={[styles.quantityButton,{backgroundColor:theme.colors.textGreen}]}
                   onPress={() => setQuantity(quantity + 1)}
                 >
                   <Text style={styles.quantityButtonText}>+</Text>
@@ -261,9 +268,9 @@ export default function ProductPage() {
           {/* Retail Prices */}
           <Animated.View
             entering={FadeInDown.delay(300).duration(600).springify()}
-            style={styles.retailsContainer}
+            style={[styles.retailsContainer,{backgroundColor:theme.colors.mainBackground}]}
           >
-            <Text style={styles.retailTitle}>Цени в различните вериги</Text>
+            <Text style={[styles.retailTitle,{color:theme.colors.textPrimary}]}>Цени в различните вериги</Text>
             <View style={styles.OneRetailBox}>
               <View style={styles.leftSection}>
                 <View style={styles.storeInfo}>
@@ -271,18 +278,18 @@ export default function ProductPage() {
                     style={styles.retailImages}
                     source={chainLogos[product.chain] || require('../../assets/icons/pricelpal-logo.png')}
                   />
-                  <Text style={styles.retailText}>{product.chain}</Text>
+                  <Text style={[styles.retailText,{color:theme.colors.textPrimary}]}>{product.chain}</Text>
                 </View>
-                <View style={styles.discountContainer}>
-                  <Text style={styles.discountText}>{product.discount}</Text>
+                <View style={[styles.discountContainer,{backgroundColor:theme.colors.textGreen}]}>
+                  <Text style={[styles.discountText,{color:theme.colors.textPrimary}]}>{product.discount}</Text>
                 </View>
               </View>
               <View style={styles.rightSection}>
-                <Text style={styles.retailPrice}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
+                <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
                 <Text style={styles.originalPrice}>{product.oldPriceBgn.replace(/ЛВ.*/, '')} лв.</Text>
               </View>
               <View style={styles.rightSection}>
-                <Text style={styles.retailPrice}>{product.priceEur.replace(/€.*/, '')} €</Text>
+                <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{product.priceEur.replace(/€.*/, '')} €</Text>
                 <Text style={styles.originalPrice}>{product.oldPriceEur.replace(/€.*/, '')} €</Text>
               </View>
             </View>
@@ -291,10 +298,10 @@ export default function ProductPage() {
           {/* Price History Chart */}
           <Animated.View
             entering={FadeInDown.delay(400).duration(600).springify()}
-            style={styles.chartContainer}
+            style={[styles.chartContainer,   { backgroundColor: theme.colors.mainBackground, paddingHorizontal: 16, overflow: 'hidden' }]}
           >
-            <Text style={styles.chartTitle}>Ценова история</Text>
-            <Text style={styles.chartSubtitle}>Последни 6 месеца</Text>
+            <Text style={[styles.chartTitle,{color:theme.colors.textPrimary}]}>Ценова история</Text>
+            <Text style={[styles.chartSubtitle,{color:theme.colors.textPrimary}]}>Последни 6 месеца</Text>
 
 <LineChart
 //TODO ANIMATIONS
@@ -304,7 +311,7 @@ export default function ProductPage() {
   
   // Line styling
   thickness={4}
-  color="#8FE4C9"
+  color={theme.colors.textGreen}
   
   // Dimensions
   width={wp(85)}
@@ -336,7 +343,7 @@ export default function ProductPage() {
   
   // Grid
   rulesType="dashed"
-  rulesColor="rgba(255, 255, 255, 0.3)"
+  rulesColor={theme.colors.mainBackground}
   showVerticalLines={false}
   
   // Y-axis
@@ -361,7 +368,7 @@ export default function ProductPage() {
   }}
   
   // Background
-  backgroundColor="rgba(255, 255, 255, 0.05)"
+  backgroundColor={theme.colors.mainBackground}
   curved
   curvature={0.2}
   
@@ -389,14 +396,14 @@ export default function ProductPage() {
               <Svg viewBox="0 0 24 24" width={16} height={16}>
                 <Path
                   d="M7 14l5-5 5 5"
-                  stroke="#4CAF50"
+                  stroke={theme.colors.textGreen}
                   strokeWidth={2}
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </Svg>
-              <Text style={styles.trendText}>+15% спрямо миналия месец</Text>
+              <Text style={[styles.trendText,{color:theme.colors.textGreen}]}>+15% спрямо миналия месец</Text>
             </View>
           </Animated.View>
         </ScrollView>
@@ -405,16 +412,16 @@ export default function ProductPage() {
         <Animated.View entering={ZoomIn.delay(500).duration(500).springify()}>
           <BlurView
             intensity={40}
-            tint="light"
+            tint={theme.colors.TabBarColors as 'light' | 'dark'}
             experimentalBlurMethod="dimezisBlurView"
-            style={styles.blurContainer}
+            style={[styles.blurContainer,{borderColor:theme.colors.textPrimary}]}
           >
             <TouchableOpacity style={styles.cartButton}>
-              <Svg width={24} height={24} viewBox="0 0 902.86 902.86" fill="#000">
+              <Svg width={24} height={24} viewBox="0 0 902.86 902.86" fill={theme.colors.textPrimary}>
                 <Path d="M671.504,577.829l110.485-432.609H902.86v-68H729.174L703.128,179.2L0,178.697l74.753,399.129h596.751V577.829z M685.766,247.188l-67.077,262.64H131.199L81.928,246.756L685.766,247.188z" />
                 <Path d="M578.418,825.641c59.961,0,108.743-48.783,108.743-108.744s-48.782-108.742-108.743-108.742H168.717 c-59.961,0-108.744,48.781-108.744,108.742s48.782,108.744,108.744,108.744c59.962,0,108.743-48.783,108.743-108.744 c0-14.4-2.821-28.152-7.927-40.742h208.069c-5.107,12.59-7.928,26.342-7.928,40.742 C469.675,776.858,518.457,825.641,578.418,825.641z M209.46,716.897c0,22.467-18.277,40.744-40.743,40.744 c-22.466,0-40.744-18.277-40.744-40.744c0-22.465,18.277-40.742,40.744-40.742C191.183,676.155,209.46,694.432,209.46,716.897z M619.162,716.897c0,22.467-18.277,40.744-40.743,40.744s-40.743-18.277-40.743-40.744c0-22.465,18.277-40.742,40.743-40.742 S619.162,694.432,619.162,716.897z" />
               </Svg>
-              <Text style={styles.cartButtonText}>Добави към количката</Text>
+              <Text style={[styles.cartButtonText,{color:theme.colors.textPrimary}]}>Добави към количката</Text>
             </TouchableOpacity>
           </BlurView>
         </Animated.View>
@@ -576,7 +583,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     overflow: 'hidden',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 1)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },

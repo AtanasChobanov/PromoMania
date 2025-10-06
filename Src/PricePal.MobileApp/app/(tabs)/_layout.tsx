@@ -35,6 +35,9 @@ const getCircleSize = (percentage: number): number => {
   return Math.min(width, height);
 };
 
+
+
+
 // SVG Icons
 const HomeIcon = ({ color = '#000', size = 20 }: { color?: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -85,18 +88,7 @@ const SearchIcon = ({ color = '#fff', size = 24 }: { color?: string; size?: numb
   </Svg>
 );
 
-const ProfileIcon = ({ color = '#000', size = 35 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Circle cx="12" cy="7" r="4" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
-);
+
 const SettingsIcon = ({ color = '#000', size = 30 }: { color?: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={1.5} />
@@ -142,7 +134,7 @@ const TabIcon = React.memo(({ focused, IconComponent, title }: any) => {
 TabIcon.displayName = 'TabIcon';
 
 const SearchButton = React.memo(({ bottomInset }: { bottomInset: number }) => {
-  const { isDarkMode, isSimpleMode } = useSettings();
+  const { isDarkMode, isSimpleMode,isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
@@ -151,12 +143,19 @@ const SearchButton = React.memo(({ bottomInset }: { bottomInset: number }) => {
       onPress={() => router.push('/search')}
       activeOpacity={0.8}
     >
-      <BlurView 
+              <>
+      {isPerformanceMode ? (
+         <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
+      ) : (
+          <BlurView 
         intensity={30} 
         experimentalBlurMethod="dimezisBlurView"
         tint={theme.colors.TabBarColors as 'light' | 'dark'}
         style={styles.searchButtonBlur}
       />
+      )}
+    </>   
+  
       <View style={{ zIndex: 1 }}>
         <SearchIcon color={theme.colors.textPrimary} size={24} />
       </View>
@@ -168,7 +167,7 @@ SearchButton.displayName = 'SearchButton';
 
 const TopBar = React.memo(() => {
   const insets = useSafeAreaInsets();
-  const { isDarkMode, isSimpleMode } = useSettings();
+  const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
   return (
@@ -181,18 +180,25 @@ const TopBar = React.memo(() => {
       <TouchableOpacity 
         onPress={() => router.push('/(profile)/profile')}
         style={{ zIndex: 2 }}>
-         <Image className='w-[35px] h-[35px]' source={require("../../assets/icons/profile-pic.png")} />      
+         <Image className='w-[40px] h-[40px]' source={require("../../assets/icons/profile-pic.png")} />      
          </TouchableOpacity>
       <TouchableOpacity 
         onPress={() => router.push('/(profile)/settings')}
         style={{ zIndex: 2 }}>
         <View style={styles.settingsButton}>
-          <BlurView 
+                  <>
+      {isPerformanceMode ? (
+         <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
+      ) : (
+        <BlurView 
             intensity={20} 
             tint={theme.colors.TabBarColors as 'light' | 'dark'}
             experimentalBlurMethod="dimezisBlurView"
             style={StyleSheet.absoluteFillObject}
           />
+      )}
+    </>   
+        
           <SettingsIcon color={theme.colors.textPrimary} size={30} />
         </View>
       </TouchableOpacity>
@@ -202,11 +208,15 @@ const TopBar = React.memo(() => {
 
 TopBar.displayName = 'TopBar';
 
+
+
+
 const Layout = () => {
   const insets = useSafeAreaInsets();
-  const { isDarkMode, isSimpleMode } = useSettings();
+  const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-  
+
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
@@ -242,12 +252,18 @@ const Layout = () => {
                 elevation: 10,
               },
               tabBarBackground: () => (
-                <BlurView 
-                  intensity={20}
-                  tint={theme.colors.TabBarColors as 'light' | 'dark'}
-                  experimentalBlurMethod="dimezisBlurView"
-                  style={styles.tabBarBlur}
-                />
+             <>
+      {isPerformanceMode ? (
+         <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
+      ) : (
+        <BlurView
+          intensity={20}
+          tint={theme.colors.TabBarColors as 'light' | 'dark'}
+          experimentalBlurMethod="dimezisBlurView"
+          style={styles.tabBarBlur}
+        />
+      )}
+    </>   
               ),
             }}
           >
@@ -405,6 +421,7 @@ const styles = StyleSheet.create({
   tabBarBlur: {
     ...StyleSheet.absoluteFillObject,
   },
+  
 });
 
 export default Layout;

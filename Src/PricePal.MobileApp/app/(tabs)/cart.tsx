@@ -1,4 +1,6 @@
 /* eslint-disable react/display-name */
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -16,6 +18,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+
 
 // Get screen dimensions once and memoize
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -142,6 +145,10 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   onSaveForLater,
   index,
 }) => {
+   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+   const theme = isDarkMode ? darkTheme : lightTheme;
+
+
   const [productNumber, setProductNumber] = useState(0);
   const [optionsVisible, setOptionsVisible] = useState(false);
 
@@ -180,7 +187,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
     <>
       <LinearGradient
         style={styles.products}
-        colors={["rgba(203,230,246,1)", "rgba(143,228,201,1)"]}
+        colors={theme.colors.blueTeal}
         start={{ x: 0, y: 1 }}
         end={{ x: 1, y: 0 }}
       >
@@ -189,7 +196,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
             style={styles.menuButton}
             onPress={openOptions}
           >
-            <Text style={styles.menuDots}>⋯</Text>
+            <Text style={[styles.menuDots,,{color:theme.colors.textPrimary}]}>⋯</Text>
           </TouchableOpacity>
 
           <Image 
@@ -200,32 +207,32 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
 
           <View style={styles.productDetails}>
             <View>
-              <Text style={styles.brand}>{brand}</Text>
-              <Text style={styles.name}>{name}</Text>
-              <Text style={styles.price}>{price} €</Text>
-              <Text style={styles.price}>{price} лв.</Text>
+              <Text style={[styles.brand,{color:theme.colors.textPrimary}]}>{brand}</Text>
+              <Text style={[styles.name,{color:theme.colors.textPrimary}]}>{name}</Text>
+              <Text style={[styles.price,{color:theme.colors.textPrimary}]}>{price} €</Text>
+              <Text style={[styles.price,{color:theme.colors.textPrimary}]}>{price} лв.</Text>
             </View>
 
             <View style={styles.quantityRow}>
-              <BlurView intensity={50} tint="light" style={styles.blurButton}>
+              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark'| 'light'} style={styles.blurButton}>
                 <TouchableHighlight 
                   underlayColor="transparent" 
                   style={styles.buttonTouchable} 
                   onPress={removeButton}
                 >
-                  <Text style={styles.buttonText}>-</Text>
+                  <Text style={[styles.buttonText,{color:theme.colors.textPrimary}]}>-</Text>
                 </TouchableHighlight>
               </BlurView>
 
-              <Text style={styles.quantityText}>{productNumber}</Text>
+              <Text style={[styles.quantityText,{color:theme.colors.textPrimary}]}>{productNumber}</Text>
 
-              <BlurView intensity={50} tint="light" style={styles.blurButton}>
+              <BlurView intensity={50}tint={theme.colors.TabBarColors as 'dark'| 'light'} style={styles.blurButton}>
                 <TouchableHighlight 
                   underlayColor="transparent" 
                   style={styles.buttonTouchable} 
                   onPress={addButton}
                 >
-                  <Text style={styles.buttonText}>+</Text>
+                  <Text style={[styles.buttonText,{color:theme.colors.textPrimary}]}>+</Text>
                 </TouchableHighlight>
               </BlurView>
             </View>
@@ -257,16 +264,20 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
   basePrice,
   saves
 }) => {
+   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  
+  // Select appropriate theme based on dark mode setting
+  const theme = isDarkMode ? darkTheme : lightTheme;
   return (
     <LinearGradient
-      colors={['rgba(203,230,246,1)', 'rgba(143,228,201,1)']}
+      colors={theme.colors.blueTeal}
       start={{ x: 0, y: 1 }}
       end={{ x: 1, y: 0 }}
       style={[styles.overviewContainer, { padding: wp(5) }]}
     >
       <View style={styles.summaryContainer}>
         <View style={styles.summaryHeader}>
-          <Text style={[styles.summaryTitle, { fontSize: FONT_SIZES.summaryTitle }]}>
+          <Text style={[styles.summaryTitle, { fontSize: FONT_SIZES.summaryTitle, color:theme.colors.textPrimary }]}>
             Обобщение на покупките
           </Text>
           <Text style={[styles.savingsText, { fontSize: FONT_SIZES.savingsText }]}>
@@ -275,9 +286,9 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
         </View>
 
         <View style={styles.priceBreakdown}>
-          <Text style={{ fontSize: FONT_SIZES.priceText }}>Нормална цена: €{basePrice}</Text>
-          <Text style={{ fontSize: FONT_SIZES.priceText }}>Обща цена:</Text>
-          <Text style={[styles.totalPriceText, { fontSize: FONT_SIZES.totalPrice }]}>
+          <Text style={{ fontSize: FONT_SIZES.priceText,color:theme.colors.textPrimary }}>Нормална цена: €{basePrice}</Text>
+          <Text style={{ fontSize: FONT_SIZES.priceText,color:theme.colors.textPrimary }}>Обща цена:</Text>
+          <Text style={[styles.totalPriceText, { fontSize: FONT_SIZES.totalPrice,color:theme.colors.textPrimary }]}>
             €{price}
           </Text>
         </View>
@@ -287,46 +298,45 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
 });
 
 const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
+
   price,
 }) => {
+   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  
+  // Select appropriate theme based on dark mode setting
+  const theme = isDarkMode ? darkTheme : lightTheme;
   return (
-    <BlurView
-      intensity={20}
-      tint="light"
-      experimentalBlurMethod="dimezisBlurView"
-      className="
-        absolute 
-        rounded-[15px] 
-        p-5 
-        overflow-hidden 
-        border border-white
-        shadow-lg
-        left-0 right-0 mx-3"
-      style={{ bottom: wp(29) }}
-    >
-      <View className='flex-row justify-between items-center'>
-        <Text className="text-lg font-bold text-black">
-          Обща цена
-        </Text>
-        <Text className="text-lg font-semibold text-black">
-          €{price}
-        </Text>
-      </View>
-      <BlurView
-        intensity={55}
-        tint="systemThickMaterialLight"
-        experimentalBlurMethod="dimezisBlurView"
-        className='items-center bg-gray-200 h-[50px] rounded-[10px] m-5 justify-center shadow-lg overflow-hidden border border-white'
-      >
-        <TouchableHighlight className='justify-center'>
-          <Text className='font-bold'>Продължи</Text>
-        </TouchableHighlight>
-      </BlurView>
-    </BlurView>
+  <BlurView
+  intensity={20}
+    tint={theme.colors.TabBarColors as 'dark'| 'light'}
+  experimentalBlurMethod="dimezisBlurView"
+  style={[styles.totalPriceContainer, { bottom: wp(29) }]}
+>
+  <View style={styles.totalPriceRow}>
+    <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>Обща цена</Text>
+    <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>€{price}</Text>
+  </View>
+
+  <BlurView
+    intensity={55}
+    tint={theme.colors.TabBarColors as 'dark'| 'light'}
+    experimentalBlurMethod="dimezisBlurView"
+    style={styles.continueButtonContainer}
+  >
+    <TouchableHighlight style={styles.continueButton} underlayColor="transparent">
+      <Text style={[styles.continueButtonText,{color:theme.colors.textPrimary}]}>Продължи</Text>
+    </TouchableHighlight>
+  </BlurView>
+</BlurView>
+
   );
 });
 
 const Cart: React.FC = () => {
+   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  
+  // Select appropriate theme based on dark mode setting
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const [products, setProducts] = useState<ProductBoxProps[]>([
     { name: "Хляб", brand: "Ресенски", price: "5.99", photo: require("../../assets/images/hlqb.jpg") },
     { name: "Хляб", brand: "Ресенски", price: "5.99", photo: require("../../assets/images/hlqb.jpg") },
@@ -380,7 +390,7 @@ const Cart: React.FC = () => {
 
   const ListHeaderComponent = useMemo(() => (
     <View style={styles.titleContainer}>
-      <Text style={[styles.mainTitle, { fontSize: FONT_SIZES.title }]}>Количка</Text>
+      <Text style={[styles.mainTitle, { fontSize: FONT_SIZES.title, color:theme.colors.textPrimary }]}>Количка</Text>
     </View>
   ), []);
 
@@ -391,7 +401,7 @@ const Cart: React.FC = () => {
         basePrice={finalPrice.basePrice}
         saves={finalPrice.saves} 
       />
-      <View style={{ height: wp(22) }} />
+      <View style={{ height: wp(24) }} />
     </>
   ), [finalPrice]);
 
@@ -403,7 +413,7 @@ const Cart: React.FC = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background2.webp")}
+      source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>
@@ -624,6 +634,58 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
     fontWeight: '600',
+  },
+    totalPriceContainer: {
+    position: 'absolute',
+    width:wp(95),
+    alignSelf:'center',
+    padding: 20, 
+    borderRadius: 15,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'white',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  totalPriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalPriceLabel: {
+    fontSize: 18, // text-lg ≈ 18px
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  totalPriceValue: {
+    fontSize: 18, // text-lg ≈ 18px
+    fontWeight: '600',
+    color: '#000',
+  },
+  continueButtonContainer: {
+    height: 50,
+    borderRadius: 10,
+    margin: 20, // m-5 ≈ 20px
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'white',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  continueButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    fontWeight: 'bold',
   },
 });
 

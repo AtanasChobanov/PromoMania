@@ -1,9 +1,13 @@
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import React, { useRef } from 'react';
 import { Image, ImageBackground, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 const Search = () => {
+    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const inputRef = useRef<TextInput>(null);
   useFocusEffect(
     React.useCallback(() => {
@@ -18,7 +22,7 @@ const Search = () => {
   return (
 
     <ImageBackground
-      source={require("../../assets/images/background2.webp")}
+      source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
       <ScrollView

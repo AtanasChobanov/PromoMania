@@ -1,3 +1,4 @@
+
 import { CategoryButton } from '@/components/boxes/CategoryButton';
 import { ProductSection } from '@/components/boxes/ProductSection';
 import { styles } from '@/components/styles/homeStyles';
@@ -8,6 +9,9 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, ImageBackground, Text, View } from "react-native";
 import { useProducts } from '../../services/useProducts';
 
+
+
+// Defines the different types of sections that can appear in the home screen list
 type SectionItem = {
   type: 'header' | 'categories' | 'products' | 'loading' | 'spacer';
   title?: string;
@@ -16,33 +20,59 @@ type SectionItem = {
   categories?: string[];
 };
 
+
+
+// Separator component between category buttons (3% screen width)
+const CategorySeparator = () => <View style={{ width: wp(3) }} />;
+
+// Individual category button - memoized to prevent unnecessary re-renders
+const CategoryItem = React.memo(({ item, index }: { item: string; index: number }) => (
+  <CategoryButton title={item} index={index} />
+));
+CategoryItem.displayName = 'CategoryItem';
+
+
+
 const Index: React.FC = () => {
+
+  
+  // Get product data from API hook
   const { products, loading, error, isDataAvailable } = useProducts();
+  
+  // Get user settings (dark mode, performance mode, simple mode)
   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   
+  // Select appropriate theme based on dark mode setting
   const theme = isDarkMode ? darkTheme : lightTheme;
   
-  const categories = useMemo(() => 
-    isSimpleMode 
-      ? ["Месо", "Зеленчуци", "Плодове"] 
-      : ["Месо", "Зеленчуци", "Плодове", "Хляб", "Млечни"], 
-  [isSimpleMode]);
 
-  // Build flat list data structure
+  // Category list - changes based on simple mode (3 vs 5 categories)
+  const categories = useMemo(
+    () =>
+      isSimpleMode
+        ? ["Месо", "Зеленчуци", "Плодове"]
+        : ["Месо", "Зеленчуци", "Плодове", "Хляб", "Млечни"],
+    [isSimpleMode]
+  );
+
+  // Build the entire list structure with all sections
   const listData: SectionItem[] = useMemo(() => {
+    // Don't show anything while initial loading
     if (loading && !isDataAvailable()) return [];
     if (error && !isDataAvailable()) return [];
 
+    // Split products into different categories
     const filteredProducts = {
-      ourChoice: products.slice(0, 3),
-      top: products.slice(3, 6),
-      mostSold: products.slice(6, 9),
-      kaufland: [] as any[],
-      lidl: [] as any[],
-      billa: [] as any[],
-      tmarket: [] as any[],
+      ourChoice: products.slice(0, 3),      // First 3 products
+      top: products.slice(3, 6),            // Next 3 products
+      mostSold: products.slice(6, 9),       // Next 3 products
+      kaufland: [] as any[],                // Products from Kaufland
+      lidl: [] as any[],                    // Products from Lidl
+      billa: [] as any[],                   // Products from Billa
+      tmarket: [] as any[],                 // Products from TMarket
     };
 
+    // Filter products by store chain (only in advanced mode)
     if (!isSimpleMode && products.length > 0) {
       products.forEach(p => {
         const chain = p.chain?.toLowerCase();
@@ -53,25 +83,69 @@ const Index: React.FC = () => {
       });
     }
 
+    // Build the main sections array
     const sections: SectionItem[] = [
+      // Title section at the top
       { type: 'header' },
+      
+      // Horizontal scrolling category buttons
       { type: 'categories', categories },
-      { type: 'products', title: 'Нашият избор', products: filteredProducts.ourChoice, gradientColors: theme.colors.blueTeal },
-      { type: 'products', title: 'Топ продукти', products: filteredProducts.top, gradientColors: theme.colors.blueTeal },
-      { type: 'products', title: 'Най-купувани продукти', products: filteredProducts.mostSold, gradientColors: theme.colors.blueTeal },
+      
+      // Main product sections (always visible)
+      { 
+        type: 'products', 
+        title: 'Нашият избор', 
+        products: filteredProducts.ourChoice, 
+        gradientColors: theme.colors.blueTeal 
+      },
+      { 
+        type: 'products', 
+        title: 'Топ продукти', 
+        products: filteredProducts.top, 
+        gradientColors: theme.colors.blueTeal 
+      },
+      { 
+        type: 'products', 
+        title: 'Най-купувани продукти', 
+        products: filteredProducts.mostSold, 
+        gradientColors: theme.colors.blueTeal 
+      },
     ];
 
+    // Add store-specific sections (only in advanced mode)
     if (!isSimpleMode) {
       sections.push(
-        { type: 'products', title: 'Предложения от Kaufland', products: filteredProducts.kaufland, gradientColors: theme.colors.blueTeal },
-        { type: 'products', title: 'Предложения от Lidl', products: filteredProducts.lidl, gradientColors: theme.colors.lavenderPurple },
-        { type: 'products', title: 'Предложения от Billa', products: filteredProducts.billa, gradientColors: theme.colors.peachPink },
-        { type: 'products', title: 'Предложения от TMarket', products: filteredProducts.tmarket, gradientColors: theme.colors.blueTeal }
+        { 
+          type: 'products', 
+          title: 'Предложения от Kaufland', 
+          products: filteredProducts.kaufland, 
+          gradientColors: theme.colors.blueTeal 
+        },
+        { 
+          type: 'products', 
+          title: 'Предложения от Lidl', 
+          products: filteredProducts.lidl, 
+          gradientColors: theme.colors.lavenderPurple 
+        },
+        { 
+          type: 'products', 
+          title: 'Предложения от Billa', 
+          products: filteredProducts.billa, 
+          gradientColors: theme.colors.peachPink 
+        },
+        { 
+          type: 'products', 
+          title: 'Предложения от TMarket', 
+          products: filteredProducts.tmarket, 
+          gradientColors: theme.colors.blueTeal 
+        }
       );
     }
 
+    // Bottom spacing for better scrolling experience
     sections.push({ type: 'spacer' });
     
+    // Show loading indicator at bottom during background refresh
     if (loading && isDataAvailable()) {
       sections.push({ type: 'loading' });
     }
@@ -79,12 +153,25 @@ const Index: React.FC = () => {
     return sections;
   }, [products, loading, error, isDataAvailable, isSimpleMode, categories, theme]);
 
-  const keyExtractor = useCallback((item: SectionItem, index: number) => {
-    return `${item.type}-${index}-${item.title || ''}`;
-  }, []);
 
+  
+  // Generate unique key for each section item
+  const keyExtractor = (item: SectionItem, index: number) => 
+    `${item.type}-${index}-${item.title || ''}`;
+
+  // Generate unique key for each category button
+
+  const categoryKeyExtractor = (cat: string, idx: number) => `category-${cat}`;
+
+  // Render function for category buttons
+  const renderCategory = useCallback(({ item, index }: { item: string; index: number }) => (
+    <CategoryItem item={item} index={index} />
+  ), []);
+
+  // Main render function for each section type
   const renderItem = useCallback(({ item }: { item: SectionItem }) => {
     switch (item.type) {
+      // Header section with titles
       case 'header':
         return (
           <View style={styles.titleContainer}>
@@ -109,24 +196,32 @@ const Index: React.FC = () => {
           </View>
         );
       
+      // Horizontal scrolling category buttons
       case 'categories':
         return (
           <FlatList
             data={item.categories}
-            renderItem={({ item: cat, index }) => <CategoryButton title={cat} index={index} />}
-            keyExtractor={(cat, idx) => `category-${idx}`}
+            renderItem={renderCategory}
+            keyExtractor={categoryKeyExtractor}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: wp(4), paddingBottom: hp(2) }}
-            ItemSeparatorComponent={() => <View style={{ width: wp(3) }} />}
+            ItemSeparatorComponent={CategorySeparator}
             removeClippedSubviews={true}
-            maxToRenderPerBatch={3}
-            windowSize={5}
-            initialNumToRender={3}
+            maxToRenderPerBatch={5}
+            windowSize={7}
+            initialNumToRender={5}
             scrollEventThrottle={16}
+            nestedScrollEnabled={true}
+            getItemLayout={(data, index) => ({
+              length: wp(28),
+              offset: wp(28) * index + wp(3) * index,
+              index,
+            })}
           />
         );
       
+      // Product section (horizontal scrolling products)
       case 'products':
         if (!item.products || item.products.length === 0) return null;
         return (
@@ -137,6 +232,7 @@ const Index: React.FC = () => {
           />
         );
       
+      // Loading spinner at bottom during refresh
       case 'loading':
         return (
           <View style={styles.backgroundRefresh}>
@@ -144,47 +240,32 @@ const Index: React.FC = () => {
           </View>
         );
       
+      // Empty space at bottom for better UX
       case 'spacer':
-        return <View style={{ height: hp(22) }} />;
+        return <View style={{ height: hp(13) }} />;
       
       default:
         return null;
     }
-  }, [isSimpleMode, theme]);
+  }, [isSimpleMode, theme, renderCategory, categoryKeyExtractor]);
 
-  const BackgroundWrapper: React.FC<{ children: React.ReactNode }> = useCallback(({ children }) => {
-    if (!theme.useBackgroundImage || isPerformanceMode) {
-      return (
-        <View style={[styles.backgroundImage, { backgroundColor: theme.colors.mainBackground }]}>
-          {children}
-        </View>
-      );
-    }
-    
-    return (
-      <ImageBackground 
-        source={theme.backgroundImage} 
-        style={styles.backgroundImage} 
-        resizeMode="cover"
-      >
-        {children}
-      </ImageBackground>
-    );
-  }, [theme, isPerformanceMode]);
-
+ 
+  
+  // Show full-screen loading on initial load
   if (loading && !isDataAvailable()) {
     return (
-      <BackgroundWrapper>
+      <View style={[styles.backgroundImage, { backgroundColor: theme.colors.mainBackground }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.loadingIndicator} />
         </View>
-      </BackgroundWrapper>
+      </View>
     );
   }
 
+  // Show error screen if loading failed
   if (error && !isDataAvailable()) {
     return (
-      <BackgroundWrapper>
+      <View style={[styles.backgroundImage, { backgroundColor: theme.colors.mainBackground }]}>
         <View style={styles.errorContainer}>
           <Text style={[
             styles.errorText, 
@@ -202,35 +283,62 @@ const Index: React.FC = () => {
               color: theme.colors.textSecondary 
             }
           ]}>
-            {error.message}
+            {error?.message}
           </Text>
         </View>
-      </BackgroundWrapper>
+      </View>
     );
   }
 
+
+  
+  // Determine if we should use background image
+  const useBackground = theme.useBackgroundImage && !isPerformanceMode;
+  
+  // Main scrollable content
+  const content = (
+    <FlatList
+      data={listData}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingTop: hp(7) }}
+      // Performance optimizations
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={isPerformanceMode ? 3 : 4}
+      windowSize={isPerformanceMode ? 5 : 7}
+      initialNumToRender={isPerformanceMode ? 3 : 4}
+      scrollEventThrottle={16}
+      updateCellsBatchingPeriod={50}
+      maintainVisibleContentPosition={
+        loading && isDataAvailable() 
+          ? { minIndexForVisible: 0 }
+          : undefined
+      }
+      disableVirtualization={false}
+    />
+  );
+
+  // Wrap content in background image if enabled
+  if (useBackground) {
+    return (
+      <ImageBackground 
+        source={theme.backgroundImage} 
+        style={styles.backgroundImage} 
+        resizeMode="cover"
+      >
+        {content}
+      </ImageBackground>
+    );
+  }
+
+  // Otherwise use solid background color
   return (
-    <BackgroundWrapper>
-      <FlatList
-        data={listData}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: hp(7) }}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={isPerformanceMode ? 2 : 3}
-        windowSize={isPerformanceMode ? 3 : 5}
-        initialNumToRender={isPerformanceMode ? 2 : 3}
-        scrollEventThrottle={16}
-        updateCellsBatchingPeriod={50}
-        getItemLayout={(data, index) => ({
-          length: hp(40), // Approximate height, adjust based on your sections
-          offset: hp(40) * index,
-          index,
-        })}
-      />
-    </BackgroundWrapper>
+    <View style={[styles.backgroundImage, { backgroundColor: theme.colors.mainBackground }]}>
+      {content}
+    </View>
   );
 };
 
+// Export memoized component to prevent unnecessary re-renders
 export default React.memo(Index);
