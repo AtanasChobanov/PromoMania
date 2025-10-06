@@ -9,6 +9,8 @@ export const lightTheme = {
     textPrimary: '#000000',
     textSecondary: '#666666',
     textTertiary: '#999999',
+    textGreen:'rgba(103, 218, 191, 1)',
+    textBlue:'rgba(163, 216, 239, 1)',
     textOnGradient: '#1F2937', // Dark gray-blue (better than pure black)
     textOnGradientAlt: '#111827', // Even darker for less vibrant gradients
     // Borders
@@ -37,8 +39,10 @@ export const lightTheme = {
     unitBorderColor: "rgba(31, 41, 55, 0.2)",
 
 
-TopBarColors:['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'transparent'] as [string, string, ...string[]],
-TabBarColors:'light',
+    TopBarColors:['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'transparent'] as [string, string, ...string[]],
+    TabBarColors:'light',
+
+
   },
   
   // Use background image
@@ -57,6 +61,9 @@ export const darkTheme = {
     textPrimary: '#FFFFFF',
     textSecondary: '#B0B0B0',
     textTertiary: '#808080',
+    textGreen:'rgba(46, 170, 134, 1)',
+    textBlue:'rgba(45, 153, 211, 1)',
+
     textOnGradient: '#FFFFFF', // White
     textOnGradientAlt: '#F9FAFB', // Slightly off-white for subtle depth
     // Borders

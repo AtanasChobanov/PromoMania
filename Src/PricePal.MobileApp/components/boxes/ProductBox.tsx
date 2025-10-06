@@ -5,7 +5,7 @@ import { getFontSize, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Image,
@@ -22,16 +22,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path } from "react-native-svg";
 
-// Enhanced Cart Icon with dynamic color support
-const CartIcon = React.memo<{ color?: string }>(({ color = "#1F2937" }) => (
+const CartIcon = ({ color = "#1F2937" }: { color?: string }) => (
   <Svg viewBox="0 0 24 24" width={20} height={20}>
     <Path
       d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
       fill={color}
     />
   </Svg>
-));
-CartIcon.displayName = 'CartIcon';
+);
 
 export const ProductBox: React.FC<{
   productName: string;
@@ -46,73 +44,36 @@ export const ProductBox: React.FC<{
 
   const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const router = useRouter();
   
   const scaleAnim = useSharedValue(1);
   const cartButtonScale = useSharedValue(1);
 
-  // Memoize processed prices
-  const processedPrices = useMemo(() => ({
-    bgn: priceBgn.replace(/\s*лв\.?.*$/i, ''),
-    eur: priceEur.replace(/€.*/, '')
-  }), [priceBgn, priceEur]);
+  const cardWidth = wp(45);
+  const processedBgn = priceBgn.replace(/\s*лв\.?.*$/i, '');
+  const processedEur = priceEur.replace(/€.*/, '');
 
-  // Memoize card width
-  const cardWidth = useMemo(() => wp(45), []);
-
-  // Memoize image source to prevent re-creation
-  const imageSource = useMemo(() => 
-    photo ? { uri: photo } : require("../../assets/icons/pricelpal-logo.png"),
-    [photo]
-  );
-
-  // Memoize gradient colors or use solid color in performance mode
-  const gradientConfig = useMemo(() => {
-    if (isPerformanceMode) {
-      // Use solid color instead of gradient for performance
-      return {
-        colors: [colors?.[0] || 'rgba(203,230,246,1)'],
-        useGradient: false
-      };
-    }
-    return {
-      colors: colors || ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'],
-      useGradient: true
-    };
-  }, [colors, isPerformanceMode]);
-
-  // Memoize all text styles
-  const textStyles = useMemo(() => ({
-    productName: [styles.productName, { fontSize: getFontSize(16), color: theme.colors.textOnGradient }],
-    unitContainer: [styles.unitContainerAccent, { backgroundColor: theme.colors.unitColor, borderColor: theme.colors.unitBorderColor }],
-    unitText: [styles.unitTextAccent, { color: theme.colors.textOnGradient }],
-    priceLabel: [styles.priceLabel, { fontSize: getFontSize(12), color: theme.colors.textOnGradient }],
-    price: [styles.price, { fontSize: getFontSize(18), color: theme.colors.textOnGradient }]
-  }), [theme]);
+  const useGradient = !isPerformanceMode;
+  const gradientColors = colors || ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'];
+  const backgroundColor = gradientColors[0];
 
   const scaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scaleAnim.value }]
-  }), []);
+  }));
 
   const cartButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: cartButtonScale.value }]
-  }), []);
+  }));
 
   const handleProductPress = useCallback(() => {
-    if (isPerformanceMode) {
-      // Skip animation in performance mode
-      router.push(`/products/${encodeURIComponent(productName)}`);
-      return;
+    if (!isPerformanceMode) {
+      scaleAnim.value = withTiming(0.95, { duration: 100 });
+      setTimeout(() => {
+        scaleAnim.value = withTiming(1, { duration: 100 });
+      }, 100);
     }
-
-    scaleAnim.value = withTiming(0.95, { duration: 100 });
     router.push(`/products/${encodeURIComponent(productName)}`);
-    
-    setTimeout(() => {
-      scaleAnim.value = withTiming(1, { duration: 100 });
-    }, 100);
   }, [productName, router, isPerformanceMode, scaleAnim]);
 
   const handleAddToCart = useCallback((e: any) => {
@@ -136,50 +97,46 @@ export const ProductBox: React.FC<{
     setTimeout(() => setIsAddingToCart(false), 500);
   }, [productName, brand, isPerformanceMode, cartButtonScale]);
 
-  // Use View wrapper or Animated wrapper based on performance mode
-  const OuterWrapper = isPerformanceMode ? View : Animated.View;
-  const outerAnimProps = isPerformanceMode ? {} : { 
-    entering: FadeInDown.delay(index * 100).duration(600).springify() 
-  };
-
-  const InnerWrapper = isPerformanceMode ? View : Animated.View;
-  const innerAnimProps = isPerformanceMode ? {} : { style: scaleStyle };
-
   return (
     <View style={{ width: cardWidth }}>
-      <OuterWrapper {...outerAnimProps}>
-        <InnerWrapper {...innerAnimProps}>
+      {/* Outer wrapper for layout animation (FadeInDown) */}
+      <Animated.View 
+        entering={isPerformanceMode ? undefined : FadeInDown.delay(index * 100).duration(600).springify()}
+      >
+        {/* Inner wrapper for transform animation (scale) */}
+        <Animated.View style={isPerformanceMode ? undefined : scaleStyle}>
           <Pressable 
             onPress={handleProductPress}
-            android_ripple={isPerformanceMode ? null : { color: 'rgba(0,0,0,0.05)' }}
+            android_ripple={isPerformanceMode ? undefined : { color: 'rgba(0,0,0,0.05)' }}
           >
             <View>
+              {/* Image Section */}
               <View style={styles.imageContainer}>
                 <Image
-                  source={imageSource}
+                  source={photo ? { uri: photo } : require("../../assets/icons/pricelpal-logo.png")}
                   style={[styles.productImage, { width: cardWidth, height: cardWidth, backgroundColor: 'white' }]}
                   resizeMode={photo ? "contain" : "cover"}
-                  // Critical optimizations
                   fadeDuration={0}
                   progressiveRenderingEnabled={true}
-                  loadingIndicatorSource={undefined}
                 />
                 <View style={styles.heartOverlay}>
                   <HeartIcon />
                 </View>
               </View>
               
-              {gradientConfig.useGradient ? (
+              {/* Content Section */}
+              {useGradient ? (
                 <LinearGradient
                   style={[styles.products, { width: cardWidth }]}
-                  colors={gradientConfig.colors as [string, string, ...string[]]}
+                  colors={gradientColors as [string, string, ...string[]]}
                   start={{ x: 0, y: 1 }}
                 >
                   <ProductContent
                     productName={productName}
                     unit={unit}
-                    processedPrices={processedPrices}
-                    textStyles={textStyles}
+                    processedBgn={processedBgn}
+                    processedEur={processedEur}
+                    theme={theme}
                     cartButtonStyle={cartButtonStyle}
                     isAddingToCart={isAddingToCart}
                     handleAddToCart={handleAddToCart}
@@ -188,14 +145,13 @@ export const ProductBox: React.FC<{
                   />
                 </LinearGradient>
               ) : (
-                <View
-                  style={[styles.products, { width: cardWidth, backgroundColor: gradientConfig.colors[0] }]}
-                >
+                <View style={[styles.products, { width: cardWidth, backgroundColor }]}>
                   <ProductContent
                     productName={productName}
                     unit={unit}
-                    processedPrices={processedPrices}
-                    textStyles={textStyles}
+                    processedBgn={processedBgn}
+                    processedEur={processedEur}
+                    theme={theme}
                     cartButtonStyle={cartButtonStyle}
                     isAddingToCart={isAddingToCart}
                     handleAddToCart={handleAddToCart}
@@ -206,59 +162,73 @@ export const ProductBox: React.FC<{
               )}
             </View>
           </Pressable>
-        </InnerWrapper>
-      </OuterWrapper>
+        </Animated.View>
+      </Animated.View>
     </View>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison - only re-render if these specific props change
-  return (
-    prevProps.productName === nextProps.productName &&
-    prevProps.priceBgn === nextProps.priceBgn &&
-    prevProps.priceEur === nextProps.priceEur &&
-    prevProps.photo === nextProps.photo &&
-    prevProps.brand === nextProps.brand &&
-    prevProps.unit === nextProps.unit &&
-    prevProps.colors?.[0] === nextProps.colors?.[0] &&
-    prevProps.colors?.[1] === nextProps.colors?.[1]
   );
 });
 
-// Extracted content component to reduce re-renders
-const ProductContent = React.memo<{
+const ProductContent = ({
+  productName,
+  unit,
+  processedBgn,
+  processedEur,
+  theme,
+  cartButtonStyle,
+  isAddingToCart,
+  handleAddToCart,
+  isPerformanceMode,
+  isDarkMode
+}: {
   productName: string;
   unit?: string;
-  processedPrices: { bgn: string; eur: string };
-  textStyles: any;
+  processedBgn: string;
+  processedEur: string;
+  theme: any;
   cartButtonStyle: any;
   isAddingToCart: boolean;
   handleAddToCart: (e: any) => void;
   isPerformanceMode: boolean;
   isDarkMode: boolean;
-}>(({ productName, unit, processedPrices, textStyles, cartButtonStyle, isAddingToCart, handleAddToCart, isPerformanceMode, isDarkMode }) => {
-  
-  const ButtonWrapper = isPerformanceMode ? View : Animated.View;
-  const buttonAnimProps = isPerformanceMode ? {} : { style: cartButtonStyle };
-
+}) => {
   return (
     <View style={styles.productContent}>
       <View style={styles.productNameContainer}>
-        <Text style={textStyles.productName} numberOfLines={2}>
+        <Text 
+          style={[
+            styles.productName, 
+            { fontSize: getFontSize(16), color: theme.colors.textOnGradient }
+          ]} 
+          numberOfLines={2}
+        >
           {productName}
         </Text>
         {unit && (
-          <View style={textStyles.unitContainer}>
-            <Text style={textStyles.unitText}>{unit}</Text>
+          <View style={[
+            styles.unitContainerAccent, 
+            { backgroundColor: theme.colors.unitColor, borderColor: theme.colors.unitBorderColor }
+          ]}>
+            <Text style={[styles.unitTextAccent, { color: theme.colors.textOnGradient }]}>
+              {unit}
+            </Text>
           </View>
         )}
       </View>
+      
       <View style={styles.priceCartContainer}>
         <View style={styles.priceContainer}>
-          <Text style={textStyles.priceLabel}>От</Text>
-          <Text style={textStyles.price}>{processedPrices.bgn} лв.</Text>
-          <Text style={textStyles.price}>{processedPrices.eur} €</Text>
+          <Text style={[styles.priceLabel, { fontSize: getFontSize(12), color: theme.colors.textOnGradient }]}>
+            От
+          </Text>
+          <Text style={[styles.price, { fontSize: getFontSize(18), color: theme.colors.textOnGradient }]}>
+            {processedBgn} лв.
+          </Text>
+          <Text style={[styles.price, { fontSize: getFontSize(18), color: theme.colors.textOnGradient }]}>
+            {processedEur} €
+          </Text>
         </View>
-        <ButtonWrapper {...buttonAnimProps}>
+        
+        <Animated.View style={isPerformanceMode ? undefined : cartButtonStyle}>
           <Pressable 
             style={{
               padding: wp(2.5),
@@ -281,11 +251,10 @@ const ProductContent = React.memo<{
           >
             <CartIcon color={isDarkMode ? '#FFFFFF' : '#1F2937'} />
           </Pressable>
-        </ButtonWrapper>
+        </Animated.View>
       </View>
     </View>
   );
-});
+};
 
-ProductContent.displayName = 'ProductContent';
 ProductBox.displayName = "ProductBox";

@@ -102,14 +102,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingBottom: hp(1),
     elevation: 5,
+   
+    
   },
   productContent: {
     width: "100%",
+    
   },
   productNameContainer: {
     alignItems: "center",
     justifyContent: "center",
     minHeight: hp(3.6) * 2.4,
+  
   },
   priceContainer: {
     alignItems: "flex-start",
