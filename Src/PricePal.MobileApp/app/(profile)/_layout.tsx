@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -24,8 +24,7 @@ export default function SubcategoryProductLayout() {
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+         <SafeAreaView style={{ flex: 1, backgroundColor:theme.colors.SafeviewColor }}  edges={['top']}>
         {/* Custom Top Bar */}
         <View style={styles.topbar}>
           <LinearGradient
@@ -73,7 +72,6 @@ export default function SubcategoryProductLayout() {
           <Stack.Screen name="settings" />
         </Stack>
       </SafeAreaView>
-    </SafeAreaProvider>
   );
 }
 
@@ -87,7 +85,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1000,
-    marginTop: hp(1.2)
+    paddingTop: hp(2.2)
   },
   backButton: {
     width: 40,

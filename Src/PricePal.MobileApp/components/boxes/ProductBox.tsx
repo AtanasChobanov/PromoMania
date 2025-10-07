@@ -54,9 +54,7 @@ export const ProductBox: React.FC<{
   const processedBgn = priceBgn.replace(/\s*лв\.?.*$/i, '');
   const processedEur = priceEur.replace(/€.*/, '');
 
-  const useGradient = !isPerformanceMode;
   const gradientColors = colors || ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'];
-  const backgroundColor = gradientColors[0];
 
   const scaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scaleAnim.value }]
@@ -120,12 +118,12 @@ export const ProductBox: React.FC<{
                   progressiveRenderingEnabled={true}
                 />
                 <View style={styles.heartOverlay}>
-                  <HeartIcon />
+                  <HeartIcon heartSize={wp(6.5)} />
                 </View>
               </View>
               
               {/* Content Section */}
-              {useGradient ? (
+      
                 <LinearGradient
                   style={[styles.products, { width: cardWidth }]}
                   colors={gradientColors as [string, string, ...string[]]}
@@ -144,22 +142,9 @@ export const ProductBox: React.FC<{
                     isDarkMode={isDarkMode}
                   />
                 </LinearGradient>
-              ) : (
-                <View style={[styles.products, { width: cardWidth, backgroundColor }]}>
-                  <ProductContent
-                    productName={productName}
-                    unit={unit}
-                    processedBgn={processedBgn}
-                    processedEur={processedEur}
-                    theme={theme}
-                    cartButtonStyle={cartButtonStyle}
-                    isAddingToCart={isAddingToCart}
-                    handleAddToCart={handleAddToCart}
-                    isPerformanceMode={isPerformanceMode}
-                    isDarkMode={isDarkMode}
-                  />
-                </View>
-              )}
+            
+
+    
             </View>
           </Pressable>
         </Animated.View>

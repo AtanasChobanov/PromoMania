@@ -44,7 +44,17 @@ const FONT_SIZES = {
   priceText: getFontSize(16),
   totalPrice: getFontSize(21),
 };
+const PHONE_BREAKPOINTS = {
+  SMALL: screenWidth < 375,   // iPhone SE, small Android phones
+  MEDIUM: screenWidth >= 375 && screenWidth < 414,  // iPhone 12/13, standard phones
+  LARGE: screenWidth >= 414,   // iPhone 14 Plus, large phones
+};
 
+export const responsiveSize = (small: number, medium: number, large: number): number => {
+  if (PHONE_BREAKPOINTS.SMALL) return hp(small);
+  if (PHONE_BREAKPOINTS.MEDIUM) return hp(medium);
+  return hp(large);
+};
 const DIMENSIONS = {
   imageSize: wp(30),
   productWidth: wp(95),
@@ -309,14 +319,26 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   tint: theme.colors.TabBarColors as 'dark' | 'light',
   experimentalBlurMethod: 'dimezisBlurView' as const,
 };
-  const ContainerView = isPerformanceMode ? View : BlurView;
+const ContainerView = (isPerformanceMode
+  ? LinearGradient
+  : BlurView) as React.ComponentType<any>;
 
   // Select appropriate theme based on dark mode setting
   return (
-<ContainerView
-  style={[styles.totalPriceContainer, { bottom: wp(29) },isPerformanceMode && { backgroundColor:theme.colors.textGreen }]}
-  {...(!isPerformanceMode && blurViewProps)}
->
+  <ContainerView
+    style={[
+      styles.totalPriceContainer,
+      { bottom: wp(30) },
+      isPerformanceMode && { backgroundColor: theme.colors.textGreen },
+    ]}
+    {...(!isPerformanceMode
+      ? blurViewProps
+      : {
+          colors: theme.colors.blueTeal,
+          start: { x: 0, y: 1 },
+          end: { x: 1, y: 0 },
+        })}
+  >
   <View style={styles.totalPriceRow}>
     <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>Обща цена</Text>
     <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>€{price}</Text>
@@ -406,7 +428,7 @@ const Cart: React.FC = () => {
         basePrice={finalPrice.basePrice}
         saves={finalPrice.saves} 
       />
-      <View style={{ height: wp(24) }} />
+      <View style={{ height: hp(20) }} />
     </>
   ), [finalPrice]);
 
@@ -463,8 +485,8 @@ const styles = StyleSheet.create({
     marginTop: hp(2)
   },
   products: {
-    width: DIMENSIONS.productWidth,
-    height: DIMENSIONS.productHeight,
+    width: wp(95),
+    height: responsiveSize(25,20,15),
     borderRadius: 15,
     marginBottom: 16,
     position: 'relative',

@@ -103,7 +103,7 @@ const SettingsIcon = ({ color = '#000', size = 30 }: { color?: string; size?: nu
 );
 
 const TabIcon = React.memo(({ focused, IconComponent, title }: any) => {
-  const { isDarkMode, isSimpleMode } = useSettings();
+  const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
   if (focused) {
@@ -134,7 +134,7 @@ const TabIcon = React.memo(({ focused, IconComponent, title }: any) => {
 TabIcon.displayName = 'TabIcon';
 
 const SearchButton = React.memo(({ bottomInset }: { bottomInset: number }) => {
-  const { isDarkMode, isSimpleMode,isPerformanceMode } = useSettings();
+  const { isDarkMode,isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
@@ -167,7 +167,7 @@ SearchButton.displayName = 'SearchButton';
 
 const TopBar = React.memo(() => {
   const insets = useSafeAreaInsets();
-  const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
+  const { isDarkMode , isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
   return (
@@ -188,7 +188,10 @@ const TopBar = React.memo(() => {
         <View style={styles.settingsButton}>
                   <>
       {isPerformanceMode ? (
-         <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
+         <LinearGradient 
+         colors={theme.colors.blueTeal} 
+         locations={[0, 1]} 
+         style={[styles.tabBarBlur]} />
       ) : (
         <BlurView 
             intensity={20} 
@@ -213,13 +216,13 @@ TopBar.displayName = 'TopBar';
 
 const Layout = () => {
   const insets = useSafeAreaInsets();
-  const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
+  const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor:theme.colors.SafeviewColor }}  edges={['top']}>
         <View style={{ flex: 1 }}>
           <TopBar />
           
@@ -254,7 +257,12 @@ const Layout = () => {
               tabBarBackground: () => (
              <>
       {isPerformanceMode ? (
-         <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
+        <LinearGradient
+  colors={theme.colors.blueTeal} 
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={[styles.tabBarBlur]}
+/>
       ) : (
         <BlurView
           intensity={20}
