@@ -2,7 +2,7 @@ import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
 import React from 'react';
-import { ImageBackground, SafeAreaView, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 const SettingsScreen: React.FC = () => {
   const {
@@ -57,18 +57,15 @@ const SettingsScreen: React.FC = () => {
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: '#767577', true: '#81b0ff' }}
-        thumbColor={value ? '#007AFF' : '#f4f3f4'}
+        trackColor={{ false: '#767577', true: 'rgba(46, 170, 134, 1)' }}
+        thumbColor={value ? 'rgba(103, 218, 191, 1)' : '#f4f3f4'}
         ios_backgroundColor="#767577"
       />
     </View>
   );
 
   return (
-    <SafeAreaView style={[
-      styles.container,
-      { backgroundColor: theme.colors.mainBackground }
-    ]}>
+
        <ImageBackground
               source={theme.backgroundImage} 
               style={styles.backgroundImage} 
@@ -149,7 +146,7 @@ const SettingsScreen: React.FC = () => {
         <View style={{ height: hp(10) }} />
       </ScrollView>
       </ImageBackground>
-    </SafeAreaView>
+
   );
 };
 

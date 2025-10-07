@@ -142,7 +142,7 @@ export const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 20,
     backgroundColor: "white",
-    elevation: 5,
+    elevation: 10,
   },
   addToCartButton: {
     padding: wp(2),

@@ -2,7 +2,7 @@ export const lightTheme = {
   colors: {
     // Backgrounds
     mainBackground: '#FFFFFF',
-    cardBackground: 'rgba(255, 255, 255, 0.9)',
+    cardBackground: 'rgba(255, 255, 255, 1)',
     cardBackgroundAlt: '#F5F5F5',
     
     // Text
@@ -41,6 +41,7 @@ export const lightTheme = {
 
     TopBarColors:['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'transparent'] as [string, string, ...string[]],
     TabBarColors:'light',
+SafeviewColor:'rgba(255, 255, 255, 0.9)'
 
 
   },
@@ -93,6 +94,8 @@ unitBorderColor: "rgba(229, 231, 235, 0.2)",
 
 TopBarColors:['rgba(31, 41, 55, 0.9)', 'rgba(31, 41, 55, 0.7)', 'transparent'] as [string, string, ...string[]],
 TabBarColors:'dark',
+SafeviewColor:'#1c2534'
+
 
   },
 

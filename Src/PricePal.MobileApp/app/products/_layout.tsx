@@ -25,7 +25,7 @@ export default function ProductLayout() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor:theme.colors.SafeviewColor }} edges={['top']}>
         <View style={styles.topbar}>
           <LinearGradient
             colors={theme.colors.TopBarColors}
@@ -84,11 +84,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1000,
-    marginTop: hp(1.2),
+    paddingTop: hp(2.2),
   },
   backButton: {
     width: 40,
     height: 40,
+    borderColor:'white',
     borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',

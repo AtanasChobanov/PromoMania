@@ -293,7 +293,6 @@ const Index: React.FC = () => {
 
   
   // Determine if we should use background image
-  const useBackground = theme.useBackgroundImage && !isPerformanceMode;
   
   // Main scrollable content
   const content = (
@@ -319,25 +318,18 @@ const Index: React.FC = () => {
     />
   );
 
-  // Wrap content in background image if enabled
-  if (useBackground) {
-    return (
-      <ImageBackground 
+return(
+   <ImageBackground 
         source={theme.backgroundImage} 
         style={styles.backgroundImage} 
         resizeMode="cover"
       >
         {content}
       </ImageBackground>
-    );
-  }
+)
+   
 
-  // Otherwise use solid background color
-  return (
-    <View style={[styles.backgroundImage, { backgroundColor: theme.colors.mainBackground }]}>
-      {content}
-    </View>
-  );
+
 };
 
 // Export memoized component to prevent unnecessary re-renders

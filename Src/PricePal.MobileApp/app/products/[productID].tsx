@@ -1,3 +1,4 @@
+import { HeartIcon } from '@/components/boxes/HeartIcon';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useProduct } from '@/services/useProducts';
@@ -22,11 +23,9 @@ import Animated, {
   SlideInRight,
   SlideOutRight,
   ZoomIn,
-  useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming
 } from 'react-native-reanimated';
 import { enableScreens } from 'react-native-screens';
@@ -69,7 +68,7 @@ export default function ProductPage() {
     const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
     const theme = isDarkMode ? darkTheme : lightTheme;
 
-  const [isFavorite, setIsFavorite] = useState(false);
+
   const [quantity, setQuantity] = useState(1);
 
   const heartScale = useSharedValue(1);
@@ -82,14 +81,7 @@ export default function ProductPage() {
   const { product, found, dataReady } = useProduct(productName);
 
   // Animations
-  useEffect(() => {
-    if (isFavorite) {
-      heartScale.value = withSequence(
-        withSpring(1.3, { damping: 2, stiffness: 100 }),
-        withSpring(1, { damping: 2, stiffness: 100 })
-      );
-    }
-  });
+
 
   useEffect(() => {
     buttonScale.value = withRepeat(
@@ -102,13 +94,6 @@ export default function ProductPage() {
     );
   });
 
-  const heartAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: heartScale.value }]
-  }));
-
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }]
-  }));
 
   // Loading state
   if (!dataReady) {
@@ -174,26 +159,19 @@ export default function ProductPage() {
               style={styles.productImage}
               resizeMode={product.imageUrl ? 'contain' : 'cover'}
             />
+               <View style={styles.heartOverlay}>
+                              <HeartIcon heartSize={wp(9)} />
+                            </View>
 
-            <TouchableOpacity
-              style={styles.favoriteButton}
-              onPress={() => setIsFavorite(!isFavorite)}
-            >
-              <Svg viewBox="0 0 24 24" width={28} height={28}>
-                <Path
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                  fill={isFavorite ? '#FF6B6B' : 'transparent'}
-                  stroke={isFavorite ? '#FF6B6B' : '#666'}
-                  strokeWidth={2}
-                />
-              </Svg>
-            </TouchableOpacity>
+         
+ 
+
           </Animated.View>
 
           {/* Product Details */}
           <Animated.View
             entering={FadeInDown.delay(200).duration(600).springify()}
-            style={[styles.detailsContainer,{backgroundColor:theme.colors.mainBackground}]}
+            style={[styles.detailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1},]}
           >
             <Animated.Text
               entering={FadeIn.delay(300).duration(500)}
@@ -268,7 +246,7 @@ export default function ProductPage() {
           {/* Retail Prices */}
           <Animated.View
             entering={FadeInDown.delay(300).duration(600).springify()}
-            style={[styles.retailsContainer,{backgroundColor:theme.colors.mainBackground}]}
+            style={[styles.retailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1}]}
           >
             <Text style={[styles.retailTitle,{color:theme.colors.textPrimary}]}>Цени в различните вериги</Text>
             <View style={styles.OneRetailBox}>
@@ -298,7 +276,7 @@ export default function ProductPage() {
           {/* Price History Chart */}
           <Animated.View
             entering={FadeInDown.delay(400).duration(600).springify()}
-            style={[styles.chartContainer,   { backgroundColor: theme.colors.mainBackground, paddingHorizontal: 16, overflow: 'hidden' }]}
+            style={[styles.chartContainer,   { backgroundColor: theme.colors.mainBackground, paddingHorizontal: 16, overflow: 'hidden', borderColor:theme.colors.textSecondary, borderWidth:1 }]}
           >
             <Text style={[styles.chartTitle,{color:theme.colors.textPrimary}]}>Ценова история</Text>
             <Text style={[styles.chartSubtitle,{color:theme.colors.textPrimary}]}>Последни 6 месеца</Text>
@@ -317,13 +295,14 @@ export default function ProductPage() {
   width={wp(85)}
   height={200}
   spacing={45}
-  initialSpacing={20}
+  initialSpacing={0}
   endSpacing={20}
   
   // Area chart
   areaChart
   startFillColor="rgba(143, 228, 201, 0.3)"
   endFillColor="rgba(143, 228, 201, 0.1)"
+  
   startOpacity={0.4}
   endOpacity={0.05}
   
@@ -379,6 +358,7 @@ export default function ProductPage() {
     pointerStripWidth: 2,
     pointerColor: 'rgba(143, 228, 201, 1)',
     radius: 8,
+
     pointerLabelWidth: 100,
     pointerLabelHeight: 90,
     pointerLabelComponent: (items: any[]) => {
@@ -414,7 +394,7 @@ export default function ProductPage() {
             intensity={40}
             tint={theme.colors.TabBarColors as 'light' | 'dark'}
             experimentalBlurMethod="dimezisBlurView"
-            style={[styles.blurContainer,{borderColor:theme.colors.textPrimary}]}
+            style={[styles.blurContainer,{borderColor:'white'}]}
           >
             <TouchableOpacity style={styles.cartButton}>
               <Svg width={24} height={24} viewBox="0 0 902.86 902.86" fill={theme.colors.textPrimary}>
@@ -451,8 +431,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
+        borderWidth: 1,
+    borderColor: '#666666',
   },
-  productImage: { height: '100%', width: '100%', resizeMode: 'contain' },
+  productImage: { height: '100%', width: '100%', resizeMode: 'contain',  },
   favoriteButton: {
     position: 'absolute',
     top: 20,
@@ -593,4 +575,10 @@ const styles = StyleSheet.create({
   },
   cartButton: { justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
   cartButtonText: { fontWeight: '600', fontSize: 20, marginLeft: 8 },
+    heartOverlay: {
+      position: "absolute",
+      top: hp(1),
+      right: wp(2),
+      zIndex: 10,
+    },
 });
