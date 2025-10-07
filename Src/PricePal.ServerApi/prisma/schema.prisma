@@ -16,7 +16,8 @@ datasource db {
 model StoreChain {
   id      Int     @id @default(autoincrement())
   name    String
-  website String
+  base_url String
+  products_page String
 
   // Relations
   stores  Store[]
@@ -46,6 +47,7 @@ model Product {
   id          Int       @id @default(autoincrement())
   name        String
   brand       String?
+  unit        String?
   category_id Int
   barcode     String?   @unique
   image_url   String?
@@ -63,7 +65,7 @@ model Price {
   price_eur  Decimal   @db.Decimal(10, 2)
   valid_from DateTime
   valid_to   DateTime?
-  is_promo   Boolean   @default(false)
+  discount   Int?
 
   // Relations
   product Product    @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
