@@ -302,15 +302,20 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   price,
 }) => {
    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
-  
+     const theme = isDarkMode ? darkTheme : lightTheme;
+
+   const blurViewProps = {
+  intensity: 20,
+  tint: theme.colors.TabBarColors as 'dark' | 'light',
+  experimentalBlurMethod: 'dimezisBlurView' as const,
+};
+  const ContainerView = isPerformanceMode ? View : BlurView;
+
   // Select appropriate theme based on dark mode setting
-  const theme = isDarkMode ? darkTheme : lightTheme;
   return (
-  <BlurView
-  intensity={20}
-    tint={theme.colors.TabBarColors as 'dark'| 'light'}
-  experimentalBlurMethod="dimezisBlurView"
-  style={[styles.totalPriceContainer, { bottom: wp(29) }]}
+<ContainerView
+  style={[styles.totalPriceContainer, { bottom: wp(29) },isPerformanceMode && { backgroundColor:theme.colors.textGreen }]}
+  {...(!isPerformanceMode && blurViewProps)}
 >
   <View style={styles.totalPriceRow}>
     <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>Обща цена</Text>
@@ -327,7 +332,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
       <Text style={[styles.continueButtonText,{color:theme.colors.textPrimary}]}>Продължи</Text>
     </TouchableHighlight>
   </BlurView>
-</BlurView>
+</ContainerView>
 
   );
 });

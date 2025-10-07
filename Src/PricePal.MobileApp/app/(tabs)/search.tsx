@@ -3,12 +3,19 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import React, { useRef } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-
+import { ImageBackground, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
+const SearchIcon = ({ color = '#fff', size = 24 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="11" cy="11" r="8" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M21 21l-4.35-4.35" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
 const Search = () => {
-    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const inputRef = useRef<TextInput>(null);
+  
   useFocusEffect(
     React.useCallback(() => {
       const timeout = setTimeout(() => {
@@ -20,37 +27,34 @@ const Search = () => {
   );
 
   return (
-
     <ImageBackground
       source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
       <ScrollView
-        className="pt-[80px]"
+        style={styles.scrollView}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 2 }}
+        contentContainerStyle={styles.scrollViewContent}
       >
         {/* Title */}
-        <View className="flex-row justify-between mx-3 items-center gap-2">
+        <View style={styles.searchContainer}>
+          
           <BlurView
             intensity={50}
-            tint="light"
+        tint={theme.colors.TabBarColors as 'light' | 'dark'}
             experimentalBlurMethod="dimezisBlurView"
-            className="items-center flex-row justify-start px-3 bg-gray-200 rounded-[10px] overflow-hidden border border-white"
+            style={styles.blurView}
           >
-            <Image
-              className="w-5 h-5 mr-2"
-              source={require('../../assets/icons/search.png')}
-            />
+           <SearchIcon color={theme.colors.textPrimary} size={20}/>
             <TextInput
               ref={inputRef}
               placeholder="Какво Търсиш"
               onChangeText={() => {}}
-              placeholderTextColor="#000000"
-              className="w-3/4"
+              placeholderTextColor={theme.colors.textPrimary}
+              style={styles.textInput}
             />
           </BlurView>
-          <Text className="underline">Откажи</Text>
+          <Text style={[styles.cancelText,{color:theme.colors.textPrimary}]}>Откажи</Text>
         </View>
       </ScrollView>
     </ImageBackground>
@@ -62,6 +66,37 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  scrollView: {
+    paddingTop: 80,
+  },
+  scrollViewContent: {
+    paddingHorizontal: 2,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 12,
+    alignItems: 'center',
+    gap: 8,
+  },
+  blurView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'white',
+  },
+
+  textInput: {
+    width: '75%',
+    marginLeft: 8,
+  },
+  cancelText: {
+    textDecorationLine: 'underline',
   },
   categories: {
     padding: 15,

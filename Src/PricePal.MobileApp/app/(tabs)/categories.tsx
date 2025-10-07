@@ -441,6 +441,10 @@ const CategoryItem = React.memo(({
 }) => {
    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
+const ContainerView = isPerformanceMode ? View : Animated.View;
+
+
+
   const colors = useMemo(() => getCategoryColors(item.text), [item.text]);
   const scale = useSharedValue(0);
   const pressScale = useSharedValue(1);
@@ -486,22 +490,23 @@ const CategoryItem = React.memo(({
   }));
 
   return (
-    <Animated.View style={[styles.itemContainer, animatedStyle]}>
-      <Pressable 
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={styles.button}
-      >
-        <LinearGradient
-          colors={theme.colors.blueTeal}
-          start={{ x: 0, y: 1 }}
-          style={styles.categories}
-        >
-          <Text style={[styles.categoryText,{color:theme.colors.textPrimary}]}>{item.text}</Text>
-        </LinearGradient>
-      </Pressable>
-    </Animated.View>
+    
+   <ContainerView style={[styles.itemContainer, !isPerformanceMode && animatedStyle]}>
+  <Pressable 
+    onPress={handlePress}
+    onPressIn={handlePressIn}
+    onPressOut={handlePressOut}
+    style={styles.button}
+  >
+    <LinearGradient
+      colors={theme.colors.blueTeal}
+      start={{ x: 0, y: 1 }}
+      style={styles.categories}
+    >
+      <Text style={[styles.categoryText,{color:theme.colors.textPrimary}]}>{item.text}</Text>
+    </LinearGradient>
+  </Pressable>
+</ContainerView>
   );
 }, (prevProps, nextProps) => {
   return prevProps.item.id === nextProps.item.id && 
