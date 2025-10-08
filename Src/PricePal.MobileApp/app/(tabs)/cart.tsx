@@ -6,7 +6,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Dimensions,
   FlatList,
   Image,
   ImageBackground,
@@ -18,49 +17,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 
 
-// Get screen dimensions once and memoize
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
-// Memoize these calculations
-const wp = (percentage: number): number => (percentage * screenWidth) / 100;
-const hp = (percentage: number): number => (percentage * screenHeight) / 100;
-
-const getFontSize = (size: number): number => {
-  if (screenWidth < 350) return size * 0.85;
-  if (screenWidth > 400) return size * 1.1;
-  return size;
-};
-
-// Pre-calculate common values
-const FONT_SIZES = {
-  title: getFontSize(32),
-  optionsTitle: getFontSize(20),
-  optionText: getFontSize(16),
-  cancelText: getFontSize(16),
-  summaryTitle: getFontSize(19),
-  savingsText: getFontSize(18),
-  priceText: getFontSize(16),
-  totalPrice: getFontSize(21),
-};
-const PHONE_BREAKPOINTS = {
-  SMALL: screenWidth < 375,   // iPhone SE, small Android phones
-  MEDIUM: screenWidth >= 375 && screenWidth < 414,  // iPhone 12/13, standard phones
-  LARGE: screenWidth >= 414,   // iPhone 14 Plus, large phones
-};
-
-export const responsiveSize = (small: number, medium: number, large: number): number => {
-  if (PHONE_BREAKPOINTS.SMALL) return hp(small);
-  if (PHONE_BREAKPOINTS.MEDIUM) return hp(medium);
-  return hp(large);
-};
-const DIMENSIONS = {
-  imageSize: wp(30),
-  productWidth: wp(95),
-  productHeight: hp(20),
-  overviewHeight: hp(25),
-};
 
 interface ProductBoxProps {
   name: string;
@@ -210,7 +169,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
           </TouchableOpacity>
 
           <Image 
-            style={[styles.productImage, { width: DIMENSIONS.imageSize }]} 
+            style={[styles.productImage, { width: scale(120) }]} 
             source={photo} 
             resizeMode="cover"
           />
@@ -283,22 +242,22 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
       colors={theme.colors.blueTeal}
       start={{ x: 0, y: 1 }}
       end={{ x: 1, y: 0 }}
-      style={[styles.overviewContainer, { padding: wp(5) }]}
+      style={[styles.overviewContainer, { padding: scale(20) }]}
     >
       <View style={styles.summaryContainer}>
         <View style={styles.summaryHeader}>
-          <Text style={[styles.summaryTitle, { fontSize: FONT_SIZES.summaryTitle, color:theme.colors.textPrimary }]}>
+          <Text style={[styles.summaryTitle, { fontSize: moderateScale(20), color:theme.colors.textPrimary }]}>
             Обобщение на покупките
           </Text>
-          <Text style={[styles.savingsText, { fontSize: FONT_SIZES.savingsText }]}>
+          <Text style={[styles.savingsText, { fontSize: moderateScale(20) }]}>
             Спестяваш €{saves}
           </Text>
         </View>
 
         <View style={styles.priceBreakdown}>
-          <Text style={{ fontSize: FONT_SIZES.priceText,color:theme.colors.textPrimary }}>Нормална цена: €{basePrice}</Text>
-          <Text style={{ fontSize: FONT_SIZES.priceText,color:theme.colors.textPrimary }}>Обща цена:</Text>
-          <Text style={[styles.totalPriceText, { fontSize: FONT_SIZES.totalPrice,color:theme.colors.textPrimary }]}>
+          <Text style={{ fontSize: moderateScale(20),color:theme.colors.textPrimary }}>Нормална цена: €{basePrice}</Text>
+          <Text style={{ fontSize: moderateScale(20),color:theme.colors.textPrimary }}>Обща цена:</Text>
+          <Text style={[styles.totalPriceText, { fontSize: moderateScale(20),color:theme.colors.textPrimary }]}>
             €{price}
           </Text>
         </View>
@@ -328,7 +287,7 @@ const ContainerView = (isPerformanceMode
   <ContainerView
     style={[
       styles.totalPriceContainer,
-      { bottom: wp(30) },
+      { bottom: verticalScale(95) },
       isPerformanceMode && { backgroundColor: theme.colors.textGreen },
     ]}
     {...(!isPerformanceMode
@@ -417,7 +376,7 @@ const Cart: React.FC = () => {
 
   const ListHeaderComponent = useMemo(() => (
     <View style={styles.titleContainer}>
-      <Text style={[styles.mainTitle, { fontSize: FONT_SIZES.title, color:theme.colors.textPrimary }]}>Количка</Text>
+      <Text style={[styles.mainTitle, { fontSize: moderateScale(20), color:theme.colors.textPrimary }]}>Количка</Text>
     </View>
   ), []);
 
@@ -428,13 +387,13 @@ const Cart: React.FC = () => {
         basePrice={finalPrice.basePrice}
         saves={finalPrice.saves} 
       />
-      <View style={{ height: hp(20) }} />
+      <View style={{ height: verticalScale(220) }} />
     </>
   ), [finalPrice]);
 
   const getItemLayout = useCallback((data: any, index: number) => ({
-    length: DIMENSIONS.productHeight + 16,
-    offset: (DIMENSIONS.productHeight + 16) * index,
+    length: scale(20),
+    offset: scale(20) * index,
     index,
   }), []);
 
@@ -476,30 +435,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   flatListContent: {
-    paddingTop: hp(5),
-    paddingBottom: hp(22),
+    paddingTop: moderateScale(20),
+    paddingBottom: moderateScale(20),
     alignItems: 'center',
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: hp(2)
+    marginTop: moderateScale(20)
   },
   products: {
-    width: wp(95),
-    height: responsiveSize(25,20,15),
+    width: scale(325),
+    height: verticalScale(150),
     borderRadius: 15,
     marginBottom: 16,
     position: 'relative',
   },
   overviewContainer: {
-    width: DIMENSIONS.productWidth,
-    height: DIMENSIONS.overviewHeight,
+    width: scale(325),
+    height: verticalScale(200),
     borderRadius: 15,
   },
   mainTitle: {
     fontWeight: 'bold',
     textAlign: 'center',
-    paddingBottom: hp(3),
+    paddingBottom: moderateScale(20),
   },
   productContainer: {
     flexDirection: "row",
@@ -538,14 +497,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   brand: {
-    fontSize: 18,
+    fontSize: moderateScale(17),
     fontWeight: "600",
   },
   name: {
-    fontSize: 18,
+    fontSize: moderateScale(17),
   },
   price: {
-    fontSize: 18,
+    fontSize: moderateScale(17),
     fontWeight: "bold",
   },
   quantityRow: {
@@ -565,12 +524,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonText: {
-    fontSize: 20,
+    fontSize: moderateScale(18),
     fontWeight: "bold",
   },
   quantityText: {
     marginHorizontal: 16,
-    fontSize: 18,
+    fontSize: moderateScale(20),
     fontWeight: "600",
   },
   summaryContainer: {
@@ -605,7 +564,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bottomSheet: {
-    maxHeight: hp(50),
+    maxHeight: verticalScale(60),
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     overflow: 'hidden',
@@ -623,7 +582,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   optionsTitle: {
-    fontSize: FONT_SIZES.optionsTitle,
+    fontSize: moderateScale(20),
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
@@ -643,7 +602,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   optionText: {
-    fontSize: FONT_SIZES.optionText,
+    fontSize: moderateScale(20),
     color: '#333',
     fontWeight: '500',
   },
@@ -657,14 +616,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   cancelText: {
-    fontSize: FONT_SIZES.cancelText,
+    fontSize: moderateScale(20),
     color: '#333',
     textAlign: 'center',
     fontWeight: '600',
   },
     totalPriceContainer: {
     position: 'absolute',
-    width:wp(95),
+    width:scale(325),
     alignSelf:'center',
     padding: 20, 
     borderRadius: 15,

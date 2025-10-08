@@ -4,36 +4,11 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs, router } from 'expo-router';
 import React from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-// Get screen dimensions
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
-// Width and height functions
-const wp = (percentage: number): number => {
-  return (percentage * screenWidth) / 100;
-};
-
-const hp = (percentage: number): number => {
-  return (percentage * screenHeight) / 100;
-};
-
-// Font functions
-const getFontSize = (size: number): number => {
-  if (screenWidth < 350) return size * 0.85; 
-  if (screenWidth > 400) return size * 1.1;  
-  return size; 
-};
-
-const TabBarHeight = Math.max(hp(8.5), 65); 
-
-const getCircleSize = (percentage: number): number => {
-  const width = wp(percentage);
-  const height = hp(percentage);
-  return Math.min(width, height);
-};
 
 
 
@@ -139,7 +114,7 @@ const SearchButton = React.memo(({ bottomInset }: { bottomInset: number }) => {
 
   return (
     <TouchableOpacity 
-      style={[styles.searchButton, { bottom: hp(5) + bottomInset }]}
+      style={[styles.searchButton, ]}
       onPress={() => router.push('/search')}
       activeOpacity={0.8}
     >
@@ -233,18 +208,17 @@ const Layout = () => {
                 flex: 1,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginHorizontal: 15,
+                marginHorizontal: 20,
               },
               tabBarStyle: {
                 position: 'absolute',
-                bottom: hp(4.5) + insets.bottom,
+                bottom: verticalScale(25),
                 left: '50%',
-                paddingLeft: wp(3.3),
-                paddingRight: wp(3.3),
-                transform: [{ translateX: 25 }], 
-                height: TabBarHeight,
-                width: wp(70),
-                borderRadius: TabBarHeight / 2,
+                paddingHorizontal:scale(20),
+                transform: [{ translateX: scale(22) }], 
+                height: moderateScale(70),
+                width: scale(245),
+                borderRadius: scale(50),
                 overflow: 'hidden',
                 borderWidth: 1,
                 borderColor: "white",
@@ -373,40 +347,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: hp(7.5) / 2,
-    paddingHorizontal: 14,
-    marginTop: hp(3.9), 
-    marginRight: wp(0.5),
-    height: hp(7.4),
+    borderRadius: scale(50),
+    paddingHorizontal: moderateScale(10),
+    marginTop: moderateScale(32),
+    height: moderateScale(60),
     borderColor: "white",
     borderWidth: 0.5,
-    width: wp(25),
+    width: scale(90),
   },
   focusedText: {
-    marginLeft: 6,
-    fontSize: getFontSize(13),
+    marginLeft: moderateScale(5),
+    fontSize: moderateScale(14),
     color: '#000000',
     fontWeight: '500',
   },
   defaultTab: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: hp(4.2),
-    height: hp(20), 
-    width: wp(20),
+    marginTop: moderateScale(38),
+    height: verticalScale(20), 
+    width: scale(50),
   },
   defaultText: {
-    fontSize: getFontSize(12),
+    fontSize: moderateScale(13),
     color: '#000000',
     textAlign: 'center',
     marginTop: 4,
   },
   searchButton: {
     position: 'absolute',
-    right: wp(6),
-    width: getCircleSize(15),
-    height: getCircleSize(15),
-    borderRadius: getCircleSize(15) / 2,
+    right: scale(19),
+    width: scale(52),
+    height: moderateScale(54),
+    borderRadius: scale(52),
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -417,6 +390,7 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 20,
     borderColor: "white",
+    bottom: verticalScale(32)
   },
   searchButtonBlur: {
     ...StyleSheet.absoluteFillObject,
