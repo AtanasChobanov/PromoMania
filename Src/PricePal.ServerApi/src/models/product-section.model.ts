@@ -1,4 +1,4 @@
-import type { Product } from "@prisma/client";
+import type { Product } from "./product.model.js";
 
 export enum ProductSectionTitle {
   CHEAPEST_PRODUCTS = "Топ продукти",

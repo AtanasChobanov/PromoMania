@@ -47,5 +47,5 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src"]
+  "include": ["src", "drizzle.config.ts"]
 }

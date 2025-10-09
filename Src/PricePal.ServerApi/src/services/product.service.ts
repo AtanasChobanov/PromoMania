@@ -1,32 +1,24 @@
-import type { Product } from "@prisma/client";
-import prisma from "../config/prisma-client.config.js";
-import ProductSection from "../models/product-section.model.js";
-import { ProductSectionTitle } from "../models/product-section.model.js";
+import ProductSection, {
+  ProductSectionTitle,
+} from "../models/product-section.model.js";
+import type { Product } from "../models/product.model.js";
+import PriceRepository from "../repository/price.repository.js";
+import ProductRepository from "../repository/product.repository.js";
 
 export default class ProductService {
+  private priceRepository: PriceRepository;
+  private productRepository: ProductRepository;
+
+  constructor() {
+    this.priceRepository = new PriceRepository();
+    this.productRepository = new ProductRepository();
+  }
+
   private async getCheapestProducts(): Promise<ProductSection> {
-    const productData = await prisma.product.findMany({
-      select: {
-        id: true,
-        name: true,
-        brand: true,
-        category: true,
-        category_id: true,
-        barcode: true,
-        image_url: true,
-        unit: true,
-        prices: {
-          select: {
-            price_bgn: true,
-            price_eur: true,
-            discount: true,
-          },
-          orderBy: [{ price_bgn: "asc" }, { price_eur: "asc" }],
-          take: 1,
-        },
-      },
-      take: 6,
-    });
+    const priceIds = await this.priceRepository.getLowestPricePerProduct();
+
+    const productData: Product[] =
+      await this.productRepository.getOrderedByPrice(priceIds);
 
     return new ProductSection(
       ProductSectionTitle.CHEAPEST_PRODUCTS,
@@ -35,30 +27,25 @@ export default class ProductService {
   }
 
   private async getBiggestDiscounts(): Promise<ProductSection> {
-    const productData = await prisma.product.findMany({
-      select: {
-        id: true,
-        name: true,
-        brand: true,
-        category: true,
-        category_id: true,
-        barcode: true,
-        image_url: true,
-        unit: true,
-        prices: {
-          select: {
-            price_bgn: true,
-            price_eur: true,
-            discount: true,
-          },
-          orderBy: {
-            discount: "asc",
-          },
-          take: 1,
-        },
-      },
-      take: 6,
-    });
+    let priceIds = await this.priceRepository.getBiggestDiscountPerProduct();
+
+    priceIds = Array.from(
+      priceIds
+        .reduce((map, p) => {
+          const existing = map.get(p.productId);
+          const currentDiscount = p.discount ?? 0;
+          const existingDiscount = existing?.discount ?? 0;
+
+          if (!existing || currentDiscount < existingDiscount) {
+            map.set(p.productId, p);
+          }
+          return map;
+        }, new Map())
+        .values()
+    );
+
+    const productData: Product[] =
+      await this.productRepository.getOrderedByDiscount(priceIds);
 
     return new ProductSection(
       ProductSectionTitle.BIGGEST_DISCOUNTS,
