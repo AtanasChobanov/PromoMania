@@ -246,18 +246,18 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
     >
       <View style={styles.summaryContainer}>
         <View style={styles.summaryHeader}>
-          <Text style={[styles.summaryTitle, { fontSize: moderateScale(20), color:theme.colors.textPrimary }]}>
+          <Text style={[styles.summaryTitle, { fontSize: moderateScale(19), color:theme.colors.textPrimary }]}>
             Обобщение на покупките
           </Text>
-          <Text style={[styles.savingsText, { fontSize: moderateScale(20) }]}>
+          <Text style={[styles.savingsText, { fontSize: moderateScale(18) }]}>
             Спестяваш €{saves}
           </Text>
         </View>
 
         <View style={styles.priceBreakdown}>
-          <Text style={{ fontSize: moderateScale(20),color:theme.colors.textPrimary }}>Нормална цена: €{basePrice}</Text>
-          <Text style={{ fontSize: moderateScale(20),color:theme.colors.textPrimary }}>Обща цена:</Text>
-          <Text style={[styles.totalPriceText, { fontSize: moderateScale(20),color:theme.colors.textPrimary }]}>
+          <Text style={{ fontSize: moderateScale(18),color:theme.colors.textPrimary }}>Нормална цена: €{basePrice}</Text>
+          <Text style={{ fontSize: moderateScale(18),color:theme.colors.textPrimary }}>Обща цена:</Text>
+          <Text style={[styles.totalPriceText, { fontSize: moderateScale(18),color:theme.colors.textPrimary }]}>
             €{price}
           </Text>
         </View>
@@ -387,7 +387,7 @@ const Cart: React.FC = () => {
         basePrice={finalPrice.basePrice}
         saves={finalPrice.saves} 
       />
-      <View style={{ height: verticalScale(220) }} />
+      <View style={{ height: verticalScale(210) }} />
     </>
   ), [finalPrice]);
 
@@ -515,6 +515,8 @@ const styles = StyleSheet.create({
   },
   blurButton: {
     borderRadius: 9999,
+    width: moderateScale(30),
+    height: moderateScale(30),
     overflow: "hidden",
   },
   buttonTouchable: {
@@ -564,7 +566,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bottomSheet: {
-    maxHeight: verticalScale(60),
+    maxHeight: verticalScale(500),
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     overflow: 'hidden',
