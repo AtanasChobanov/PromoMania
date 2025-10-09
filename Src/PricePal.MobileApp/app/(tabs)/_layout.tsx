@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs, router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
@@ -12,6 +12,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 
 
+const { height: ScreenHeight } = Dimensions.get('window');
 
 // SVG Icons
 const HomeIcon = ({ color = '#000', size = 20 }: { color?: string; size?: number }) => (
@@ -113,7 +114,7 @@ const SearchButton = React.memo(({ bottomInset }: { bottomInset: number }) => {
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[styles.searchButton, ]}
       onPress={() => router.push('/search')}
       activeOpacity={0.8}
@@ -153,11 +154,14 @@ const TopBar = React.memo(() => {
         style={styles.gradientBackground}
       />
       <TouchableOpacity 
+             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+
         onPress={() => router.push('/(profile)/profile')}
         style={{ zIndex: 2 }}>
          <Image className='w-[40px] h-[40px]' source={require("../../assets/icons/profile-pic.png")} />      
          </TouchableOpacity>
       <TouchableOpacity 
+       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         onPress={() => router.push('/(profile)/settings')}
         style={{ zIndex: 2 }}>
         <View style={styles.settingsButton}>
@@ -212,11 +216,11 @@ const Layout = () => {
               },
               tabBarStyle: {
                 position: 'absolute',
-                bottom: verticalScale(25),
-                left: '50%',
+                bottom: moderateScale(28),
+              
                 paddingLeft:scale(20),
                 paddingRight:scale(20),
-                transform: [{ translateX: scale(8) }], 
+                marginHorizontal: scale(10),
                 height: moderateScale(70),
                 width: scale(265),
                 borderRadius: scale(70),
@@ -349,12 +353,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: scale(100),
-    marginTop: moderateScale(32),
+    marginTop:  ScreenHeight > 860 ? moderateScale(35) : moderateScale(32),
     height: moderateScale(60),
     borderColor: "white",
     borderWidth: 0.5,
     width: scale(100),
-    marginHorizontal:500
+      paddingHorizontal: scale(12),
+  minWidth: scale(100),
+  maxWidth: scale(120),
   },
   focusedText: {
     marginLeft: moderateScale(5),
@@ -377,7 +383,7 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     position: 'absolute',
-    right: scale(15),
+    right: scale(13),
     width: scale(58),
     height: moderateScale(62),
     borderRadius: scale(52),

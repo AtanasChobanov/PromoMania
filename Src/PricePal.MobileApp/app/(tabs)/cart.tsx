@@ -287,7 +287,7 @@ const ContainerView = (isPerformanceMode
   <ContainerView
     style={[
       styles.totalPriceContainer,
-      { bottom: verticalScale(95) },
+      { bottom: moderateScale(105) },
       isPerformanceMode && { backgroundColor: theme.colors.textGreen },
     ]}
     {...(!isPerformanceMode
@@ -376,7 +376,7 @@ const Cart: React.FC = () => {
 
   const ListHeaderComponent = useMemo(() => (
     <View style={styles.titleContainer}>
-      <Text style={[styles.mainTitle, { fontSize: moderateScale(20), color:theme.colors.textPrimary }]}>Количка</Text>
+      <Text style={[styles.mainTitle, { fontSize: moderateScale(30), color:theme.colors.textPrimary }]}>Количка</Text>
     </View>
   ), []);
 
@@ -387,7 +387,7 @@ const Cart: React.FC = () => {
         basePrice={finalPrice.basePrice}
         saves={finalPrice.saves} 
       />
-      <View style={{ height: verticalScale(210) }} />
+      <View style={{ height: moderateScale(250) }} />
     </>
   ), [finalPrice]);
 
@@ -441,18 +441,18 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: moderateScale(20)
+    marginTop: moderateScale(40)
   },
   products: {
     width: scale(325),
-    height: verticalScale(150),
+    height: moderateScale(160),
     borderRadius: 15,
     marginBottom: 16,
     position: 'relative',
   },
   overviewContainer: {
     width: scale(325),
-    height: verticalScale(200),
+    height: moderateScale(195),
     borderRadius: 15,
   },
   mainTitle: {
@@ -511,6 +511,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,
+    
     overflow: "hidden",
   },
   blurButton: {
@@ -520,8 +521,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   buttonTouchable: {
-    width: 32,
-    height: 32,
+    width: moderateScale(30),
+    height: moderateScale(28),
     alignItems: "center",
     justifyContent: "center",
   },
