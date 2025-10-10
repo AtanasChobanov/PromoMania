@@ -599,13 +599,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      borderWidth: 1,
+    borderColor: 'rgba(185, 185, 185, 1)',
+  
   },
   optionIcon: {
     fontSize: 20,
     marginRight: 15,
   },
   optionText: {
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(18),
     color: '#333',
     fontWeight: '500',
   },

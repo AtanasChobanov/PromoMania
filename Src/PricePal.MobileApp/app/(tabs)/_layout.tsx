@@ -2,15 +2,12 @@ import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Tabs, router } from 'expo-router';
+import { Tabs, router, usePathname } from 'expo-router';
 import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-
-
-
 
 const { height: ScreenHeight } = Dimensions.get('window');
 
@@ -64,7 +61,6 @@ const SearchIcon = ({ color = '#fff', size = 24 }: { color?: string; size?: numb
   </Svg>
 );
 
-
 const SettingsIcon = ({ color = '#000', size = 30 }: { color?: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={1.5} />
@@ -109,33 +105,54 @@ const TabIcon = React.memo(({ focused, IconComponent, title }: any) => {
 
 TabIcon.displayName = 'TabIcon';
 
-const SearchButton = React.memo(({ bottomInset }: { bottomInset: number }) => {
-  const { isDarkMode,isPerformanceMode } = useSettings();
+const SearchButton = React.memo(({ bottomInset, isFocused }: { bottomInset: number; isFocused: boolean }) => {
+  const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
-    <TouchableOpacity
-      style={[styles.searchButton, ]}
-      onPress={() => router.push('/search')}
-      activeOpacity={0.8}
-    >
-              <>
-      {isPerformanceMode ? (
-         <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
-      ) : (
+    <>
+      {/* Original Search Button - Always rendered */}
+      <TouchableOpacity
+        style={[styles.searchButton]}
+        onPress={() => router.push('/search')}
+        activeOpacity={0.8}
+      >
+        <>
+          {isPerformanceMode ? (
+            <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
+          ) : (
+            <BlurView 
+              intensity={30} 
+              experimentalBlurMethod="dimezisBlurView"
+              tint={theme.colors.TabBarColors as 'light' | 'dark'}
+              style={styles.searchButtonBlur}
+            />
+          )}
+        </>   
+        <View style={{ zIndex: 1 }}>
+          <SearchIcon color={theme.colors.textPrimary} size={24} />
+        </View>
+      </TouchableOpacity>
+
+      {/* Focused Search Button - Rendered on top when focused */}
+      {isFocused && (
+        <TouchableOpacity
+          style={[styles.searchButtonFocused]}
+          onPress={() => router.push('/search')}
+          activeOpacity={0.8}
+        >
           <BlurView 
-        intensity={30} 
-        experimentalBlurMethod="dimezisBlurView"
-        tint={theme.colors.TabBarColors as 'light' | 'dark'}
-        style={styles.searchButtonBlur}
-      />
+            experimentalBlurMethod="dimezisBlurView"
+            intensity={50} 
+            tint={theme.colors.TabBarColors as 'light' | 'dark'}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={{ zIndex: 1 }}>
+            <SearchIcon color={theme.colors.textPrimary} size={24} />
+          </View>
+        </TouchableOpacity>
       )}
-    </>   
-  
-      <View style={{ zIndex: 1 }}>
-        <SearchIcon color={theme.colors.textPrimary} size={24} />
-      </View>
-    </TouchableOpacity>
+    </>
   );
 });
 
@@ -143,7 +160,7 @@ SearchButton.displayName = 'SearchButton';
 
 const TopBar = React.memo(() => {
   const insets = useSafeAreaInsets();
-  const { isDarkMode , isPerformanceMode } = useSettings();
+  const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
   return (
@@ -154,33 +171,34 @@ const TopBar = React.memo(() => {
         style={styles.gradientBackground}
       />
       <TouchableOpacity 
-             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         onPress={() => router.push('/(profile)/profile')}
-        style={{ zIndex: 2 }}>
-         <Image className='w-[40px] h-[40px]' source={require("../../assets/icons/profile-pic.png")} />      
-         </TouchableOpacity>
+        style={{ zIndex: 2 }}
+      >
+        <Image className='w-[40px] h-[40px]' source={require("../../assets/icons/profile-pic.png")} />      
+      </TouchableOpacity>
       <TouchableOpacity 
-       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         onPress={() => router.push('/(profile)/settings')}
-        style={{ zIndex: 2 }}>
+        style={{ zIndex: 2 }}
+      >
         <View style={styles.settingsButton}>
-                  <>
-      {isPerformanceMode ? (
-         <LinearGradient 
-         colors={theme.colors.blueTeal} 
-         locations={[0, 1]} 
-         style={[styles.tabBarBlur]} />
-      ) : (
-        <BlurView 
-            intensity={20} 
-            tint={theme.colors.TabBarColors as 'light' | 'dark'}
-            experimentalBlurMethod="dimezisBlurView"
-            style={StyleSheet.absoluteFillObject}
-          />
-      )}
-    </>   
-        
+          <>
+            {isPerformanceMode ? (
+              <LinearGradient 
+                colors={theme.colors.blueTeal} 
+                locations={[0, 1]} 
+                style={[styles.tabBarBlur]} 
+              />
+            ) : (
+              <BlurView 
+                intensity={20} 
+                tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                experimentalBlurMethod="dimezisBlurView"
+                style={StyleSheet.absoluteFillObject}
+              />
+            )}
+          </>   
           <SettingsIcon color={theme.colors.textPrimary} size={30} />
         </View>
       </TouchableOpacity>
@@ -190,18 +208,18 @@ const TopBar = React.memo(() => {
 
 TopBar.displayName = 'TopBar';
 
-
-
-
 const Layout = () => {
   const insets = useSafeAreaInsets();
   const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-
+  const pathname = usePathname();
+  
+  // Check if search route is active
+  const isSearchFocused = pathname === '/search';
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor:theme.colors.SafeviewColor }}  edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.SafeviewColor }} edges={['top']}>
         <View style={{ flex: 1 }}>
           <TopBar />
           
@@ -217,9 +235,8 @@ const Layout = () => {
               tabBarStyle: {
                 position: 'absolute',
                 bottom: moderateScale(28),
-              
-                paddingLeft:scale(20),
-                paddingRight:scale(20),
+                paddingLeft: scale(20),
+                paddingRight: scale(20),
                 marginHorizontal: scale(10),
                 height: moderateScale(70),
                 width: scale(265),
@@ -234,23 +251,23 @@ const Layout = () => {
                 elevation: 10,
               },
               tabBarBackground: () => (
-             <>
-      {isPerformanceMode ? (
-        <LinearGradient
-  colors={theme.colors.blueTeal} 
-  start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-  style={[styles.tabBarBlur]}
-/>
-      ) : (
-        <BlurView
-          intensity={20}
-          tint={theme.colors.TabBarColors as 'light' | 'dark'}
-          experimentalBlurMethod="dimezisBlurView"
-          style={styles.tabBarBlur}
-        />
-      )}
-    </>   
+                <>
+                  {isPerformanceMode ? (
+                    <LinearGradient
+                      colors={theme.colors.blueTeal} 
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={[styles.tabBarBlur]}
+                    />
+                  ) : (
+                    <BlurView
+                      intensity={20}
+                      tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                      experimentalBlurMethod="dimezisBlurView"
+                      style={styles.tabBarBlur}
+                    />
+                  )}
+                </>   
               ),
             }}
           >
@@ -305,7 +322,7 @@ const Layout = () => {
             />
           </Tabs>
           
-          <SearchButton bottomInset={insets.bottom} />
+          <SearchButton bottomInset={insets.bottom} isFocused={isSearchFocused} />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -353,14 +370,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: scale(100),
-    marginTop:  ScreenHeight > 860 ? moderateScale(35) : moderateScale(32),
+    marginTop: ScreenHeight > 860 ? moderateScale(35) : moderateScale(32),
     height: moderateScale(60),
     borderColor: "white",
     borderWidth: 0.5,
     width: scale(100),
-      paddingHorizontal: scale(12),
-  minWidth: scale(100),
-  maxWidth: scale(120),
+    paddingHorizontal: scale(12),
+    minWidth: scale(100),
+    maxWidth: scale(120),
   },
   focusedText: {
     marginLeft: moderateScale(5),
@@ -399,6 +416,25 @@ const styles = StyleSheet.create({
     borderColor: "white",
     bottom: moderateScale(32)
   },
+  searchButtonFocused: {
+    position: 'absolute',
+    right: scale(17),
+    width: scale(50),
+    height: moderateScale(52),
+    borderRadius: scale(52),
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    shadowColor: '#000000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 15,
+    elevation: 20,
+    borderColor: "white",
+    bottom: moderateScale(37),
+    zIndex: 10,
+  },
   searchButtonBlur: {
     ...StyleSheet.absoluteFillObject,
   },
@@ -410,7 +446,6 @@ const styles = StyleSheet.create({
   tabBarBlur: {
     ...StyleSheet.absoluteFillObject,
   },
-  
 });
 
 export default Layout;

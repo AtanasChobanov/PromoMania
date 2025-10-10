@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { categoriesArray, Subcategory } from '../(tabs)/categories';
 
 const CategoryPage: React.FC = () => {
@@ -28,18 +28,18 @@ const CategoryPage: React.FC = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="p-4 mt-10">
-        <View className="flex-row flex-wrap">
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.grid}>
           {subcategoryList.map(subcategory => (
-            <View key={subcategory.id} className="w-1/2 p-2">
+            <View key={subcategory.id} style={styles.gridItem}>
               <TouchableOpacity onPress={() => handleSubcategoryPress(subcategory)}>
                 <LinearGradient
-                  className="p-4 rounded-lg items-center justify-center min-h-[80px]"
+                  style={styles.gradientCard}
                   colors={['rgba(240,240,240,1)', 'rgba(220,220,220,1)']}
                   start={{ x: 0, y: 0 }}
                 >
-                  <Text className="text-center font-medium text-gray-800">
+                  <Text style={styles.text}>
                     {subcategory.name}
                   </Text>
                 </LinearGradient>
@@ -51,5 +51,34 @@ const CategoryPage: React.FC = () => {
     </ScrollView>
   );
 };
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  content: {
+    padding: 16,
+    marginTop: 40,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  gridItem: {
+    width: '50%',
+    padding: 8,
+  },
+  gradientCard: {
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+  },
+  text: {
+    textAlign: 'center',
+    fontWeight: '500',
+    color: '#1f2937',
+  },
+});
 export default CategoryPage;
