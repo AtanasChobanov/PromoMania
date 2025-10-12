@@ -33,6 +33,7 @@ export const lightTheme = {
    blueTeal: ['rgba(163, 216, 239, 1)', 'rgba(103, 218, 191, 1)'] as [string, string, ...string[]],
     peachPink: ['rgba(255, 200, 165, 1)', 'rgba(255, 160, 175, 1)'] as [string, string, ...string[]],
     lavenderPurple: ['rgba(200, 191, 231, 1)', 'rgba(167, 139, 250, 1)'] as [string, string, ...string[]],
+        backgroundColor:  'rgba(103, 218, 191, 1)',
 
 
     unitColor:"rgba(31, 41, 55, 0.1)",
@@ -87,6 +88,7 @@ export const darkTheme = {
     blueTeal: ['rgba(45, 153, 211, 1)', 'rgba(46, 170, 134, 1)'] as [string, string, ...string[]],
     peachPink: ['rgba(239, 122, 20, 1)', 'rgba(239, 30, 63, 1)'] as [string, string, ...string[]],
     lavenderPurple: ['rgba(110, 80, 180, 1)', 'rgba(140, 80, 200, 1)'] as [string, string, ...string[]],
+    backgroundColor:  'rgba(46, 170, 134, 1)',
 //Unit
 unitColor: "rgba(229, 231, 235, 0.1)",
 unitBorderColor: "rgba(229, 231, 235, 0.2)",
