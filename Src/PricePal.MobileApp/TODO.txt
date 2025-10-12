@@ -1,10 +1,18 @@
-Saving in main menu
-Saved page
-Searched page
-Settings page
-Profile page
+Saving in main menu -done
+Saved page- done
+Searched page-done
+Settings page- done
+Profile page- done
 Login Page
-More Content in main menu
-Optimize code and performance
-Make it responsible
-TabBar IFs 
+More Content in main menu-done
+Optimize code and performance-done
+Make it responsible-done
+TabBar IFs-done
+Push notifications
+Map control
+
+
+add
+„Всички промоции са публично достъпни от официалните уебсайтове на веригите.
+Приложението не е свързано с Kaufland, Lidl и други марки, а само обединява публична информация с цел удобство на потребителите.
+Източници: kaufland.bg, lidl.bg и др.“ section

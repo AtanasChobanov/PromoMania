@@ -3,7 +3,7 @@ import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -18,7 +18,6 @@ import {
   View
 } from 'react-native';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
-
 
 
 interface ProductBoxProps {
@@ -281,6 +280,8 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
 const ContainerView = (isPerformanceMode
   ? LinearGradient
   : BlurView) as React.ComponentType<any>;
+    const router = useRouter();
+  
 
   // Select appropriate theme based on dark mode setting
   return (
@@ -309,7 +310,7 @@ const ContainerView = (isPerformanceMode
     experimentalBlurMethod="dimezisBlurView"
     style={styles.continueButtonContainer}
   >
-    <TouchableHighlight style={styles.continueButton} underlayColor="transparent">
+    <TouchableHighlight style={styles.continueButton} underlayColor="transparent" onPress={() => router.navigate('/delivaryAndMap/choiceDelivary')}>
       <Text style={[styles.continueButtonText,{color:theme.colors.textPrimary}]}>Продължи</Text>
     </TouchableHighlight>
   </BlurView>
@@ -378,7 +379,7 @@ const Cart: React.FC = () => {
     <View style={styles.titleContainer}>
       <Text style={[styles.mainTitle, { fontSize: moderateScale(30), color:theme.colors.textPrimary }]}>Количка</Text>
     </View>
-  ), []);
+  ), [theme.colors.textPrimary]);
 
   const ListFooterComponent = useMemo(() => (
     <>

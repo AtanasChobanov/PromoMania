@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "jsEngine": "hermes",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "YOUR_IOS_API_KEY_HERE"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +20,12 @@
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.PricePal.MobileApp"
+      "package": "com.anonymous.PricePal.MobileApp",
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_ANDROID_API_KEY_HERE"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +43,13 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow PricePal to use your location for delivery tracking and store directions."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

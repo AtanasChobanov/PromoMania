@@ -1,17 +1,38 @@
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+// Types for the new structure
+interface Product {
+  id: number;
+  name: string;
+  brand: string | null;
+  categoryId: number;
+  barcode: string | null;
+  imageUrl: string;
+  unit: string;
+  priceBgn: string;
+  priceEur: string;
+  discount: number;
+  chain?: string; // Optional: store chain (kaufland, lidl, billa, tmarket)
+}
+
+interface ProductSection {
+  title: string;
+  products: Product[];
+}
+
 // Global cache - persists across component mounts/unmounts
 class ProductCache {
-  private products: any[] = [];
-  private productMap = new Map<string, any>();
+  private sections: ProductSection[] = [];
+  private productMap = new Map<string, Product>();
+  private productIdMap = new Map<number, Product>();
   private isLoaded = false;
-  private loadPromise: Promise<any> | null = null;
+  private loadPromise: Promise<ProductSection[]> | null = null;
 
-  async loadProducts(): Promise<any[]> {
+  async loadProducts(): Promise<ProductSection[]> {
     // If already loaded, return cached data
     if (this.isLoaded) {
-      return this.products;
+      return this.sections;
     }
 
     // If currently loading, return the existing promise
@@ -23,33 +44,46 @@ class ProductCache {
     this.loadPromise = this.fetchFromAPI();
     
     try {
-      const products = await this.loadPromise;
-      this.products = products;
+      const sections = await this.loadPromise;
+      this.sections = sections;
       this.isLoaded = true;
       
-      // Build product map for quick lookups
+      // Build product maps for quick lookups
       this.productMap.clear();
-      products.forEach((product: any) => {
-        this.productMap.set(product.name, product);
+      this.productIdMap.clear();
+      
+      sections.forEach((section) => {
+        section.products.forEach((product) => {
+          this.productMap.set(product.name, product);
+          this.productIdMap.set(product.id, product);
+        });
       });
       
-      return products;
+      return sections;
     } finally {
       this.loadPromise = null;
     }
   }
 
-  private async fetchFromAPI(): Promise<any[]> {
-    const response = await axios.get("https://pricepal-9scz.onrender.com/products");
+  private async fetchFromAPI(): Promise<ProductSection[]> {
+    const response = await axios.get("https://pricepal-9scz.onrender.com/products/overview");
     return response.data;
   }
 
-  getProduct(productName: string): any | null {
+  getProduct(productName: string): Product | null {
     return this.productMap.get(productName) || null;
   }
 
-  getAllProducts(): any[] {
-    return this.products;
+  getProductById(productId: number): Product | null {
+    return this.productIdMap.get(productId) || null;
+  }
+
+  getAllSections(): ProductSection[] {
+    return this.sections;
+  }
+
+  getAllProducts(): Product[] {
+    return this.sections.flatMap(section => section.products);
   }
 
   isDataLoaded(): boolean {
@@ -57,7 +91,7 @@ class ProductCache {
   }
 
   // Force refresh cache
-  async refresh(): Promise<any[]> {
+  async refresh(): Promise<ProductSection[]> {
     this.isLoaded = false;
     this.loadPromise = null;
     return this.loadProducts();
@@ -65,8 +99,9 @@ class ProductCache {
 
   // Clear cache (for logout, etc.)
   clear() {
-    this.products = [];
+    this.sections = [];
     this.productMap.clear();
+    this.productIdMap.clear();
     this.isLoaded = false;
     this.loadPromise = null;
   }
@@ -76,7 +111,7 @@ class ProductCache {
 const productCache = new ProductCache();
 
 export const useProducts = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [sections, setSections] = useState<ProductSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const mountedRef = useRef(true);
@@ -88,7 +123,7 @@ export const useProducts = () => {
       // If data is already loaded, set it immediately
       if (productCache.isDataLoaded()) {
         if (mountedRef.current) {
-          setProducts(productCache.getAllProducts());
+          setSections(productCache.getAllSections());
           setLoading(false);
         }
         return;
@@ -98,7 +133,7 @@ export const useProducts = () => {
         const data = await productCache.loadProducts();
         
         if (mountedRef.current) {
-          setProducts(data);
+          setSections(data);
           setError(null);
         }
       } catch (err: unknown) {
@@ -123,9 +158,17 @@ export const useProducts = () => {
     };
   }, []);
 
-  // Get single product (for product page) - INSTANT if cached
-  const getProduct = useCallback((productName: string): any | null => {
+  // Get all products as flat array (for backward compatibility)
+  const products = sections.flatMap(section => section.products);
+
+  // Get single product by name - INSTANT if cached
+  const getProduct = useCallback((productName: string): Product | null => {
     return productCache.getProduct(productName);
+  }, []);
+
+  // Get single product by ID - INSTANT if cached
+  const getProductById = useCallback((productId: number): Product | null => {
+    return productCache.getProductById(productId);
   }, []);
 
   // Refresh data manually
@@ -136,7 +179,7 @@ export const useProducts = () => {
     try {
       const data = await productCache.refresh();
       if (mountedRef.current) {
-        setProducts(data);
+        setSections(data);
       }
     } catch (err: unknown) {
       if (mountedRef.current) {
@@ -159,12 +202,14 @@ export const useProducts = () => {
   }, []);
 
   return { 
-    products, 
+    sections,        // NEW: Sections with titles
+    products,        // Flat array of all products (backward compatible)
     loading, 
     error, 
-    getProduct,      // NEW: Get single product instantly
-    refreshProducts, // NEW: Manual refresh
-    isDataAvailable  // NEW: Check if data is ready
+    getProduct,      // Get single product by name
+    getProductById,  // NEW: Get single product by ID
+    refreshProducts, // Manual refresh
+    isDataAvailable  // Check if data is ready
   };
 };
 
@@ -173,6 +218,20 @@ export const useProduct = (productName: string) => {
   const { getProduct, isDataAvailable } = useProducts();
   
   const product = getProduct(productName);
+  const dataReady = isDataAvailable();
+
+  return {
+    product,
+    found: !!product,
+    dataReady
+  };
+};
+
+// Hook for getting product by ID
+export const useProductById = (productId: number) => {
+  const { getProductById, isDataAvailable } = useProducts();
+  
+  const product = getProductById(productId);
   const dataReady = isDataAvailable();
 
   return {

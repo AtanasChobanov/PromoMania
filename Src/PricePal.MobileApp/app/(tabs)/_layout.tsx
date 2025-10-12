@@ -185,10 +185,9 @@ const TopBar = React.memo(() => {
         <View style={styles.settingsButton}>
           <>
             {isPerformanceMode ? (
-              <LinearGradient 
-                colors={theme.colors.blueTeal} 
-                locations={[0, 1]} 
-                style={[styles.tabBarBlur]} 
+              <View 
+        
+                style={[styles.tabBarBlur,{backgroundColor:theme.colors.backgroundColor}]} 
               />
             ) : (
               <BlurView 
@@ -378,6 +377,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(12),
     minWidth: scale(100),
     maxWidth: scale(120),
+    
   },
   focusedText: {
     marginLeft: moderateScale(5),
