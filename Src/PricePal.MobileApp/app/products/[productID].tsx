@@ -81,8 +81,6 @@ export default function ProductPage() {
   const { product, found, dataReady } = useProduct(productName);
 
   // Animations
-
-
   useEffect(() => {
     buttonScale.value = withRepeat(
       withSequence(
@@ -100,11 +98,11 @@ export default function ProductPage() {
     return (
       <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
         <ImageBackground
-          source={require('../../assets/images/background2.webp')}
+          source={theme.backgroundImage}
           style={styles.backgroundImage}
         >
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Зареждане...</Text>
+            <Text style={[styles.loadingText, { color: theme.colors.textPrimary }]}>Зареждане...</Text>
           </View>
         </ImageBackground>
       </Animated.View>
@@ -116,16 +114,22 @@ export default function ProductPage() {
     return (
       <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
         <ImageBackground
-          source={require('../../assets/images/background2.webp')}
+          source={theme.backgroundImage}
           style={styles.backgroundImage}
         >
           <View style={styles.notFoundContainer}>
-            <Text style={styles.notFoundText}>Продуктът не е намерен</Text>
+            <Text style={[styles.notFoundText, { color: theme.colors.textPrimary }]}>Продуктът не е намерен</Text>
           </View>
         </ImageBackground>
       </Animated.View>
     );
   }
+
+  // Helper function to safely extract numeric price
+  const getNumericPrice = (price: string | undefined): string => {
+    if (!price) return '0';
+    return price.replace(/[^\d.]/g, '');
+  };
 
   return (
     <Animated.View
@@ -159,19 +163,15 @@ export default function ProductPage() {
               style={styles.productImage}
               resizeMode={product.imageUrl ? 'contain' : 'cover'}
             />
-               <View style={styles.heartOverlay}>
-                              <HeartIcon heartSize={wp(9)} />
-                            </View>
-
-         
- 
-
+            <View style={styles.heartOverlay}>
+              <HeartIcon heartSize={wp(9)} />
+            </View>
           </Animated.View>
 
           {/* Product Details */}
           <Animated.View
             entering={FadeInDown.delay(200).duration(600).springify()}
-            style={[styles.detailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1},]}
+            style={[styles.detailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1}]}
           >
             <Animated.Text
               entering={FadeIn.delay(300).duration(500)}
@@ -208,8 +208,8 @@ export default function ProductPage() {
               entering={FadeIn.delay(450).duration(500)}
               style={styles.priceContainer}
             >
-              <Text style={[styles.price,{color:theme.colors.textGreen}]}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
-              <Text style={[styles.price,,{color:theme.colors.textGreen}]}>{product.priceEur.replace(/€.*/, '')} €</Text>
+              <Text style={[styles.price,{color:theme.colors.textGreen}]}>{getNumericPrice(product.priceBgn)} лв.</Text>
+              <Text style={[styles.price,{color:theme.colors.textGreen}]}>{getNumericPrice(product.priceEur)} €</Text>
             </Animated.View>
 
             <Animated.View
@@ -243,134 +243,132 @@ export default function ProductPage() {
             </Animated.View>
           </Animated.View>
 
-          {/* Retail Prices */}
-          <Animated.View
-            entering={FadeInDown.delay(300).duration(600).springify()}
-            style={[styles.retailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1}]}
-          >
-            <Text style={[styles.retailTitle,{color:theme.colors.textPrimary}]}>Цени в различните вериги</Text>
-            <View style={styles.OneRetailBox}>
-              <View style={styles.leftSection}>
-                <View style={styles.storeInfo}>
-                  <Image
-                    style={styles.retailImages}
-                    source={chainLogos[product.chain] || require('../../assets/icons/pricelpal-logo.png')}
-                  />
-                  <Text style={[styles.retailText,{color:theme.colors.textPrimary}]}>{product.chain}</Text>
+          {/* Retail Prices - Only show if chain exists */}
+          {product.chain && (
+            <Animated.View
+              entering={FadeInDown.delay(300).duration(600).springify()}
+              style={[styles.retailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1}]}
+            >
+              <Text style={[styles.retailTitle,{color:theme.colors.textPrimary}]}>Цени в различните вериги</Text>
+              <View style={styles.OneRetailBox}>
+                <View style={styles.leftSection}>
+                  <View style={styles.storeInfo}>
+                    <Image
+                      style={styles.retailImages}
+                      source={chainLogos[product.chain] || require('../../assets/icons/pricelpal-logo.png')}
+                    />
+                    <Text style={[styles.retailText,{color:theme.colors.textPrimary}]}>{product.chain}</Text>
+                  </View>
+                  <View style={[styles.discountContainer,{backgroundColor:theme.colors.textGreen}]}>
+                    <Text style={[styles.discountText,{color:theme.colors.textPrimary}]}>{product.discount}%</Text>
+                  </View>
                 </View>
-                <View style={[styles.discountContainer,{backgroundColor:theme.colors.textGreen}]}>
-                  <Text style={[styles.discountText,{color:theme.colors.textPrimary}]}>{product.discount}</Text>
+                <View style={styles.rightSection}>
+                  <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{getNumericPrice(product.priceBgn)} лв.</Text>
+                </View>
+                <View style={styles.rightSection}>
+                  <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{getNumericPrice(product.priceEur)} €</Text>
                 </View>
               </View>
-              <View style={styles.rightSection}>
-                <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{product.priceBgn.replace(/ЛВ.*/, '')} лв.</Text>
-                <Text style={styles.originalPrice}>{product.oldPriceBgn.replace(/ЛВ.*/, '')} лв.</Text>
-              </View>
-              <View style={styles.rightSection}>
-                <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{product.priceEur.replace(/€.*/, '')} €</Text>
-                <Text style={styles.originalPrice}>{product.oldPriceEur.replace(/€.*/, '')} €</Text>
-              </View>
-            </View>
-          </Animated.View>
+            </Animated.View>
+          )}
 
           {/* Price History Chart */}
           <Animated.View
             entering={FadeInDown.delay(400).duration(600).springify()}
-            style={[styles.chartContainer,   { backgroundColor: theme.colors.mainBackground, paddingHorizontal: 16, overflow: 'hidden', borderColor:theme.colors.textSecondary, borderWidth:1 }]}
+            style={[styles.chartContainer, { backgroundColor: theme.colors.mainBackground, paddingHorizontal: 16, overflow: 'hidden', borderColor:theme.colors.textSecondary, borderWidth:1 }]}
           >
             <Text style={[styles.chartTitle,{color:theme.colors.textPrimary}]}>Ценова история</Text>
             <Text style={[styles.chartSubtitle,{color:theme.colors.textPrimary}]}>Последни 6 месеца</Text>
 
-<LineChart
-//TODO ANIMATIONS
-  
-  // Data
-  data={productPriceHistory}
-  
-  // Line styling
-  thickness={4}
-  color={theme.colors.textGreen}
-  
-  // Dimensions
-  width={wp(85)}
-  height={200}
-  spacing={45}
-  initialSpacing={0}
-  endSpacing={20}
-  
-  // Area chart
-  areaChart
-  startFillColor="rgba(143, 228, 201, 0.3)"
-  endFillColor="rgba(143, 228, 201, 0.1)"
-  
-  startOpacity={0.4}
-  endOpacity={0.05}
-  
-  // Data points
-  hideDataPoints={false}
-  dataPointsColor="#8FE4C9"
-  dataPointsRadius={6}
-  
-  // Focus
-  focusEnabled
-  showDataPointOnFocus
-  showStripOnFocus
-  showTextOnFocus
-  stripColor="rgba(143, 228, 201, 0.5)"
-  stripHeight={200}
-  stripOpacity={0.3}
-  
-  // Grid
-  rulesType="dashed"
-  rulesColor={theme.colors.mainBackground}
-  showVerticalLines={false}
-  
-  // Y-axis
-  maxValue={20}
-  noOfSections={4}
-  yAxisThickness={1}
-  yAxisColor="rgba(255, 255, 255, 0.4)"
-  yAxisTextStyle={{
-    color: '#999', 
-    fontSize: 12,
-    fontWeight: '500'
-  }}
-  yAxisLabelPrefix="€"
-  
-  // X-axis
-  xAxisThickness={1}
-  xAxisColor="rgba(255, 255, 255, 0.4)"
-  xAxisLabelTextStyle={{
-    color: '#999',
-    fontSize: 12,
-    fontWeight: '500'
-  }}
-  
-  // Background
-  backgroundColor={theme.colors.mainBackground}
-  curved
-  curvature={0.2}
-  
-  // Pointer config
-  pointerConfig={{
-    pointerStripHeight: 200,
-    pointerStripColor: 'rgba(143, 228, 201, 0.8)',
-    pointerStripWidth: 2,
-    pointerColor: 'rgba(143, 228, 201, 1)',
-    radius: 8,
+            <LineChart
+              // Data
+              data={productPriceHistory}
+              
+              // Line styling
+              thickness={4}
+              color={theme.colors.textGreen}
+              
+              // Dimensions
+              width={wp(85)}
+              height={200}
+              spacing={45}
+              initialSpacing={0}
+              endSpacing={20}
+              
+              // Area chart
+              areaChart
+              startFillColor="rgba(143, 228, 201, 0.3)"
+              endFillColor="rgba(143, 228, 201, 0.1)"
+              
+              startOpacity={0.4}
+              endOpacity={0.05}
+              
+              // Data points
+              hideDataPoints={false}
+              dataPointsColor="#8FE4C9"
+              dataPointsRadius={6}
+              
+              // Focus
+              focusEnabled
+              showDataPointOnFocus
+              showStripOnFocus
+              showTextOnFocus
+              stripColor="rgba(143, 228, 201, 0.5)"
+              stripHeight={200}
+              stripOpacity={0.3}
+              
+              // Grid
+              rulesType="dashed"
+              rulesColor={theme.colors.mainBackground}
+              showVerticalLines={false}
+              
+              // Y-axis
+              maxValue={20}
+              noOfSections={4}
+              yAxisThickness={1}
+              yAxisColor="rgba(255, 255, 255, 0.4)"
+              yAxisTextStyle={{
+                color: '#999', 
+                fontSize: 12,
+                fontWeight: '500'
+              }}
+              yAxisLabelPrefix="€"
+              
+              // X-axis
+              xAxisThickness={1}
+              xAxisColor="rgba(255, 255, 255, 0.4)"
+              xAxisLabelTextStyle={{
+                color: '#999',
+                fontSize: 12,
+                fontWeight: '500'
+              }}
+              
+              // Background
+              backgroundColor={theme.colors.mainBackground}
+              curved
+              curvature={0.2}
+              
+              // Pointer config
+              pointerConfig={{
+                pointerStripHeight: 200,
+                pointerStripColor: 'rgba(143, 228, 201, 0.8)',
+                pointerStripWidth: 2,
+                pointerColor: 'rgba(143, 228, 201, 1)',
+                radius: 8,
 
-    pointerLabelWidth: 100,
-    pointerLabelHeight: 90,
-    pointerLabelComponent: (items: any[]) => {
-      return (
-        <View style={styles.pointerLabel}>
-          <Text style={styles.pointerLabelText}>€{items[0].value}</Text>
-          <Text style={styles.pointerLabelMonth}>{items[0].label}</Text>
-        </View>
-      );
-    },
-  }}
-/>
+                pointerLabelWidth: 100,
+                pointerLabelHeight: 90,
+                pointerLabelComponent: (items: any[]) => {
+                  return (
+                    <View style={styles.pointerLabel}>
+                      <Text style={styles.pointerLabelText}>€{items[0].value}</Text>
+                      <Text style={styles.pointerLabelMonth}>{items[0].label}</Text>
+                    </View>
+                  );
+                },
+              }}
+            />
 
             <View style={styles.trendIndicator}>
               <Svg viewBox="0 0 24 24" width={16} height={16}>
@@ -431,10 +429,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-        borderWidth: 1,
+    borderWidth: 1,
     borderColor: '#666666',
   },
-  productImage: { height: '100%', width: '100%', resizeMode: 'contain',  },
+  productImage: { height: '100%', width: '100%', resizeMode: 'contain' },
   favoriteButton: {
     position: 'absolute',
     top: 20,
@@ -575,10 +573,10 @@ const styles = StyleSheet.create({
   },
   cartButton: { justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
   cartButtonText: { fontWeight: '600', fontSize: 20, marginLeft: 8 },
-    heartOverlay: {
-      position: "absolute",
-      top: hp(1),
-      right: wp(2),
-      zIndex: 10,
-    },
+  heartOverlay: {
+    position: "absolute",
+    top: hp(1),
+    right: wp(2),
+    zIndex: 10,
+  },
 });

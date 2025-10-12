@@ -1,10 +1,10 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo } from 'react';
 import {
   Text,
-  TouchableOpacity
+  TouchableOpacity,
+  View
 } from "react-native";
 import Animated, {
   FadeInUp,
@@ -43,15 +43,14 @@ export const CategoryButton: React.FC<{ title: string; index: number }> = React.
       {/* Inner wrapper for transform animation (scale) */}
       <Animated.View style={scaleStyle}>
         <TouchableOpacity onPressIn={handlePressIn} onPressOut={handlePressOut} activeOpacity={0.9}>
-          <LinearGradient 
-            style={[styles.categories, { width: buttonWidth }]}
-            colors={theme.colors.blueTeal}
-            start={{ x: 0, y: 1 }}
+          <View
+            style={[styles.categories, { width: buttonWidth, backgroundColor:theme.colors.backgroundColor }]}
+            
           >
             <Text style={[styles.categoryText, { fontSize: getFontSize(16), color: theme.colors.textPrimary }]} numberOfLines={1}>
               {title}
             </Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>

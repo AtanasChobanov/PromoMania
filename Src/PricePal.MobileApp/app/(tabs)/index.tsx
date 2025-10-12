@@ -1,4 +1,3 @@
-
 import { CategoryButton } from '@/components/boxes/CategoryButton';
 import { ProductSection } from '@/components/boxes/ProductSection';
 import { styles } from '@/components/styles/homeStyles';
@@ -36,8 +35,8 @@ CategoryItem.displayName = 'CategoryItem';
 const Index: React.FC = () => {
 
   
-  // Get product data from API hook
-  const { products, loading, error, isDataAvailable } = useProducts();
+  // Get product data from API hook - now returns sections!
+  const { sections, products, loading, error, isDataAvailable } = useProducts();
   
   // Get user settings (dark mode, performance mode, simple mode)
   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
@@ -61,97 +60,94 @@ const Index: React.FC = () => {
     if (loading && !isDataAvailable()) return [];
     if (error && !isDataAvailable()) return [];
 
-    // Split products into different categories
-    const filteredProducts = {
-      ourChoice: products.slice(0, 3),      // First 3 products
-      top: products.slice(3, 6),            // Next 3 products
-      mostSold: products.slice(6, 9),       // Next 3 products
-      kaufland: [] as any[],                // Products from Kaufland
-      lidl: [] as any[],                    // Products from Lidl
-      billa: [] as any[],                   // Products from Billa
-      tmarket: [] as any[],                 // Products from TMarket
-    };
-
-    // Filter products by store chain (only in advanced mode)
-    if (!isSimpleMode && products.length > 0) {
-      products.forEach(p => {
-        const chain = p.chain?.toLowerCase();
-        if (chain === 'kaufland') filteredProducts.kaufland.push(p);
-        else if (chain === 'lidl') filteredProducts.lidl.push(p);
-        else if (chain === 'billa') filteredProducts.billa.push(p);
-        else if (chain === 'tmarket') filteredProducts.tmarket.push(p);
-      });
-    }
-
     // Build the main sections array
-    const sections: SectionItem[] = [
+    const listSections: SectionItem[] = [
       // Title section at the top
       { type: 'header' },
       
       // Horizontal scrolling category buttons
       { type: 'categories', categories },
-      
-      // Main product sections (always visible)
-      { 
-        type: 'products', 
-        title: 'Нашият избор', 
-        products: filteredProducts.ourChoice, 
-        gradientColors: theme.colors.blueTeal 
-      },
-      { 
-        type: 'products', 
-        title: 'Топ продукти', 
-        products: filteredProducts.top, 
-        gradientColors: theme.colors.blueTeal 
-      },
-      { 
-        type: 'products', 
-        title: 'Най-купувани продукти', 
-        products: filteredProducts.mostSold, 
-        gradientColors: theme.colors.blueTeal 
-      },
     ];
 
-    // Add store-specific sections (only in advanced mode)
-    if (!isSimpleMode) {
-      sections.push(
-        { 
+    // Add product sections from API (sections array contains "Топ продукти", "Нашият избор", etc.)
+    if (sections && sections.length > 0) {
+      sections.forEach(section => {
+        if (section.products && section.products.length > 0) {
+          listSections.push({
+            type: 'products',
+            title: section.title,
+            products: section.products,
+            gradientColors: theme.colors.blueTeal
+          });
+        }
+      });
+    }
+
+    // If in advanced mode, add store-specific sections (only if products have chain property)
+    if (!isSimpleMode && products.length > 0) {
+      const filteredProducts = {
+        kaufland: [] as any[],
+        lidl: [] as any[],
+        billa: [] as any[],
+        tmarket: [] as any[],
+      };
+
+      // Filter products by store chain (only if chain property exists)
+      products.forEach(p => {
+        if (p.chain) {
+          const chain = p.chain.toLowerCase();
+          if (chain === 'kaufland') filteredProducts.kaufland.push(p);
+          else if (chain === 'lidl') filteredProducts.lidl.push(p);
+          else if (chain === 'billa') filteredProducts.billa.push(p);
+          else if (chain === 'tmarket') filteredProducts.tmarket.push(p);
+        }
+      });
+
+      // Add store-specific sections if they have products
+      if (filteredProducts.kaufland.length > 0) {
+        listSections.push({ 
           type: 'products', 
           title: 'Предложения от Kaufland', 
           products: filteredProducts.kaufland, 
           gradientColors: theme.colors.blueTeal 
-        },
-        { 
+        });
+      }
+      if (filteredProducts.lidl.length > 0) {
+        listSections.push({ 
           type: 'products', 
           title: 'Предложения от Lidl', 
           products: filteredProducts.lidl, 
           gradientColors: theme.colors.lavenderPurple 
-        },
-        { 
+        });
+      }
+      if (filteredProducts.billa.length > 0) {
+        listSections.push({ 
           type: 'products', 
           title: 'Предложения от Billa', 
           products: filteredProducts.billa, 
           gradientColors: theme.colors.peachPink 
-        },
-        { 
+        });
+      }
+      if (filteredProducts.tmarket.length > 0) {
+        listSections.push({ 
           type: 'products', 
           title: 'Предложения от TMarket', 
           products: filteredProducts.tmarket, 
           gradientColors: theme.colors.blueTeal 
-        }
-      );
+        });
+      }
     }
 
     // Bottom spacing for better scrolling experience
-    sections.push({ type: 'spacer' });
+    listSections.push({ type: 'spacer' });
     
     // Show loading indicator at bottom during background refresh
     if (loading && isDataAvailable()) {
-      sections.push({ type: 'loading' });
+      listSections.push({ type: 'loading' });
     }
 
-    return sections;
-  }, [products, loading, error, isDataAvailable, isSimpleMode, categories, theme]);
+    return listSections;
+  }, [sections, products, loading, error, isDataAvailable, isSimpleMode, categories, theme]);
 
 
   
@@ -291,8 +287,6 @@ const Index: React.FC = () => {
   }
 
 
-  
-  // Determine if we should use background image
   
   // Main scrollable content
   const content = (

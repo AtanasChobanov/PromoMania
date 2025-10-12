@@ -3,7 +3,6 @@ import { styles } from '@/components/styles/homeStyles';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
@@ -124,10 +123,10 @@ export const ProductBox: React.FC<{
               
               {/* Content Section */}
       
-                <LinearGradient
-                  style={[styles.products, { width: cardWidth }]}
-                  colors={gradientColors as [string, string, ...string[]]}
-                  start={{ x: 0, y: 1 }}
+                <View
+                  style={[styles.products, { width: cardWidth, backgroundColor:theme.colors.backgroundColor}]}
+                 
+      
                 >
                   <ProductContent
                     productName={productName}
@@ -141,7 +140,7 @@ export const ProductBox: React.FC<{
                     isPerformanceMode={isPerformanceMode}
                     isDarkMode={isDarkMode}
                   />
-                </LinearGradient>
+                </View>
             
 
     
