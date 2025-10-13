@@ -2,7 +2,7 @@ import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import * as Location from 'expo-location';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { moderateScale } from 'react-native-size-matters';
 
@@ -16,6 +16,7 @@ interface ShopData {
   price_bgn: number;
   price_eur: number;
   distance_km: number;
+  duration_min: number;
   location: LocationCoords;
   route?: LocationCoords[];
 }
@@ -30,6 +31,13 @@ const MapDelevary = () => {
   
   // This will be populated from your API
   const [shopsData, setShopsData] = useState<ShopData[]>([]);
+
+  // Shop colors for visual differentiation
+  const shopColors = {
+    Kaufland: { primary: '#E31E24', secondary: '#FFE5E6' },
+    Lidl: { primary: '#0050AA', secondary: '#E5F0FF' },
+    Billa: { primary: '#FFD500', secondary: '#FFF9E5' }
+  };
 
   // Get user location
   const getLocation = async () => {
@@ -97,6 +105,99 @@ const MapDelevary = () => {
     console.log(`Clicked on ${shopName}`);
   };
 
+  const renderShopCard = (
+    shopName: string, 
+    priceBGN: string, 
+    priceEUR: string, 
+    distance: string, 
+    duration: string,
+    iconSize: { width: number, height: number }
+  ) => {
+    const isSelected = selectedShop === shopName;
+    const colors = shopColors[shopName as keyof typeof shopColors];
+
+    return (
+      <Pressable  
+        style={[
+          styles.optionContainer, 
+          {  
+            backgroundColor: theme.colors.cardBackground,
+            borderColor: isSelected ? colors.primary : theme.colors.border,
+            borderWidth: isSelected ? 2 : 1,
+            transform: [{ scale: isSelected ? 1.02 : 1 }],
+          }
+        ]}
+        onPress={() => handleShopClick(shopName)}
+      >
+        {/* Brand Icon Container */}
+        <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
+          <Image 
+            style={iconSize} 
+            source={require('../../assets/icons/kaufland-logo.png')}
+          />
+          <Text style={[styles.chainName, { color: colors.primary }]}>
+            {shopName}
+          </Text>
+        </View>
+
+        {/* Price Info */}
+        <View style={styles.infoSection}>
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
+            Цена
+          </Text>
+          <View style={styles.dataGroup}>
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+              <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
+                {priceBGN}
+              </Text>
+            </View>
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+              <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
+                {priceEUR}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Distance/Time Info */}
+        <View style={styles.infoSection}>
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
+            Разстояние
+          </Text>
+          <View style={styles.dataGroup}>
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+              <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
+                🚗 {distance}
+              </Text>
+            </View>
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+              <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
+                ⏱️ {duration}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Arrow Indicator */}
+        <View style={styles.arrowContainer}>
+          <Text style={[styles.arrow, { color: colors.primary, opacity: 0.6 }]}>›</Text>
+        </View>
+
+        {/* Best Deal Badge */}
+        {shopName === 'Lidl' && (
+          <View style={[styles.bestDealBadge, { backgroundColor: colors.primary }]}>
+            <Text style={styles.bestDealText}>✨ Най-добра цена</Text>
+          </View>
+        )}
+         {shopName === 'Kaufland' && (
+          <View style={[styles.bestDealBadge, { backgroundColor: colors.primary }]}>
+            <Text style={styles.bestDealText}>✨ Най-наблизо</Text>
+          </View>
+        )}
+      </Pressable>
+    );
+  };
+
   if (loading || !userLocation) {
     return (
       <ImageBackground
@@ -104,10 +205,15 @@ const MapDelevary = () => {
         style={styles.backgroundImage}
       >
         <View style={[styles.centered, { flex: 1 }]}>
-          <ActivityIndicator size="large" color="#0066CC" />
-          <Text style={[styles.loadingText, { color: theme.colors.textPrimary }]}>
-            Getting your location...
-          </Text>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0066CC" />
+            <Text style={[styles.loadingText, { color: theme.colors.textPrimary }]}>
+              Зареждане на локацията...
+            </Text>
+            <Text style={[styles.loadingSubtext, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
+              Моля изчакайте
+            </Text>
+          </View>
         </View>
       </ImageBackground>
     );
@@ -123,203 +229,97 @@ const MapDelevary = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header Section */}
         <View style={styles.titleContainer}>
           <Text style={[styles.mainTitle, { 
-            fontSize: moderateScale(32), 
+            fontSize: moderateScale(30), 
             color: theme.colors.textPrimary 
           }]}>
-            Избери верига до която да отидеш
+            Избери магазин
           </Text>
           <Text style={[styles.subtitle, { 
             fontSize: moderateScale(15), 
             color: theme.colors.textSecondary || theme.colors.textPrimary,
-            opacity: 0.7
+            opacity: 0.8
           }]}>
-            Цената или времето ти е по важно?
+            Намери най-добрата оферта в района
           </Text>
         </View>
 
-        {/* Map Box */}
-        <View style={styles.mapBox}>
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.mapInBox}
-            region={{
-              latitude: userLocation.latitude,
-              longitude: userLocation.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            showsUserLocation={true}
-            showsMyLocationButton={false}
-          >
-            {/* User Location Marker */}
-            <Marker 
-              coordinate={userLocation} 
-              title="You are here" 
-              pinColor="blue" 
-            />
-
-            {/* Shop Markers - will be populated from API */}
-            {shopsData.map((shop, index) => (
-              <Marker
-                key={`${shop.name}-${index}`}
-                coordinate={shop.location}
-                title={shop.name}
-                description={`${shop.distance_km} км - ${shop.price_bgn} лв`}
-                pinColor={index === 0 ? '#FF0000' : index === 1 ? '#0066CC' : '#00CC00'}
+        {/* Map Section */}
+        <View style={styles.mapContainer}>
+          <View style={styles.mapBox}>
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.mapInBox}
+              region={{
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+              showsUserLocation={true}
+              showsMyLocationButton={false}
+            >
+              {/* User Location Marker */}
+              <Marker 
+                coordinate={userLocation} 
+                title="Вие сте тук" 
+                pinColor="blue" 
               />
-            ))}
 
-            {/* Route Polylines - will be populated from API */}
-            {shopsData.map((shop, index) => {
-              if (shop.route && (selectedShop === shop.name || selectedShop === null)) {
-                return (
-                  <Polyline
-                    key={`route-${shop.name}-${index}`}
-                    coordinates={shop.route}
-                    strokeColor={index === 0 ? '#FF0000' : index === 1 ? '#0066CC' : '#00CC00'}
-                    strokeWidth={selectedShop === shop.name ? 5 : 3}
-                  />
-                );
-              }
-              return null;
-            })}
-          </MapView>
+              {/* Shop Markers - will be populated from API */}
+              {shopsData.map((shop, index) => (
+                <Marker
+                  key={`${shop.name}-${index}`}
+                  coordinate={shop.location}
+                  title={shop.name}
+                  description={`${shop.distance_km} км - ${shop.price_bgn} лв`}
+                  pinColor={index === 0 ? '#E31E24' : index === 1 ? '#0050AA' : '#FFD500'}
+                />
+              ))}
+
+              {/* Route Polylines - will be populated from API */}
+              {shopsData.map((shop, index) => {
+                if (shop.route && (selectedShop === shop.name || selectedShop === null)) {
+                  return (
+                    <Polyline
+                      key={`route-${shop.name}-${index}`}
+                      coordinates={shop.route}
+                      strokeColor={index === 0 ? '#E31E24' : index === 1 ? '#0050AA' : '#FFD500'}
+                      strokeWidth={selectedShop === shop.name ? 5 : 3}
+                    />
+                  );
+                }
+                return null;
+              })}
+            </MapView>
+          </View>
+          
+          {/* Map Info Badge */}
+          <View style={[styles.mapInfoBadge, { backgroundColor: theme.colors.cardBackground }]}>
+            <Text style={[styles.mapInfoText, { color: theme.colors.textPrimary }]}>
+              📍 {shopsData.length > 0 ? shopsData.length : 3} магазина наблизо
+            </Text>
+          </View>
         </View>
 
+        {/* Shop Cards Section */}
         <View style={styles.optionsWrapper}>
-          {/* Kaufland Button */}
-          <TouchableOpacity 
-            style={[styles.optionContainer, {  
-              backgroundColor: theme.colors.cardBackground,
-              borderColor: theme.colors.border,
-            }]}
-            activeOpacity={0.7}
-            onPress={() => handleShopClick('Kaufland')}
-          >
-            <View style={styles.iconContainer}>
-              <Image 
-                style={{width:24, height:24}} 
-                source={require('../../assets/icons/kaufland-logo.png')}
-              />
-              <Text style={[styles.chainName, { color: theme.colors.textPrimary }]}>
-                Kaufland
-              </Text>
-            </View>
-            <View style={styles.textContainer}>
-              {/* TODO: Replace with API data */}
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                50 лв
-              </Text>
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                50 евро
-              </Text>
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                5 км
-              </Text>
-            </View>
-            <View style={styles.arrowContainer}>
-              <Text style={[styles.arrow, { color: theme.colors.textPrimary, opacity: 0.3 }]}>›</Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
+            Налични магазини
+          </Text>
+          
+          {renderShopCard('Kaufland', '50 лв', '26€', '5.2 км', '9 мин', { width: 28, height: 28 })}
+          {renderShopCard('Lidl', '45 лв', '23€', '3.8 км', '7 мин', { width: 28, height: 28 })}
+          {renderShopCard('Billa', '55 лв', '28€', '7.1 км', '12 мин', { width: 28, height: 28 })}
+        </View>
 
-          {/* Lidl Button */}
-          <TouchableOpacity 
-            style={[styles.optionContainer, {  
-              backgroundColor: theme.colors.cardBackground,
-              borderColor: theme.colors.border,
-            }]}
-            activeOpacity={0.7}
-            onPress={() => handleShopClick('Lidl')}
-          >
-            <View style={styles.iconContainer}>
-              <Image 
-                style={{width:24, height:24}} 
-                source={require('../../assets/icons/kaufland-logo.png')}
-              />
-              <Text style={[styles.chainName, { color: theme.colors.textPrimary }]}>
-                Lidl
-              </Text>
-            </View>
-            <View style={styles.textContainer}>
-              {/* TODO: Replace with API data */}
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                45 лв
-              </Text>
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                45 евро
-              </Text>
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                3 км
-              </Text>
-            </View>
-            <View style={styles.arrowContainer}>
-              <Text style={[styles.arrow, { color: theme.colors.textPrimary, opacity: 0.3 }]}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Billa Button */}
-          <TouchableOpacity 
-            style={[styles.optionContainer, {  
-              backgroundColor: theme.colors.cardBackground,
-              borderColor: theme.colors.border,
-            }]}
-            activeOpacity={0.7}
-            onPress={() => handleShopClick('Billa')}
-          >
-            <View style={styles.iconContainer}>
-              <Image 
-                style={{width:24, height:24}} 
-                source={require('../../assets/icons/kaufland-logo.png')}
-              />
-              <Text style={[styles.chainName, { color: theme.colors.textPrimary }]}>
-                Billa
-              </Text>
-            </View>
-            <View style={styles.textContainer}>
-              {/* TODO: Replace with API data */}
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                55 лв
-              </Text>
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                55 евро
-              </Text>
-              <Text style={[styles.optionTitle, {
-                fontSize: moderateScale(16), 
-                color: theme.colors.textPrimary
-              }]}>
-                7 км
-              </Text>
-            </View>
-            <View style={styles.arrowContainer}>
-              <Text style={[styles.arrow, { color: theme.colors.textPrimary, opacity: 0.3 }]}>›</Text>
-            </View>
-          </TouchableOpacity>
+        {/* Info Footer */}
+        <View style={styles.infoFooter}>
+          <Text style={[styles.footerText, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
+            💡 Съвет: Изберете магазин за да видите маршрута на картата
+          </Text>
         </View>
       </ScrollView>
     </ImageBackground>
@@ -336,99 +336,182 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: moderateScale(10),
-    paddingBottom: moderateScale(30),
+    paddingHorizontal: moderateScale(16),
+    paddingBottom: moderateScale(40),
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    opacity: 0.7,
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: moderateScale(70),
-    marginBottom: moderateScale(20),
+    marginTop: moderateScale(60),
+    marginBottom: moderateScale(24),
+    gap: 8,
   },
   mainTitle: {
     fontWeight: '800',
     textAlign: 'center',
-    letterSpacing: 0.3,
-    marginBottom: moderateScale(12),
+    letterSpacing: 0.5,
   },
   subtitle: {
     textAlign: 'center',
-    fontWeight: '400',
-    letterSpacing: 0.2,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+  },
+  mapContainer: {
+    position: 'relative',
+    marginBottom: moderateScale(32),
   },
   mapBox: {
     width: '100%',
-    height: moderateScale(250),
+    height: moderateScale(300),
     borderRadius: 20,
     overflow: 'hidden',
-    marginBottom: moderateScale(20),
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderWidth: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 10,
   },
   mapInBox: {
     flex: 1,
   },
+  mapInfoBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  mapInfoText: {
+    fontSize: moderateScale(13),
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: moderateScale(20),
+    fontWeight: '700',
+    marginBottom: moderateScale(16),
+    letterSpacing: 0.3,
+  },
   optionsWrapper: {
-    gap: moderateScale(20),
+    gap: moderateScale(16),
   },
   optionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: moderateScale(20),
-    paddingHorizontal: moderateScale(20),
-    borderRadius: 20,
-    borderWidth: 2,
+    paddingHorizontal: moderateScale(16),
+    borderRadius: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
     elevation: 5,
-    minHeight: moderateScale(100),
+    minHeight: moderateScale(110),
+    position: 'relative',
   },
   iconContainer: {
     flexDirection: 'column',
-    width: moderateScale(70),
-    height: moderateScale(70),
+    width: moderateScale(65),
+    height: moderateScale(65),
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: moderateScale(16),
-    gap: 8,
+    marginRight: moderateScale(12),
+    gap: 6,
   },
   chainName: {
-    fontSize: moderateScale(12),
-    fontWeight: '600',
+    fontSize: moderateScale(10),
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
-  textContainer: {
+  infoSection: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 15,
+    gap: 8,
   },
-  optionTitle: {
-    fontWeight: '700',
+  sectionLabel: {
+    fontSize: moderateScale(11),
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.6,
+  },
+  dataGroup: {
+    flexDirection: 'column',
+    gap: 6,
+  },
+  dataBadge: {
+    paddingHorizontal: moderateScale(12),
+    paddingVertical: moderateScale(7),
+    borderRadius: 10,
+    borderWidth: 1.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  dataText: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
     letterSpacing: 0.2,
   },
   arrowContainer: {
     marginLeft: moderateScale(8),
   },
   arrow: {
-    fontSize: moderateScale(32),
-    fontWeight: '300',
+    fontSize: moderateScale(36),
+    fontWeight: '200',
+  },
+  bestDealBadge: {
+    position: 'absolute',
+    top: -8,
+    right: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  bestDealText: {
+    color: '#FFFFFF',
+    fontSize: moderateScale(11),
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  infoFooter: {
+    marginTop: moderateScale(24),
+    padding: moderateScale(16),
+    backgroundColor: 'rgba(0, 102, 204, 0.08)',
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: moderateScale(13),
+    fontWeight: '500',
+    textAlign: 'center',
+    letterSpacing: 0.2,
   },
 });
 
