@@ -1,8 +1,10 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
+import { router } from 'expo-router';
 import React from 'react';
-import { ImageBackground, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { moderateScale } from 'react-native-size-matters';
 
 const SettingsScreen: React.FC = () => {
   const {
@@ -15,6 +17,53 @@ const SettingsScreen: React.FC = () => {
   } = useSettings();
 
   const theme = isDarkMode ? darkTheme : lightTheme;
+  const SettingPageNav = ({ 
+    title, 
+    description, 
+    value, 
+    onToggle,
+    pressed
+  }: { 
+    title: string; 
+    description: string; 
+    value: boolean; 
+    onToggle: () => void;
+    pressed: () => void;
+  }) => (
+    <Pressable style={[
+      styles.settingRow,
+      { 
+        backgroundColor: theme.colors.cardBackground,
+        borderColor: theme.colors.border,
+      }
+      
+    ]} onPress={pressed}>
+      <View style={styles.settingText}>
+        <Text style={[
+          styles.settingTitle,
+          { 
+            fontSize: getFontSize(isSimpleMode ? 20 : 18),
+            color: theme.colors.textPrimary,
+          }
+        ]}>
+          {title}
+        </Text>
+        <Text style={[
+          styles.settingDescription,
+          { 
+            fontSize: getFontSize(isSimpleMode ? 16 : 14),
+            color: theme.colors.textSecondary,
+          }
+        ]}>
+          {description}
+        </Text>
+      </View>
+          <View style={styles.arrowContainer}>
+                <Text style={[styles.arrow, { color: theme.colors.textPrimary, opacity: 0.6 }]}>›</Text>
+              </View>
+    </Pressable>
+  );
+
 
   const SettingRow = ({ 
     title, 
@@ -85,7 +134,24 @@ const SettingsScreen: React.FC = () => {
         ]}>
           Настройки
         </Text>
+          <Text style={[
+            styles.sectionTitle,
+            { 
+              fontSize: getFontSize(isSimpleMode ? 12 : 16),
+              color: theme.colors.textSecondary,
+            }
+          ]}>
+            Профил
+          </Text>
 
+          <SettingPageNav
+            title="Редкатирай си профила"
+            description="Промени си името, местополжението, пароли и др."
+            value={isSimpleMode}
+            onToggle={toggleSimpleMode}
+            pressed={() => router.navigate('/(profile)/userSettings')}
+
+          />
         <View style={styles.section}>
           <Text style={[
             styles.sectionTitle,
@@ -142,6 +208,23 @@ const SettingsScreen: React.FC = () => {
             onToggle={toggleSimpleMode}
           />
         </View>
+            <Text style={[
+            styles.sectionTitle,
+            { 
+              fontSize: getFontSize(isSimpleMode ? 12 : 16),
+              color: theme.colors.textSecondary,
+            }
+          ]}>
+            Правна информация
+          </Text>
+
+          <SettingPageNav
+            title="Правна информация"
+            description="Детайли относно източниците на данни, авторски права и принципа на добросъвестно използване (fair use)"
+            value={isSimpleMode}
+            onToggle={toggleSimpleMode}
+            pressed={() => router.navigate('/(profile)/ToS')}
+          />
 
         <View style={{ height: hp(10) }} />
       </ScrollView>
@@ -200,6 +283,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+    arrowContainer: {
+      marginLeft: moderateScale(8),
+    },
+    arrow: {
+      fontSize: moderateScale(36),
+      fontWeight: '200',
+    },
 });
 
 export default SettingsScreen;
