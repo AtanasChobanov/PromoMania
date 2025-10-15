@@ -7,10 +7,15 @@ export default class ProductController {
   static async getOverview(req: Request, res: Response) {
     try {
       const section = (req.query.section as string)?.toLowerCase();
+      const offset = Number(req.query.offset);
+      const limit = Number(req.query.limit);
 
       if (section && ProductService.isProductSectionName(section)) {
         const products =
-          await ProductController.productService.getProductsOverview(section);
+          await ProductController.productService.getProductsOverview(section, {
+            offset,
+            limit,
+          });
         return res.json(products);
       }
 

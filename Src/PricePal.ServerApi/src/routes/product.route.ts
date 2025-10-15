@@ -3,7 +3,7 @@ import ProductsController from "../controllers/product.controller.js";
 
 const router = Router();
 
-// GET /products?section=top|our-choice|kaufland|lidl|billa|tmarket
+// GET /products?section=top|our-choice|kaufland|lidl|billa|tmarket&offset=0&limit=4
 router.get("/", ProductsController.getOverview);
 
 export default router;

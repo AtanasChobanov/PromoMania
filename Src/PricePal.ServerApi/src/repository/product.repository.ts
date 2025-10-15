@@ -3,6 +3,9 @@ import { db } from "../config/drizzle-client.config.js";
 import { product, price } from "../db/migrations/schema.js";
 
 export default class ProductRepository {
+  static readonly DEFAULT_OFFSET = 0;
+  static readonly DEFAULT_LIMIT = 4;
+
   constructor(
     private pricesFieldsForOverview = {
       id: product.id,
@@ -18,7 +21,10 @@ export default class ProductRepository {
     }
   ) {}
 
-  async getOrderedByPrice(priceIds: { id: number; productId?: number }[]) {
+  async getOrderedByPrice(
+    priceIds: { id: number; productId?: number }[],
+    pagination?: { offset?: number; limit?: number }
+  ) {
     return await db
       .select(this.pricesFieldsForOverview)
       .from(product)
@@ -30,10 +36,14 @@ export default class ProductRepository {
         )
       )
       .orderBy(asc(price.priceBgn), asc(price.priceEur))
-      .limit(6);
+      .limit((pagination?.limit || ProductRepository.DEFAULT_LIMIT) + 1)
+      .offset(pagination?.offset || ProductRepository.DEFAULT_OFFSET);
   }
 
-  async getOrderedByDiscount(priceIds: { id: number }[]) {
+  async getOrderedByDiscount(
+    priceIds: { id: number }[],
+    pagination?: { offset?: number; limit?: number }
+  ) {
     return await db
       .select(this.pricesFieldsForOverview)
       .from(product)
@@ -45,6 +55,7 @@ export default class ProductRepository {
         )
       )
       .orderBy(asc(price.discount))
-      .limit(6);
+      .limit((pagination?.limit || ProductRepository.DEFAULT_LIMIT) + 1)
+      .offset(pagination?.offset || ProductRepository.DEFAULT_OFFSET);
   }
 }

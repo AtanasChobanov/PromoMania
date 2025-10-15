@@ -12,7 +12,10 @@ export default class ProductService {
   private readonly productRepository: ProductRepository;
   private readonly productHandlers: Record<
     ProductSectionName,
-    () => Promise<ProductSection>
+    (pagination?: {
+      offset?: number;
+      limit?: number;
+    }) => Promise<ProductSection>
   >;
 
   constructor() {
@@ -40,19 +43,37 @@ export default class ProductService {
     };
   }
 
-  private async getCheapestProducts(): Promise<ProductSection> {
+  private async getCheapestProducts(pagination?: {
+    offset?: number;
+    limit?: number;
+  }): Promise<ProductSection> {
     const priceIds = await this.priceRepository.getLowestPricePerProduct();
 
-    const productData: Product[] =
-      await this.productRepository.getOrderedByPrice(priceIds);
+    let productData: Product[] = await this.productRepository.getOrderedByPrice(
+      priceIds,
+      pagination
+    );
+
+    const hasMore =
+      productData.length >
+      (pagination?.limit || ProductRepository.DEFAULT_LIMIT);
+
+    productData = productData.slice(
+      0,
+      pagination?.limit || ProductRepository.DEFAULT_LIMIT
+    );
 
     return new ProductSection(
       ProductSectionTitle.CHEAPEST_PRODUCTS,
-      productData
+      productData,
+      { ...pagination, hasMore }
     );
   }
 
-  private async getBiggestDiscounts(): Promise<ProductSection> {
+  private async getBiggestDiscounts(pagination?: {
+    offset?: number;
+    limit?: number;
+  }): Promise<ProductSection> {
     let priceIds = await this.priceRepository.getBiggestDiscountPerProduct();
 
     priceIds = Array.from(
@@ -70,20 +91,36 @@ export default class ProductService {
         .values()
     );
 
-    const productData: Product[] =
-      await this.productRepository.getOrderedByDiscount(priceIds);
+    let productData: Product[] =
+      await this.productRepository.getOrderedByDiscount(priceIds, pagination);
+
+    const hasMore =
+      productData.length >
+      (pagination?.limit || ProductRepository.DEFAULT_LIMIT);
+
+    productData = productData.slice(
+      0,
+      pagination?.limit || ProductRepository.DEFAULT_LIMIT
+    );
 
     return new ProductSection(
       ProductSectionTitle.BIGGEST_DISCOUNTS,
-      productData
+      productData,
+      { ...pagination, hasMore }
     );
   }
 
   private createStoreOffersFetcher(
     chain: StoreChainName,
     sectionTitle: ProductSectionTitle
-  ): () => Promise<ProductSection> {
-    return async (): Promise<ProductSection> => {
+  ): (pagination?: {
+    offset?: number;
+    limit?: number;
+  }) => Promise<ProductSection> {
+    return async (pagination?: {
+      offset?: number;
+      limit?: number;
+    }): Promise<ProductSection> => {
       let priceIds =
         await this.priceRepository.getBiggestDiscountPerProductByStoreChain(
           chain
@@ -102,18 +139,31 @@ export default class ProductService {
           .values()
       );
 
-      const productData: Product[] =
-        await this.productRepository.getOrderedByDiscount(priceIds);
+      let productData: Product[] =
+        await this.productRepository.getOrderedByDiscount(priceIds, pagination);
 
-      return new ProductSection(sectionTitle, productData);
+      const hasMore =
+        productData.length >
+        (pagination?.limit || ProductRepository.DEFAULT_LIMIT);
+
+      productData = productData.slice(
+        0,
+        pagination?.limit || ProductRepository.DEFAULT_LIMIT
+      );
+
+      return new ProductSection(sectionTitle, productData, {
+        ...pagination,
+        hasMore,
+      });
     };
   }
 
   async getProductsOverview(
-    sectionType: ProductSectionName
+    sectionType: ProductSectionName,
+    pagination?: { offset?: number; limit?: number }
   ): Promise<ProductSection> {
     const handler = this.productHandlers[sectionType];
-    return await handler();
+    return await handler(pagination);
   }
 
   static isProductSectionName(value: string): value is ProductSectionName {
