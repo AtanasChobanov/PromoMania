@@ -1,5 +1,13 @@
 import type { Product } from "./product.model.js";
 
+export type ProductSectionName =
+  | "top"
+  | "our-choice"
+  | "kaufland"
+  | "lidl"
+  | "billa"
+  | "tmarket";
+
 export enum ProductSectionTitle {
   CHEAPEST_PRODUCTS = "Топ продукти",
   BIGGEST_DISCOUNTS = "Нашият избор",
