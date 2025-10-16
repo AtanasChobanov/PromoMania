@@ -1,4 +1,13 @@
+import ProductRepository from "../repository/product.repository.js";
 import type { Product } from "./product.model.js";
+
+export type ProductSectionName =
+  | "top"
+  | "our-choice"
+  | "kaufland"
+  | "lidl"
+  | "billa"
+  | "tmarket";
 
 export enum ProductSectionTitle {
   CHEAPEST_PRODUCTS = "Топ продукти",
@@ -12,9 +21,19 @@ export enum ProductSectionTitle {
 export default class ProductSection {
   title: ProductSectionTitle;
   products: Product[];
+  pagination: { offset: number; limit: number; hasMore: boolean };
 
-  constructor(title: ProductSectionTitle, products: Product[]) {
+  constructor(
+    title: ProductSectionTitle,
+    products: Product[],
+    pagination: { offset?: number; limit?: number; hasMore: boolean }
+  ) {
     this.title = title;
     this.products = products;
+    this.pagination = {
+      offset: pagination.offset || ProductRepository.DEFAULT_OFFSET,
+      limit: pagination.limit || ProductRepository.DEFAULT_LIMIT,
+      hasMore: pagination.hasMore,
+    };
   }
 }
