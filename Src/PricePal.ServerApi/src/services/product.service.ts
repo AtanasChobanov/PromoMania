@@ -166,6 +166,29 @@ export default class ProductService {
     return await handler(pagination);
   }
 
+  async getProductById(productId: number) {
+    const rows = await this.productRepository.getById(productId);
+    const product = rows[0];
+
+    const prices = rows
+      .filter((r) => r.Price != null)
+      .map((r) => ({
+        ...r.Price,
+        storeChain: r.StoreChain
+          ? {
+              id: r.StoreChain.id,
+              name: r.StoreChain.name,
+            }
+          : null,
+      }));
+
+    return {
+      ...product?.Product,
+      category: product?.Category,
+      prices,
+    };
+  }
+
   static isProductSectionName(value: string): value is ProductSectionName {
     return [
       "top",

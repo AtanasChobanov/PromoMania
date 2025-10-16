@@ -27,4 +27,23 @@ export default class ProductController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+
+  static async getProductById(req: Request, res: Response) {
+    try {
+      const productId = Number(req.params.id);
+      if (!productId) {
+        return res
+          .status(400)
+          .json({ message: "Missing product ID parameter." });
+      }
+
+      const product = await ProductController.productService.getProductById(
+        productId
+      );
+      res.json(product);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 }
