@@ -1,3 +1,4 @@
+import { table } from "console";
 import {
   pgTable,
   varchar,
@@ -119,5 +120,25 @@ export const product = pgTable(
     })
       .onUpdate("cascade")
       .onDelete("cascade"),
+  ]
+);
+
+export const user = pgTable(
+  "User",
+  {
+    id: serial().primaryKey().notNull(),
+    publicId: uuid("public_id").defaultRandom().notNull().unique(),
+    email: text().notNull().unique(),
+    name: text().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("User_email_key").on(table.email),
+    uniqueIndex("User_public_id_key").on(table.publicId),
   ]
 );
