@@ -142,3 +142,67 @@ export const user = pgTable(
     uniqueIndex("User_public_id_key").on(table.publicId),
   ]
 );
+
+export const shoppingCart = pgTable(
+  "ShoppingCart",
+  {
+    id: serial().primaryKey().notNull(),
+    publicId: uuid("public_id").defaultRandom().notNull().unique(),
+    userId: integer("user_id").notNull(),
+    totalCostBgn: numeric("total_cost_bgn", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
+    totalCostEur: numeric("total_cost_eur", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "ShoppingCart_user_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    uniqueIndex("ShoppingCart_public_id_key").on(table.publicId),
+  ]
+);
+
+export const shoppingCartItem = pgTable(
+  "ShoppingCartItem",
+  {
+    id: serial().primaryKey().notNull(),
+    cartId: integer("cart_id").notNull(),
+    productId: integer("product_id").notNull(),
+    quantity: integer().notNull().default(1),
+    totalPriceBgn: numeric("total_price_bgn", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
+    totalPriceEur: numeric("total_price_eur", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.cartId],
+      foreignColumns: [shoppingCart.id],
+      name: "ShoppingCartItem_cart_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.productId],
+      foreignColumns: [product.id],
+      name: "ShoppingCartItem_product_id_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ]
+);
