@@ -8,6 +8,13 @@
       "when": 1759936666965,
       "tag": "0000_condemned_big_bertha",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1761111578269,
+      "tag": "0001_sour_cyclops",
+      "breakpoints": true
     }
   ]
 }
