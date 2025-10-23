@@ -1,7 +1,7 @@
 import { HeartIcon } from '@/components/boxes/HeartIcon';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
-import { useProduct } from '@/services/useProducts';
+import { getBestPrice, useProductDetails } from '@/services/useProductDetails';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -30,7 +30,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { enableScreens } from 'react-native-screens';
 import Svg, { Path } from 'react-native-svg';
-
 
 enableScreens();
 
@@ -64,10 +63,8 @@ const productPriceHistory = [
 ];
 
 export default function ProductPage() {
-
-    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
-    const theme = isDarkMode ? darkTheme : lightTheme;
-
+  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
 
   const [quantity, setQuantity] = useState(1);
 
@@ -75,10 +72,11 @@ export default function ProductPage() {
   const buttonScale = useSharedValue(1);
 
   const params = useLocalSearchParams();
-  const productNameParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
-  const productName = decodeURIComponent(productNameParam || '');
+  const productIdParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
+  const productId = productIdParam ? parseInt(productIdParam, 10) : null;
 
-  const { product, found, dataReady } = useProduct(productName);
+  // Use the new hook
+  const { product, loading, error, refetch } = useProductDetails(productId);
 
   // Animations
   useEffect(() => {
@@ -90,11 +88,10 @@ export default function ProductPage() {
       -1,
       true
     );
-  });
-
+  }, []);
 
   // Loading state
-  if (!dataReady) {
+  if (loading) {
     return (
       <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
         <ImageBackground
@@ -102,15 +99,17 @@ export default function ProductPage() {
           style={styles.backgroundImage}
         >
           <View style={styles.loadingContainer}>
-            <Text style={[styles.loadingText, { color: theme.colors.textPrimary }]}>Зареждане...</Text>
+            <Text style={[styles.loadingText, { color: theme.colors.textPrimary }]}>
+              Зареждане...
+            </Text>
           </View>
         </ImageBackground>
       </Animated.View>
     );
   }
 
-  // Not found state
-  if (!found || !product) {
+  // Error or not found state
+  if (error || !product) {
     return (
       <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
         <ImageBackground
@@ -118,18 +117,36 @@ export default function ProductPage() {
           style={styles.backgroundImage}
         >
           <View style={styles.notFoundContainer}>
-            <Text style={[styles.notFoundText, { color: theme.colors.textPrimary }]}>Продуктът не е намерен</Text>
+            <Text style={[styles.notFoundText, { color: theme.colors.textPrimary }]}>
+              {error ? 'Грешка при зареждане на продукта' : 'Продуктът не е намерен'}
+            </Text>
+            <TouchableOpacity onPress={refetch} style={styles.retryButton}>
+              <Text style={[styles.retryButtonText, { color: theme.colors.textGreen }]}>
+                Опитай отново
+              </Text>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
       </Animated.View>
     );
   }
 
+  // Get best price across all chains
+  const bestPrice = getBestPrice(product.prices);
+
   // Helper function to safely extract numeric price
   const getNumericPrice = (price: string | undefined): string => {
     if (!price) return '0';
     return price.replace(/[^\d.]/g, '');
   };
+
+  // Get current prices for each chain
+  const activePrices = product.prices.filter(price => {
+    const now = new Date();
+    const validFrom = new Date(price.validFrom);
+    const validTo = price.validTo ? new Date(price.validTo) : null;
+    return validFrom <= now && (!validTo || validTo >= now);
+  });
 
   return (
     <Animated.View
@@ -155,9 +172,7 @@ export default function ProductPage() {
             <Image
               source={
                 product.imageUrl
-                  ? typeof product.imageUrl === 'string'
-                    ? { uri: product.imageUrl }
-                    : product.imageUrl
+                  ? { uri: product.imageUrl }
                   : require('../../assets/icons/pricelpal-logo.png')
               }
               style={styles.productImage}
@@ -171,14 +186,41 @@ export default function ProductPage() {
           {/* Product Details */}
           <Animated.View
             entering={FadeInDown.delay(200).duration(600).springify()}
-            style={[styles.detailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1}]}
+            style={[
+              styles.detailsContainer,
+              {
+                backgroundColor: theme.colors.mainBackground,
+                borderColor: theme.colors.textSecondary,
+                borderWidth: 1,
+              },
+            ]}
           >
             <Animated.Text
               entering={FadeIn.delay(300).duration(500)}
-              style={[styles.productName,{color:theme.colors.textPrimary}]}
+              style={[styles.productName, { color: theme.colors.textPrimary }]}
             >
               {product.name}
             </Animated.Text>
+
+            {/* Brand */}
+            {product.brand && (
+              <Animated.Text
+                entering={FadeIn.delay(320).duration(500)}
+                style={[styles.brandText, { color: theme.colors.textSecondary }]}
+              >
+                {product.brand}
+              </Animated.Text>
+            )}
+
+            {/* Category */}
+            <Animated.View
+              entering={FadeIn.delay(340).duration(500)}
+              style={styles.categoryContainer}
+            >
+              <Text style={[styles.categoryText, { color: theme.colors.textSecondary }]}>
+                Категория: {product.category.name}
+              </Text>
+            </Animated.View>
 
             {/* Rating */}
             <Animated.View
@@ -189,7 +231,9 @@ export default function ProductPage() {
                 {[...Array(5)].map((_, i) => (
                   <Animated.View
                     key={i}
-                    entering={ZoomIn.delay(400 + i * 50).duration(400).springify()}
+                    entering={ZoomIn.delay(400 + i * 50)
+                      .duration(400)
+                      .springify()}
                   >
                     <Svg viewBox="0 0 24 24" width={20} height={20} style={styles.star}>
                       <Path
@@ -200,23 +244,48 @@ export default function ProductPage() {
                   </Animated.View>
                 ))}
               </View>
-              <Text style={[styles.ratingText,{color:theme.colors.textPrimary}]}>4.8 (124 reviews)</Text>
+              <Text style={[styles.ratingText, { color: theme.colors.textPrimary }]}>
+                4.8 (124 reviews)
+              </Text>
             </Animated.View>
 
-            {/* Price */}
-            <Animated.View
-              entering={FadeIn.delay(450).duration(500)}
-              style={styles.priceContainer}
-            >
-              <Text style={[styles.price,{color:theme.colors.textGreen}]}>{getNumericPrice(product.priceBgn)} лв.</Text>
-              <Text style={[styles.price,{color:theme.colors.textGreen}]}>{getNumericPrice(product.priceEur)} €</Text>
-            </Animated.View>
+            {/* Best Price */}
+            {bestPrice && (
+              <Animated.View
+                entering={FadeIn.delay(450).duration(500)}
+                style={styles.priceContainer}
+              >
+                <Text style={[styles.priceLabel, { color: theme.colors.textSecondary }]}>
+                  Най-добра цена ({bestPrice.storeChain.name}):
+                </Text>
+                <View style={styles.priceRow}>
+                  <Text style={[styles.price, { color: theme.colors.textGreen }]}>
+                    {getNumericPrice(bestPrice.priceBgn)} лв.
+                  </Text>
+                  <Text style={[styles.price, { color: theme.colors.textGreen }]}>
+                    {getNumericPrice(bestPrice.priceEur)} €
+                  </Text>
+                </View>
+                {bestPrice.discount && (
+                  <View
+                    style={[
+                      styles.discountBadge,
+                      { backgroundColor: theme.colors.textGreen },
+                    ]}
+                  >
+                    <Text style={styles.discountBadgeText}>
+                      {bestPrice.discount}% отстъпка
+                    </Text>
+                  </View>
+                )}
+              </Animated.View>
+            )}
 
             <Animated.View
               entering={FadeIn.delay(500).duration(500)}
               style={styles.unitContainer}
             >
-              <Text style={{color:theme.colors.textPrimary}}>{product.unit}</Text>
+              <Text style={{ color: theme.colors.textPrimary }}>{product.unit}</Text>
             </Animated.View>
 
             {/* Quantity */}
@@ -224,17 +293,27 @@ export default function ProductPage() {
               entering={FadeInUp.delay(550).duration(600).springify()}
               style={styles.quantitySection}
             >
-              <Text style={[styles.sectionTitle,{color:theme.colors.textPrimary}]}>Брой</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
+                Брой
+              </Text>
               <View style={styles.quantityContainer}>
                 <TouchableOpacity
-                  style={[styles.quantityButton,{backgroundColor:theme.colors.textGreen}]}
+                  style={[
+                    styles.quantityButton,
+                    { backgroundColor: theme.colors.textGreen },
+                  ]}
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
                 >
                   <Text style={styles.quantityButtonText}>-</Text>
                 </TouchableOpacity>
-                <Text style={[styles.quantityText,{color:theme.colors.textPrimary}]}>{quantity}</Text>
+                <Text style={[styles.quantityText, { color: theme.colors.textPrimary }]}>
+                  {quantity}
+                </Text>
                 <TouchableOpacity
-                   style={[styles.quantityButton,{backgroundColor:theme.colors.textGreen}]}
+                  style={[
+                    styles.quantityButton,
+                    { backgroundColor: theme.colors.textGreen },
+                  ]}
                   onPress={() => setQuantity(quantity + 1)}
                 >
                   <Text style={styles.quantityButtonText}>+</Text>
@@ -243,73 +322,118 @@ export default function ProductPage() {
             </Animated.View>
           </Animated.View>
 
-          {/* Retail Prices - Only show if chain exists */}
-          {product.chain && (
+          {/* Retail Prices - Show all active prices */}
+          {activePrices.length > 0 && (
             <Animated.View
               entering={FadeInDown.delay(300).duration(600).springify()}
-              style={[styles.retailsContainer,{backgroundColor:theme.colors.mainBackground, borderColor:theme.colors.textSecondary, borderWidth:1}]}
+              style={[
+                styles.retailsContainer,
+                {
+                  backgroundColor: theme.colors.mainBackground,
+                  borderColor: theme.colors.textSecondary,
+                  borderWidth: 1,
+                },
+              ]}
             >
-              <Text style={[styles.retailTitle,{color:theme.colors.textPrimary}]}>Цени в различните вериги</Text>
-              <View style={styles.OneRetailBox}>
-                <View style={styles.leftSection}>
-                  <View style={styles.storeInfo}>
-                    <Image
-                      style={styles.retailImages}
-                      source={chainLogos[product.chain] || require('../../assets/icons/pricelpal-logo.png')}
-                    />
-                    <Text style={[styles.retailText,{color:theme.colors.textPrimary}]}>{product.chain}</Text>
+              <Text style={[styles.retailTitle, { color: theme.colors.textPrimary }]}>
+                Цени в различните вериги
+              </Text>
+              {activePrices.map((price, index) => (
+                <Animated.View
+                  key={price.id}
+                  entering={FadeIn.delay(350 + index * 50).duration(500)}
+                  style={styles.OneRetailBox}
+                >
+                  <View style={styles.leftSection}>
+                    <View style={styles.storeInfo}>
+                      <Image
+                        style={styles.retailImages}
+                        source={
+                          chainLogos[price.storeChain.name] ||
+                          require('../../assets/icons/pricelpal-logo.png')
+                        }
+                      />
+                      <Text
+                        style={[styles.retailText, { color: theme.colors.textPrimary }]}
+                      >
+                        {price.storeChain.name}
+                      </Text>
+                    </View>
+                    {price.discount && (
+                      <View
+                        style={[
+                          styles.discountContainer,
+                          { backgroundColor: theme.colors.textGreen },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.discountText,
+                            { color: theme.colors.textPrimary },
+                          ]}
+                        >
+                          {price.discount}%
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={[styles.discountContainer,{backgroundColor:theme.colors.textGreen}]}>
-                    <Text style={[styles.discountText,{color:theme.colors.textPrimary}]}>{product.discount}%</Text>
+                  <View style={styles.rightSection}>
+                    <Text
+                      style={[styles.retailPrice, { color: theme.colors.textBlue }]}
+                    >
+                      {getNumericPrice(price.priceBgn)} лв.
+                    </Text>
                   </View>
-                </View>
-                <View style={styles.rightSection}>
-                  <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{getNumericPrice(product.priceBgn)} лв.</Text>
-                </View>
-                <View style={styles.rightSection}>
-                  <Text style={[styles.retailPrice,{color:theme.colors.textBlue}]}>{getNumericPrice(product.priceEur)} €</Text>
-                </View>
-              </View>
+                  <View style={styles.rightSection}>
+                    <Text
+                      style={[styles.retailPrice, { color: theme.colors.textBlue }]}
+                    >
+                      {getNumericPrice(price.priceEur)} €
+                    </Text>
+                  </View>
+                </Animated.View>
+              ))}
             </Animated.View>
           )}
 
           {/* Price History Chart */}
           <Animated.View
             entering={FadeInDown.delay(400).duration(600).springify()}
-            style={[styles.chartContainer, { backgroundColor: theme.colors.mainBackground, paddingHorizontal: 16, overflow: 'hidden', borderColor:theme.colors.textSecondary, borderWidth:1 }]}
+            style={[
+              styles.chartContainer,
+              {
+                backgroundColor: theme.colors.mainBackground,
+                paddingHorizontal: 16,
+                overflow: 'hidden',
+                borderColor: theme.colors.textSecondary,
+                borderWidth: 1,
+              },
+            ]}
           >
-            <Text style={[styles.chartTitle,{color:theme.colors.textPrimary}]}>Ценова история</Text>
-            <Text style={[styles.chartSubtitle,{color:theme.colors.textPrimary}]}>Последни 6 месеца</Text>
+            <Text style={[styles.chartTitle, { color: theme.colors.textPrimary }]}>
+              Ценова история
+            </Text>
+            <Text style={[styles.chartSubtitle, { color: theme.colors.textPrimary }]}>
+              Последни 6 месеца
+            </Text>
 
             <LineChart
-              // Data
               data={productPriceHistory}
-              
-              // Line styling
               thickness={4}
               color={theme.colors.textGreen}
-              
-              // Dimensions
               width={wp(85)}
               height={200}
               spacing={45}
               initialSpacing={0}
               endSpacing={20}
-              
-              // Area chart
               areaChart
               startFillColor="rgba(143, 228, 201, 0.3)"
               endFillColor="rgba(143, 228, 201, 0.1)"
-              
               startOpacity={0.4}
               endOpacity={0.05}
-              
-              // Data points
               hideDataPoints={false}
               dataPointsColor="#8FE4C9"
               dataPointsRadius={6}
-              
-              // Focus
               focusEnabled
               showDataPointOnFocus
               showStripOnFocus
@@ -317,46 +441,35 @@ export default function ProductPage() {
               stripColor="rgba(143, 228, 201, 0.5)"
               stripHeight={200}
               stripOpacity={0.3}
-              
-              // Grid
               rulesType="dashed"
               rulesColor={theme.colors.mainBackground}
               showVerticalLines={false}
-              
-              // Y-axis
               maxValue={20}
               noOfSections={4}
               yAxisThickness={1}
               yAxisColor="rgba(255, 255, 255, 0.4)"
               yAxisTextStyle={{
-                color: '#999', 
+                color: '#999',
                 fontSize: 12,
-                fontWeight: '500'
+                fontWeight: '500',
               }}
               yAxisLabelPrefix="€"
-              
-              // X-axis
               xAxisThickness={1}
               xAxisColor="rgba(255, 255, 255, 0.4)"
               xAxisLabelTextStyle={{
                 color: '#999',
                 fontSize: 12,
-                fontWeight: '500'
+                fontWeight: '500',
               }}
-              
-              // Background
               backgroundColor={theme.colors.mainBackground}
               curved
               curvature={0.2}
-              
-              // Pointer config
               pointerConfig={{
                 pointerStripHeight: 200,
                 pointerStripColor: 'rgba(143, 228, 201, 0.8)',
                 pointerStripWidth: 2,
                 pointerColor: 'rgba(143, 228, 201, 1)',
                 radius: 8,
-
                 pointerLabelWidth: 100,
                 pointerLabelHeight: 90,
                 pointerLabelComponent: (items: any[]) => {
@@ -381,7 +494,9 @@ export default function ProductPage() {
                   strokeLinejoin="round"
                 />
               </Svg>
-              <Text style={[styles.trendText,{color:theme.colors.textGreen}]}>+15% спрямо миналия месец</Text>
+              <Text style={[styles.trendText, { color: theme.colors.textGreen }]}>
+                +15% спрямо миналия месец
+              </Text>
             </View>
           </Animated.View>
         </ScrollView>
@@ -392,14 +507,23 @@ export default function ProductPage() {
             intensity={40}
             tint={theme.colors.TabBarColors as 'light' | 'dark'}
             experimentalBlurMethod="dimezisBlurView"
-            style={[styles.blurContainer,{borderColor:'white'}]}
+            style={[styles.blurContainer, { borderColor: 'white' }]}
           >
             <TouchableOpacity style={styles.cartButton}>
-              <Svg width={24} height={24} viewBox="0 0 902.86 902.86" fill={theme.colors.textPrimary}>
+              <Svg
+                width={24}
+                height={24}
+                viewBox="0 0 902.86 902.86"
+                fill={theme.colors.textPrimary}
+              >
                 <Path d="M671.504,577.829l110.485-432.609H902.86v-68H729.174L703.128,179.2L0,178.697l74.753,399.129h596.751V577.829z M685.766,247.188l-67.077,262.64H131.199L81.928,246.756L685.766,247.188z" />
                 <Path d="M578.418,825.641c59.961,0,108.743-48.783,108.743-108.744s-48.782-108.742-108.743-108.742H168.717 c-59.961,0-108.744,48.781-108.744,108.742s48.782,108.744,108.744,108.744c59.962,0,108.743-48.783,108.743-108.744 c0-14.4-2.821-28.152-7.927-40.742h208.069c-5.107,12.59-7.928,26.342-7.928,40.742 C469.675,776.858,518.457,825.641,578.418,825.641z M209.46,716.897c0,22.467-18.277,40.744-40.743,40.744 c-22.466,0-40.744-18.277-40.744-40.744c0-22.465,18.277-40.742,40.744-40.742C191.183,676.155,209.46,694.432,209.46,716.897z M619.162,716.897c0,22.467-18.277,40.744-40.743,40.744s-40.743-18.277-40.743-40.744c0-22.465,18.277-40.742,40.743-40.742 S619.162,694.432,619.162,716.897z" />
               </Svg>
-              <Text style={[styles.cartButtonText,{color:theme.colors.textPrimary}]}>Добави към количката</Text>
+              <Text
+                style={[styles.cartButtonText, { color: theme.colors.textPrimary }]}
+              >
+                Добави към количката
+              </Text>
             </TouchableOpacity>
           </BlurView>
         </Animated.View>
@@ -433,19 +557,6 @@ const styles = StyleSheet.create({
     borderColor: '#666666',
   },
   productImage: { height: '100%', width: '100%', resizeMode: 'contain' },
-  favoriteButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    backgroundColor: 'white',
-    padding: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
   detailsContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     width: wp(95),
@@ -460,13 +571,27 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   productName: { fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 5 },
+  brandText: { fontSize: 16, color: '#666', marginBottom: 8 },
+  categoryContainer: { marginBottom: 12 },
+  categoryText: { fontSize: 14, color: '#666' },
   ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(1) },
   starsContainer: { flexDirection: 'row', marginRight: 10 },
   star: { marginRight: 2 },
   ratingText: { fontSize: 16, color: '#1F2937' },
-  priceContainer: { flexDirection: 'column', alignItems: 'flex-start' },
+  priceContainer: { marginBottom: hp(1) },
+  priceLabel: { fontSize: 14, color: '#666', marginBottom: 4 },
+  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   unitContainer: { flexDirection: 'column', alignItems: 'flex-start', marginBottom: hp(2) },
-  price: { fontSize: 32, fontWeight: 'bold', color: '#006D77', marginRight: 10 },
+  price: { fontSize: 32, fontWeight: 'bold', color: '#006D77' },
+  discountBadge: {
+    backgroundColor: 'rgba(143,228,201,1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  discountBadgeText: { fontSize: 12, fontWeight: 'bold', color: '#1F2937' },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 10 },
   quantitySection: { marginBottom: 25 },
   quantityContainer: { flexDirection: 'row', alignItems: 'center' },
@@ -539,22 +664,49 @@ const styles = StyleSheet.create({
   storeInfo: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
   rightSection: { alignItems: 'flex-end', paddingHorizontal: 5 },
   retailImages: { width: wp(10), height: wp(10) },
-  retailText: { paddingLeft: wp(2), fontWeight: 'bold', fontSize: getFontSize(16), color: '#1F2937' },
+  retailText: {
+    paddingLeft: wp(2),
+    fontWeight: 'bold',
+    fontSize: getFontSize(16),
+    color: '#1F2937',
+  },
   discountText: { color: '#1F2937', fontWeight: 'bold', fontSize: 12 },
-  retailPrice: { fontSize: getFontSize(20), fontWeight: 'bold', color: '#006D77', marginBottom: 2 },
+  retailPrice: {
+    fontSize: getFontSize(20),
+    fontWeight: 'bold',
+    color: '#006D77',
+    marginBottom: 2,
+  },
   discountContainer: {
     backgroundColor: 'rgba(143,228,201,1)',
     padding: 5,
     borderRadius: 5,
     alignSelf: 'center',
   },
-  originalPrice: { fontSize: getFontSize(18), color: '#999', textDecorationLine: 'line-through' },
-  OneRetailBox: { paddingVertical: hp(0.5), flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(0, 0, 0, 0.1)' },
-  retailTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 4, alignSelf: 'flex-start' },
+  OneRetailBox: {
+    paddingVertical: hp(0.5),
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  retailTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+    alignSelf: 'flex-start',
+  },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { fontSize: getFontSize(18), fontWeight: '500', color: '#333' },
   notFoundContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  notFoundText: { fontSize: getFontSize(20), fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  notFoundText: {
+    fontSize: getFontSize(20),
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  retryButton: { marginTop: 16, padding: 12 },
+  retryButtonText: { fontSize: 16, fontWeight: '600' },
   blurContainer: {
     position: 'absolute',
     bottom: wp(7),
@@ -574,7 +726,7 @@ const styles = StyleSheet.create({
   cartButton: { justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
   cartButtonText: { fontWeight: '600', fontSize: 20, marginLeft: 8 },
   heartOverlay: {
-    position: "absolute",
+    position: 'absolute',
     top: hp(1),
     right: wp(2),
     zIndex: 10,

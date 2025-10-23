@@ -19,7 +19,7 @@ const getFontSize = (size: number) => {
 
 export default function ProductLayout() {
   const router = useRouter();
-  const { productID } = useLocalSearchParams<{ productID: string }>();
+  const { productName } = useLocalSearchParams<{ productName: string }>();
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
@@ -57,7 +57,7 @@ export default function ProductLayout() {
 
           {/* Dynamic Title */}
           <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
-            {decodeURIComponent(productID ?? 'Продукт')}
+            {decodeURIComponent(productName ?? 'Продукт')}
           </Text>
         </View>
 

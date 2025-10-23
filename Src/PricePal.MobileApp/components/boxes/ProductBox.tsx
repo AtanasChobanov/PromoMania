@@ -31,6 +31,7 @@ const CartIcon = ({ color = "#1F2937" }: { color?: string }) => (
 );
 
 export const ProductBox: React.FC<{
+   productId: number;
   productName: string;
   brand: string;
   priceBgn: string;
@@ -39,7 +40,7 @@ export const ProductBox: React.FC<{
   photo?: string;
   colors?: [string, string, ...string[]];
   index: number;
-}> = React.memo(({ productName, brand, priceBgn, unit, priceEur, photo, colors, index }) => {
+}> = React.memo(({ productId,productName, brand, priceBgn, unit, priceEur, photo, colors, index }) => {
 
   const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -63,15 +64,16 @@ export const ProductBox: React.FC<{
     transform: [{ scale: cartButtonScale.value }]
   }));
 
-  const handleProductPress = useCallback(() => {
+const handleProductPress = useCallback(() => {
     if (!isPerformanceMode) {
       scaleAnim.value = withTiming(0.95, { duration: 100 });
       setTimeout(() => {
         scaleAnim.value = withTiming(1, { duration: 100 });
       }, 100);
     }
-    router.push(`/products/${encodeURIComponent(productName)}`);
-  }, [productName, router, isPerformanceMode, scaleAnim]);
+    // Navigate with productId as a query parameter
+    router.push(`/products/${productId}`);
+  }, [productId, router, isPerformanceMode, scaleAnim]);
 
   const handleAddToCart = useCallback((e: any) => {
     e.stopPropagation();
