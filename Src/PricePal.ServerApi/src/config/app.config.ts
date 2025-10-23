@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import productsRouter from "../routes/product.route.js";
+import productsRouter from "../routes/product.routes.js";
+import usersRouter from "../routes/user.routes.js";
 
 const app = express();
 
@@ -11,5 +12,6 @@ app.use(express.json());
 
 // routes
 app.use("/products", productsRouter);
+app.use("/users/:publicUserId", usersRouter);
 
 export default app;

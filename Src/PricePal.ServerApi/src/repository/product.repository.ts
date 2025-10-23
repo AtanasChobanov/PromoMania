@@ -14,6 +14,7 @@ export default class ProductRepository {
   constructor(
     private pricesFieldsForOverview = {
       id: product.id,
+      publicId: product.publicId,
       name: product.name,
       brand: product.brand,
       categoryId: product.categoryId,
