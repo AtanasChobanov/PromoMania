@@ -15,8 +15,10 @@ export default function RootLayout() {
             animation: 'slide_from_right',
           }}
         >
+          <Stack.Screen name="login/index" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(profile)" />
+
           <Stack.Screen name="products" />
           <Stack.Screen name="subcategories" />
           <Stack.Screen name="productsCategories" />
