@@ -5,6 +5,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { Product, SectionType, useProductSection } from '@/services/useProducts';
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   Text,
@@ -46,6 +47,7 @@ const ProductItem = React.memo(({
 }) => (
   <View style={{ marginBottom: hp(1.5) }}>  
     <ProductBox
+     productId={item.id}
       productName={item.name}
       brand={item.brand || ''}
       priceBgn={item.priceBgn}
@@ -73,8 +75,16 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
   const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
-  // Use the lazy loading hook
-  const { products, title, loading, hasMore, loadMore, error } = useProductSection(section, initialLimit);
+  // Use React Query hook (API is almost identical to your old hook!)
+  const { 
+    products, 
+    title, 
+    loading, 
+    hasMore, 
+    loadMore, 
+    error,
+    isFetchingMore // NEW: separate loading state for "load more"
+  } = useProductSection(section, initialLimit);
   
   const flatListRef = useRef<FlatList>(null);
   const loadMoreTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -91,7 +101,6 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
   // Key extractor - ensure globally unique keys across all sections
   const keyExtractor = useCallback((item: Product, index: number) => {
     // Create a unique key by combining section, product ID, and index
-    // This ensures no conflicts even if same product appears in multiple sections
     const uniqueKey = `${section}-${item.id || 'no-id'}-${index}`;
     return uniqueKey;
   }, [section]);
@@ -103,7 +112,7 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
 
   // Handle end reached for lazy loading
   const handleEndReached = useCallback(() => {
-    if (hasMore && !loading) {
+    if (hasMore && !isFetchingMore) {
       // Debounce the load more call
       if (loadMoreTimeoutRef.current) {
         clearTimeout(loadMoreTimeoutRef.current);
@@ -113,19 +122,40 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
         loadMore();
       }, 300);
     }
-  }, [hasMore, loading, loadMore]);
+  }, [hasMore, isFetchingMore, loadMore]);
 
   // Manual load more button handler
   const handleLoadMorePress = useCallback(() => {
-    if (hasMore && !loading) {
+    if (hasMore && !isFetchingMore) {
       loadMore();
     }
-  }, [hasMore, loading, loadMore]);
+  }, [hasMore, isFetchingMore, loadMore]);
 
   // Render footer with loading indicator or load more button
   const renderFooter = useCallback(() => {
- 
+    // Show loading spinner when fetching more
+    if (isFetchingMore) {
+      return (
+        <View style={{
+          width: wp(40),
+          height: wp(82),
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginLeft: wp(2),
+        }}>
+          <ActivityIndicator size="large" color={theme.colors.textSecondary} />
+          <Text style={{
+            fontSize: getFontSize(12),
+            color: theme.colors.textSecondary,
+            marginTop: hp(1),
+          }}>
+            Зареждане...
+          </Text>
+        </View>
+      );
+    }
 
+    // Show "load more" button if there are more items
     if (hasMore) {
       return (
         <Pressable
@@ -160,7 +190,7 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
     }
 
     return null;
-  }, [loading, hasMore, theme, handleLoadMorePress]);
+  }, [isFetchingMore, hasMore, theme, handleLoadMorePress]);
 
   // Show error if there is one
   if (error && products.length === 0) {
@@ -192,7 +222,32 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
     );
   }
 
-  // Don't render if no products
+  // Show loading spinner for initial load
+  if (loading && products.length === 0) {
+    return (
+      <View style={{ paddingHorizontal: wp(4), paddingVertical: hp(2) }}>
+        <Text style={[
+          styles.sectionTitle,
+          { 
+            fontSize: getFontSize(isSimpleMode ? 22 : 20),
+            color: theme.colors.textPrimary 
+          }
+        ]}>
+          {section}
+        </Text>
+        <View style={{
+          height: wp(82),
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: hp(1)
+        }}>
+          <ActivityIndicator size="large" color={theme.colors.textSecondary} />
+        </View>
+      </View>
+    );
+  }
+
+  // Don't render if no products after loading
   if (!products || products.length === 0) return null;
 
   const titleStyle = [
