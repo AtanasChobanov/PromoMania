@@ -9,7 +9,23 @@ import {
 export class ShoppingCartRepository {
   async findByUserId(userId: number) {
     return await db
-      .select()
+      .select({
+        cart: {
+          publicId: shoppingCart.publicId,
+          createdAt: shoppingCart.createdAt,
+        },
+        item: {
+          quantity: shoppingCartItem.quantity,
+        },
+        product: {
+          publicId: product.publicId,
+          name: product.name,
+          brand: product.brand,
+          barcode: product.barcode,
+          imageUrl: product.imageUrl,
+          unit: product.unit,
+        },
+      })
       .from(shoppingCart)
       .leftJoin(shoppingCartItem, eq(shoppingCartItem.cartId, shoppingCart.id))
       .leftJoin(product, eq(product.id, shoppingCartItem.productId))

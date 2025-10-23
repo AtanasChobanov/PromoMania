@@ -17,15 +17,14 @@ export default class ShoppingCartService {
     if (!user) return null;
 
     const rows = await this.shoppingCartRepository.findByUserId(user.id);
+    const cart = rows[0]?.cart;
+    if (!cart) return null;
 
-    if (!rows.length) return null;
-    const cart = rows[0]?.ShoppingCart;
     const items = rows
-      .filter((r) => r.ShoppingCartItem) // изключваме празните редове
-      .map((r) => ({
-        id: r.ShoppingCartItem?.id,
-        quantity: r.ShoppingCartItem?.quantity,
-        product: r.Product,
+      .filter((row) => row.item) // изключваме празните редове
+      .map((row) => ({
+        ...row.item,
+        product: row.product,
       }));
 
     return {
