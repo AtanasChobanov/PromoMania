@@ -3,18 +3,12 @@ import { ProductSection } from '@/components/boxes/ProductSection';
 import { styles } from '@/components/styles/homeStyles';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
+import { getUserId } from '@/components/utils/UUID';
 import { useSettings } from '@/contexts/SettingsContext';
 import { SectionType } from '@/services/useProducts';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { FlatList, ImageBackground, Text, View } from "react-native";
-import { getUserId } from '../../components/utils/UUID';
- useEffect(() => {
-    const initUser = async () => {
-      const id = await getUserId();
-      console.log('User ID:', id);
-    };
-    initUser();
-  }, []);
+
 // Defines the different types of sections that can appear in the home screen list
 type SectionItem = {
   type: 'header' | 'categories' | 'product-section' | 'loading' | 'spacer';
@@ -40,6 +34,15 @@ const Home: React.FC = () => {
   // Select appropriate theme based on dark mode setting
   const theme = isDarkMode ? darkTheme : lightTheme;
 
+  // Initialize user ID on mount
+  useEffect(() => {
+    const initUser = async () => {
+      const id = await getUserId();
+      console.log('User ID:', id);
+    };
+    initUser();
+  }, []);
+
   // Category list - changes based on simple mode (3 vs 5 categories)
   const categories = useMemo(
     () =>
@@ -50,11 +53,11 @@ const Home: React.FC = () => {
   );
 
   // Define which sections to show
-  const sectionsToShow: Array<{
+  const sectionsToShow: {
     sectionType: SectionType;
     title?: string;
     gradientColors: [string, string, ...string[]];
-  }> = useMemo(() => {
+  }[] = useMemo(() => {
     const baseSections = [
       { 
         sectionType: 'top' as SectionType, 
@@ -62,22 +65,6 @@ const Home: React.FC = () => {
       },
       { 
         sectionType: 'our-choice' as SectionType, 
-        gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
-      },
-         { 
-        sectionType: 'kaufland' as SectionType, 
-        gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
-      },
-        { 
-        sectionType: 'Lidl' as SectionType, 
-        gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
-      },
-         { 
-        sectionType: 'billa' as SectionType, 
-        gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
-      },
-        { 
-        sectionType: 'tmarket' as SectionType, 
         gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
       },
     ];
@@ -202,7 +189,7 @@ const Home: React.FC = () => {
           />
         );
       
-      // Product section with lazy loading
+      // Product section with lazy loading (now powered by React Query!)
       case 'product-section':
         if (!item.sectionType) return null;
         return (

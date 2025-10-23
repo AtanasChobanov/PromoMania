@@ -1,18 +1,8 @@
-Saving in main menu -done
-Saved page- done
-Searched page-done
-Settings page- done
-Profile page- done
-Login Page
-More Content in main menu-done
-Optimize code and performance-done
-Make it responsible-done
-TabBar IFs-done
-Push notifications
-Map control
 
 
-add
-„Всички промоции са публично достъпни от официалните уебсайтове на веригите.
-Приложението не е свързано с Kaufland, Lidl и други марки, а само обединява публична информация с цел удобство на потребителите.
-Източници: kaufland.bg, lidl.bg и др.“ section
+topbar transparecy clickability 
+skeleton loading
+responsive loading
+improve responsivness even further
+bigger map and using real data
+
