@@ -74,4 +74,12 @@ export default class ProductRepository {
       .leftJoin(storeChain, eq(storeChain.id, price.chainId))
       .where(eq(product.id, productId));
   }
+
+  async findByPublicId(publicId: string) {
+    const result = await db
+      .select()
+      .from(product)
+      .where(eq(product.publicId, publicId));
+    return result[0] || null;
+  }
 }

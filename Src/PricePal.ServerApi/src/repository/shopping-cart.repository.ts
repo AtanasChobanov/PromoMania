@@ -6,7 +6,7 @@ import {
   shoppingCartItem,
 } from "../db/migrations/schema.js";
 
-export class ShoppingCartRepository {
+export default class ShoppingCartRepository {
   async findByUserId(userId: number) {
     return await db
       .select({
@@ -30,5 +30,23 @@ export class ShoppingCartRepository {
       .leftJoin(shoppingCartItem, eq(shoppingCartItem.cartId, shoppingCart.id))
       .leftJoin(product, eq(product.id, shoppingCartItem.productId))
       .where(eq(shoppingCart.userId, userId));
+  }
+
+  async addItemToCart(cartId: number, productId: number, quantity: number) {
+    await db.insert(shoppingCartItem).values({
+      cartId,
+      productId,
+      quantity,
+      totalPriceBgn: "0",
+      totalPriceEur: "0",
+    });
+  }
+
+  async findCartByUserId(userId: number) {
+    const result = await db
+      .select()
+      .from(shoppingCart)
+      .where(eq(shoppingCart.userId, userId));
+    return result[0] || null;
   }
 }

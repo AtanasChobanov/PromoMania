@@ -6,4 +6,7 @@ const router = Router({ mergeParams: true });
 // GET /users/:publicUserId/shopping-cart
 router.get("/shopping-cart", UserController.getShoppingCart);
 
+// POST /users/:publicUserId/shopping-cart/items
+router.post("/shopping-cart/items", UserController.addItemToCart);
+
 export default router;

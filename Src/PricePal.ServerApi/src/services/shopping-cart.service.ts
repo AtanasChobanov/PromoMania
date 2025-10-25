@@ -1,13 +1,16 @@
-import { ShoppingCartRepository } from "../repository/shopping-cart.repository.js";
-import { UserRepository } from "../repository/user.repository.js";
+import ProductRepository from "../repository/product.repository.js";
+import ShoppingCartRepository from "../repository/shopping-cart.repository.js";
+import UserRepository from "../repository/user.repository.js";
 
 export default class ShoppingCartService {
   private readonly shoppingCartRepository: ShoppingCartRepository;
   private readonly userRepository: UserRepository;
+  private readonly productRepository: ProductRepository;
 
   constructor() {
     this.shoppingCartRepository = new ShoppingCartRepository();
     this.userRepository = new UserRepository();
+    this.productRepository = new ProductRepository();
   }
 
   async getShoppingCartByPublicUserId(publicUserId: string | undefined) {
@@ -31,5 +34,26 @@ export default class ShoppingCartService {
       ...cart,
       items,
     };
+  }
+
+  async addItemToShoppingCart(
+    publicUserId: string,
+    publicProductId: string,
+    quantity: number = 1
+  ) {
+    const user = await this.userRepository.findByPublicId(publicUserId);
+    const product = await this.productRepository.findByPublicId(
+      publicProductId
+    );
+    if (user && product) {
+      const cart = await this.shoppingCartRepository.findCartByUserId(user.id);
+      if (cart) {
+        await this.shoppingCartRepository.addItemToCart(
+          cart.id,
+          product.id,
+          quantity
+        );
+      }
+    }
   }
 }

@@ -25,4 +25,28 @@ export default class UserController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+
+  static async addItemToCart(req: Request, res: Response) {
+    const { publicUserId } = req.params;
+    const publicProductId = req.body.publicProductId as string | undefined;
+    const quantity = req.body.quantity as string | undefined;
+
+    if (!publicUserId || !publicProductId) {
+      return res
+        .status(400)
+        .json({ message: "publicUserId and publicProductId are required" });
+    }
+
+    try {
+      await UserController.shoppingCartService.addItemToShoppingCart(
+        publicUserId,
+        publicProductId,
+        quantity ? +quantity : undefined
+      );
+      res.status(201).json({ message: "Item added to cart successfully" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to add item to cart" });
+    }
+  }
 }
