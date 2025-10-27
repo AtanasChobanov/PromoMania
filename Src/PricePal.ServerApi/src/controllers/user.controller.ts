@@ -7,6 +7,11 @@ export default class UserController {
 
   static async getShoppingCart(req: Request, res: Response) {
     const publicUserId = req.params.publicUserId;
+    if (!publicUserId) {
+      return res
+        .status(400)
+        .json({ message: "Missing publicUserId parameter." });
+    }
 
     try {
       const cart =

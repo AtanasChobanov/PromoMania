@@ -2,6 +2,7 @@ import ProductSection, {
   ProductSectionTitle,
   type ProductSectionName,
 } from "../models/product-section.model.js";
+import type { ProductOverviewDto } from "../models/product.dto.js";
 import type { Product } from "../models/product.model.js";
 import { StoreChainName } from "../models/store-chain.model.js";
 import PriceRepository from "../repository/price.repository.js";
@@ -49,10 +50,8 @@ export default class ProductService {
   }): Promise<ProductSection> {
     const priceIds = await this.priceRepository.getLowestPricePerProduct();
 
-    let productData: Product[] = await this.productRepository.getOrderedByPrice(
-      priceIds,
-      pagination
-    );
+    let productData: ProductOverviewDto[] =
+      await this.productRepository.getOrderedByPrice(priceIds, pagination);
 
     const hasMore =
       productData.length >
@@ -91,7 +90,7 @@ export default class ProductService {
         .values()
     );
 
-    let productData: Product[] =
+    let productData: ProductOverviewDto[] =
       await this.productRepository.getOrderedByDiscount(priceIds, pagination);
 
     const hasMore =
@@ -139,7 +138,7 @@ export default class ProductService {
           .values()
       );
 
-      let productData: Product[] =
+      let productData: ProductOverviewDto[] =
         await this.productRepository.getOrderedByDiscount(priceIds, pagination);
 
       const hasMore =
@@ -166,25 +165,25 @@ export default class ProductService {
     return await handler(pagination);
   }
 
-  async getProductById(productId: number) {
-    const rows = await this.productRepository.getById(productId);
+  async getProductDetailsByPublicId(publicProductId: string) {
+    const rows = await this.productRepository.getDetailsByPublicId(
+      publicProductId
+    );
     const product = rows[0];
+    if (!product?.product) {
+      return null;
+    }
 
     const prices = rows
-      .filter((r) => r.Price != null)
+      .filter((r) => r.price != null)
       .map((r) => ({
-        ...r.Price,
-        storeChain: r.StoreChain
-          ? {
-              id: r.StoreChain.id,
-              name: r.StoreChain.name,
-            }
-          : null,
+        ...r.price,
+        storeChain: r.storeChain,
       }));
 
     return {
-      ...product?.Product,
-      category: product?.Category,
+      ...product.product,
+      category: product.category,
       prices,
     };
   }

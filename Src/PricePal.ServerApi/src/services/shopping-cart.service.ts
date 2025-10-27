@@ -13,9 +13,7 @@ export default class ShoppingCartService {
     this.productRepository = new ProductRepository();
   }
 
-  async getShoppingCartByPublicUserId(publicUserId: string | undefined) {
-    if (!publicUserId) return null;
-
+  async getShoppingCartByPublicUserId(publicUserId: string) {
     const user = await this.userRepository.findByPublicId(publicUserId);
     if (!user) return null;
 
@@ -42,9 +40,7 @@ export default class ShoppingCartService {
     quantity: number = 1
   ) {
     const user = await this.userRepository.findByPublicId(publicUserId);
-    const product = await this.productRepository.findByPublicId(
-      publicProductId
-    );
+    const product = await this.productRepository.getByPublicId(publicProductId);
     if (user && product) {
       const cart = await this.shoppingCartRepository.findCartByUserId(user.id);
       if (cart) {
