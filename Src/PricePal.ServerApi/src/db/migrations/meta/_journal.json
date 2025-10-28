@@ -29,6 +29,13 @@
       "when": 1761120508946,
       "tag": "0003_marvelous_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1761681760572,
+      "tag": "0004_add-public-id-in-shopping-cart-item",
+      "breakpoints": true
     }
   ]
 }

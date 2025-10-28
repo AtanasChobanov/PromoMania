@@ -177,6 +177,7 @@ export const shoppingCartItem = pgTable(
   "ShoppingCartItem",
   {
     id: serial().primaryKey().notNull(),
+    publicId: uuid("public_id").defaultRandom().notNull().unique(),
     cartId: integer("cart_id").notNull(),
     productId: integer("product_id").notNull(),
     quantity: integer().notNull().default(1),
