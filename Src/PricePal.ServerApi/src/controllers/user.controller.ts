@@ -43,15 +43,63 @@ export default class UserController {
     }
 
     try {
-      await UserController.shoppingCartService.addItemToShoppingCart(
-        publicUserId,
-        publicProductId,
-        quantity ? +quantity : undefined
-      );
-      res.status(201).json({ message: "Item added to cart successfully" });
+      const item =
+        await UserController.shoppingCartService.addItemToShoppingCart(
+          publicUserId,
+          publicProductId,
+          quantity ? +quantity : undefined
+        );
+
+      res.status(201).json({
+        message: "Item added to cart successfully",
+        item,
+      });
     } catch (error) {
       console.error(error);
+      if (error instanceof Error) {
+        if (error.message === "User or product not found") {
+          return res.status(404).json({ message: error.message });
+        }
+        if (error.message === "Shopping cart not found") {
+          return res.status(404).json({ message: error.message });
+        }
+      }
       res.status(500).json({ error: "Failed to add item to cart" });
+    }
+  }
+
+  static async updateCartItem(req: Request, res: Response) {
+    const { publicUserId, publicItemId } = req.params;
+    const quantity = req.body.quantity as number | undefined;
+
+    if (!publicUserId || !publicItemId || quantity === undefined) {
+      return res.status(400).json({
+        message: "publicUserId, publicItemId and quantity are required",
+      });
+    }
+
+    if (quantity < 1) {
+      return res
+        .status(400)
+        .json({ message: "Quantity must be greater than 0" });
+    }
+
+    try {
+      const updatedItem =
+        await UserController.shoppingCartService.updateCartItemQuantity(
+          publicItemId,
+          quantity
+        );
+
+      res
+        .status(200)
+        .json({ message: "Cart item updated successfully", item: updatedItem });
+    } catch (error) {
+      console.error(error);
+      if (error instanceof Error && error.message === "Cart item not found") {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ error: "Failed to update cart item" });
     }
   }
 }
