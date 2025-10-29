@@ -1,9 +1,12 @@
 import type { Request, Response } from "express";
 import ShoppingCartService from "../services/shopping-cart.service.js";
+import ShoppingCartItemService from "../services/shopping-cart-item.service.js";
 
 export default class UserController {
   private static shoppingCartService: ShoppingCartService =
     new ShoppingCartService();
+  private static shoppingCartItemService: ShoppingCartItemService =
+    new ShoppingCartItemService();
 
   static async getShoppingCart(req: Request, res: Response) {
     const publicUserId = req.params.publicUserId;
@@ -44,7 +47,7 @@ export default class UserController {
 
     try {
       const item =
-        await UserController.shoppingCartService.addItemToShoppingCart(
+        await UserController.shoppingCartItemService.addItemToShoppingCart(
           publicUserId,
           publicProductId,
           quantity ? +quantity : undefined
@@ -86,7 +89,7 @@ export default class UserController {
 
     try {
       const updatedItem =
-        await UserController.shoppingCartService.updateCartItemQuantity(
+        await UserController.shoppingCartItemService.updateItemQuantity(
           publicItemId,
           quantity
         );

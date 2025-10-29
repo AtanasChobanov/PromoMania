@@ -3,7 +3,7 @@ import { db } from "../config/drizzle-client.config.js";
 import { user } from "../db/migrations/schema.js";
 
 export default class UserRepository {
-  async findByPublicId(publicId: string) {
+  async getByPublicId(publicId: string) {
     const result = await db
       .select()
       .from(user)
