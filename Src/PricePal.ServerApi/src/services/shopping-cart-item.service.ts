@@ -16,7 +16,7 @@ export default class ShoppingCartItemService {
     this.shoppingCartItemRepository = new ShoppingCartItemRepository();
   }
 
-  async addItemToShoppingCart(
+  async addItemToCart(
     publicUserId: string,
     publicProductId: string,
     quantity: number = 1
@@ -34,21 +34,20 @@ export default class ShoppingCartItemService {
     }
 
     // Check if item already exists in cart
-    const existingItem =
-      await this.shoppingCartItemRepository.findCartItemByProductId(
-        cart.id,
-        product.id
-      );
+    const existingItem = await this.shoppingCartItemRepository.getByProductId(
+      cart.id,
+      product.id
+    );
 
     if (existingItem) {
       // If item exists, update its quantity
-      return await this.shoppingCartItemRepository.updateItemQuantity(
+      return await this.shoppingCartItemRepository.update(
         existingItem.publicId,
         existingItem.quantity + quantity
       );
     } else {
       // If item doesn't exist, create new one
-      return await this.shoppingCartItemRepository.addItemToCart(
+      return await this.shoppingCartItemRepository.add(
         cart.id,
         product.id,
         quantity
@@ -56,19 +55,28 @@ export default class ShoppingCartItemService {
     }
   }
 
-  async updateItemQuantity(publicItemId: string, quantity: number) {
-    const item = await this.shoppingCartItemRepository.findItemByPublicId(
+  async update(publicItemId: string, quantity: number) {
+    const item = await this.shoppingCartItemRepository.getByPublicId(
       publicItemId
     );
     if (!item) {
       throw new Error("Cart item not found");
     }
 
-    const editedItem =
-      (await this.shoppingCartItemRepository.updateItemQuantity(
-        publicItemId,
-        quantity
-      ))!;
-    return editedItem;
+    return (await this.shoppingCartItemRepository.update(
+      publicItemId,
+      quantity
+    ))!;
+  }
+
+  async delete(publicItemId: string) {
+    const item = await this.shoppingCartItemRepository.getByPublicId(
+      publicItemId
+    );
+    if (!item) {
+      throw new Error("Cart item not found");
+    }
+
+    return (await this.shoppingCartItemRepository.delete(publicItemId))!;
   }
 }

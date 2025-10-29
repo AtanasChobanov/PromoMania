@@ -15,4 +15,10 @@ router.patch(
   UserController.updateCartItem
 );
 
+// DELETE /users/:publicUserId/shopping-cart/items/:publicItemId
+router.delete(
+  "/shopping-cart/items/:publicItemId",
+  UserController.deleteCartItem
+);
+
 export default router;

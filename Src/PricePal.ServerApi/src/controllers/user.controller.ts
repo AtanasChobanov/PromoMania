@@ -46,12 +46,11 @@ export default class UserController {
     }
 
     try {
-      const item =
-        await UserController.shoppingCartItemService.addItemToShoppingCart(
-          publicUserId,
-          publicProductId,
-          quantity ? +quantity : undefined
-        );
+      const item = await UserController.shoppingCartItemService.addItemToCart(
+        publicUserId,
+        publicProductId,
+        quantity ? +quantity : undefined
+      );
 
       res.status(201).json({
         message: "Item added to cart successfully",
@@ -88,11 +87,10 @@ export default class UserController {
     }
 
     try {
-      const updatedItem =
-        await UserController.shoppingCartItemService.updateItemQuantity(
-          publicItemId,
-          quantity
-        );
+      const updatedItem = await UserController.shoppingCartItemService.update(
+        publicItemId,
+        quantity
+      );
 
       res
         .status(200)
@@ -103,6 +101,33 @@ export default class UserController {
         return res.status(404).json({ message: error.message });
       }
       res.status(500).json({ error: "Failed to update cart item" });
+    }
+  }
+
+  static async deleteCartItem(req: Request, res: Response) {
+    const { publicUserId, publicItemId } = req.params;
+
+    if (!publicUserId || !publicItemId) {
+      return res.status(400).json({
+        message: "publicUserId and publicItemId are required",
+      });
+    }
+
+    try {
+      const deletedItem = await UserController.shoppingCartItemService.delete(
+        publicItemId
+      );
+
+      res.status(200).json({
+        message: "Cart item deleted successfully",
+        item: deletedItem,
+      });
+    } catch (error) {
+      console.error(error);
+      if (error instanceof Error && error.message === "Cart item not found") {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ error: "Failed to delete cart item" });
     }
   }
 }
