@@ -102,6 +102,7 @@ const ChoiceDelivery = () => {
       source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
+      
       <View style={styles.container}>
         <View style={styles.titleContainer}>
           <Text style={[styles.mainTitle, { 

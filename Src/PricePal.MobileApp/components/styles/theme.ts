@@ -13,6 +13,8 @@ export const lightTheme = {
     textBlue:'rgba(163, 216, 239, 1)',
     textOnGradient: '#1F2937', // Dark gray-blue (better than pure black)
     textOnGradientAlt: '#111827', // Even darker for less vibrant gradients
+        borderColor:'#C8C8C8',
+
     // Borders
     border: 'rgba(0, 0, 0, 0.1)',
     borderLight: 'rgba(0, 0, 0, 0.05)',
@@ -65,7 +67,7 @@ export const darkTheme = {
     textTertiary: '#808080',
     textGreen:'rgba(46, 170, 134, 1)',
     textBlue:'rgba(45, 153, 211, 1)',
-
+    borderColor:'#C8C8C8',
     textOnGradient: '#FFFFFF', // White
     textOnGradientAlt: '#F9FAFB', // Slightly off-white for subtle depth
     // Borders

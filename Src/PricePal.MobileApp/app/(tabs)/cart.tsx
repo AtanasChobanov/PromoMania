@@ -450,6 +450,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 16,
     position: 'relative',
+    elevation:5,
+      shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
   },
   overviewContainer: {
     width: scale(325),
