@@ -1,8 +1,15 @@
-
-
+generic implenetations:
 topbar transparecy clickability 
 skeleton loading
 responsive loading
 improve responsivness even further
-bigger map and using real data
+map using real data
+виж още секция
+fix apple bugs(fuck apple)
 
+future features:
+cart functionality
+search functionality
+save functionality
+edit profile page
+login implemenation

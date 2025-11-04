@@ -28,18 +28,16 @@ const MapDelevary = () => {
   const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   
-  // This will be populated from your API
   const [shopsData, setShopsData] = useState<ShopData[]>([]);
 
-  // Shop colors for visual differentiation
   const shopColors = {
     Kaufland: { primary: '#E31E24', secondary: '#FFE5E6' },
     Lidl: { primary: '#0050AA', secondary: '#E5F0FF' },
     Billa: { primary: '#FFD500', secondary: '#FFF9E5' }
   };
 
-  // Get user location
   const getLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -64,9 +62,6 @@ const MapDelevary = () => {
 
       setUserLocation(userCoords);
       setLoading(false);
-      
-      // TODO: Call your API here with userCoords to fetch shop data
-      // fetchShopsFromAPI(userCoords);
     } catch (error) {
       console.error('Location error:', error);
       Alert.alert('Error', 'Could not get your location. Please try again.');
@@ -78,14 +73,8 @@ const MapDelevary = () => {
     getLocation();
   }, []);
 
-  // TODO: Replace this with your API call
   const fetchShopsFromAPI = async (location: LocationCoords) => {
     try {
-      // Example API call structure:
-      // const response = await fetch(`YOUR_API_ENDPOINT?lat=${location.latitude}&lng=${location.longitude}`);
-      // const data = await response.json();
-      // setShopsData(data.shops);
-      
       console.log('Fetch shops from API for location:', location);
     } catch (error) {
       console.error('Error fetching shops:', error);
@@ -99,9 +88,6 @@ const MapDelevary = () => {
     }
 
     setSelectedShop(shopName);
-    
-    // TODO: Call your API to get route data for specific shop
-    // fetchRouteFromAPI(userLocation, shopName);
     console.log(`Clicked on ${shopName}`);
   };
 
@@ -129,7 +115,6 @@ const MapDelevary = () => {
         ]}
         onPress={() => handleShopClick(shopName)}
       >
-        {/* Brand Icon Container */}
         <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
           <Image 
             style={iconSize} 
@@ -140,7 +125,6 @@ const MapDelevary = () => {
           </Text>
         </View>
 
-        {/* Price Info */}
         <View style={styles.infoSection}>
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
             Цена
@@ -159,7 +143,6 @@ const MapDelevary = () => {
           </View>
         </View>
 
-        {/* Distance/Time Info */}
         <View style={styles.infoSection}>
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
             Разстояние
@@ -178,18 +161,16 @@ const MapDelevary = () => {
           </View>
         </View>
 
-        {/* Arrow Indicator */}
         <View style={styles.arrowContainer}>
           <Text style={[styles.arrow, { color: colors.primary, opacity: 0.6 }]}>›</Text>
         </View>
 
-        {/* Best Deal Badge */}
         {shopName === 'Lidl' && (
           <View style={[styles.bestDealBadge, { backgroundColor: colors.primary }]}>
             <Text style={styles.bestDealText}>✨ Най-добра цена</Text>
           </View>
         )}
-         {shopName === 'Kaufland' && (
+        {shopName === 'Kaufland' && (
           <View style={[styles.bestDealBadge, { backgroundColor: colors.primary }]}>
             <Text style={styles.bestDealText}>✨ Най-наблизо</Text>
           </View>
@@ -197,6 +178,51 @@ const MapDelevary = () => {
       </Pressable>
     );
   };
+
+  const renderMapContent = () => (
+    <MapView
+      provider={PROVIDER_GOOGLE}
+      style={styles.mapInBox}
+      region={{
+        latitude: userLocation!.latitude,
+        longitude: userLocation!.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }}
+      showsUserLocation={true}
+      showsMyLocationButton={false}
+    >
+      <Marker 
+        coordinate={userLocation!} 
+        title="Вие сте тук" 
+        pinColor="blue" 
+      />
+
+      {shopsData.map((shop, index) => (
+        <Marker
+          key={`${shop.name}-${index}`}
+          coordinate={shop.location}
+          title={shop.name}
+          description={`${shop.distance_km} км - ${shop.price_bgn} лв`}
+          pinColor={index === 0 ? '#E31E24' : index === 1 ? '#0050AA' : '#FFD500'}
+        />
+      ))}
+
+      {shopsData.map((shop, index) => {
+        if (shop.route && (selectedShop === shop.name || selectedShop === null)) {
+          return (
+            <Polyline
+              key={`route-${shop.name}-${index}`}
+              coordinates={shop.route}
+              strokeColor={index === 0 ? '#E31E24' : index === 1 ? '#0050AA' : '#FFD500'}
+              strokeWidth={selectedShop === shop.name ? 5 : 3}
+            />
+          );
+        }
+        return null;
+      })}
+    </MapView>
+  );
 
   if (loading || !userLocation) {
     return (
@@ -219,6 +245,33 @@ const MapDelevary = () => {
     );
   }
 
+  // Fullscreen Map View
+  if (isFullscreen) {
+    return (
+      <View style={styles.fullscreenContainer}>
+        {renderMapContent()}
+        
+        {/* Exit Fullscreen Button */}
+        <Pressable 
+          style={[styles.fullscreenButton, { backgroundColor: theme.colors.cardBackground }]}
+          onPress={() => setIsFullscreen(false)}
+        >
+          <Text style={[styles.fullscreenButtonText, { color: theme.colors.textPrimary }]}>
+            ✕
+          </Text>
+        </Pressable>
+
+        {/* Map Info Badge in Fullscreen */}
+        <View style={[styles.mapInfoBadge, { backgroundColor: theme.colors.cardBackground }]}>
+          <Text style={[styles.mapInfoText, { color: theme.colors.textPrimary }]}>
+            📍 {shopsData.length > 0 ? shopsData.length : 3} магазина наблизо
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Normal Scrollable View
   return (
     <ImageBackground
       source={theme.backgroundImage}
@@ -229,7 +282,6 @@ const MapDelevary = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Section */}
         <View style={styles.titleContainer}>
           <Text style={[styles.mainTitle, { 
             fontSize: moderateScale(30), 
@@ -246,57 +298,21 @@ const MapDelevary = () => {
           </Text>
         </View>
 
-        {/* Map Section */}
         <View style={styles.mapContainer}>
           <View style={styles.mapBox}>
-            <MapView
-              provider={PROVIDER_GOOGLE}
-              style={styles.mapInBox}
-              region={{
-                latitude: userLocation.latitude,
-                longitude: userLocation.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-              showsUserLocation={true}
-              showsMyLocationButton={false}
-            >
-              {/* User Location Marker */}
-              <Marker 
-                coordinate={userLocation} 
-                title="Вие сте тук" 
-                pinColor="blue" 
-              />
-
-              {/* Shop Markers - will be populated from API */}
-              {shopsData.map((shop, index) => (
-                <Marker
-                  key={`${shop.name}-${index}`}
-                  coordinate={shop.location}
-                  title={shop.name}
-                  description={`${shop.distance_km} км - ${shop.price_bgn} лв`}
-                  pinColor={index === 0 ? '#E31E24' : index === 1 ? '#0050AA' : '#FFD500'}
-                />
-              ))}
-
-              {/* Route Polylines - will be populated from API */}
-              {shopsData.map((shop, index) => {
-                if (shop.route && (selectedShop === shop.name || selectedShop === null)) {
-                  return (
-                    <Polyline
-                      key={`route-${shop.name}-${index}`}
-                      coordinates={shop.route}
-                      strokeColor={index === 0 ? '#E31E24' : index === 1 ? '#0050AA' : '#FFD500'}
-                      strokeWidth={selectedShop === shop.name ? 5 : 3}
-                    />
-                  );
-                }
-                return null;
-              })}
-            </MapView>
+            {renderMapContent()}
           </View>
           
-          {/* Map Info Badge */}
+          {/* Fullscreen Button */}
+          <Pressable 
+            style={[styles.expandButton, { backgroundColor: theme.colors.cardBackground }]}
+            onPress={() => setIsFullscreen(true)}
+          >
+            <Text style={[styles.expandButtonText, { color: theme.colors.textPrimary }]}>
+              ⛶
+            </Text>
+          </Pressable>
+
           <View style={[styles.mapInfoBadge, { backgroundColor: theme.colors.cardBackground }]}>
             <Text style={[styles.mapInfoText, { color: theme.colors.textPrimary }]}>
               📍 {shopsData.length > 0 ? shopsData.length : 3} магазина наблизо
@@ -304,7 +320,6 @@ const MapDelevary = () => {
           </View>
         </View>
 
-        {/* Shop Cards Section */}
         <View style={styles.optionsWrapper}>
           <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
             Налични магазини
@@ -315,7 +330,6 @@ const MapDelevary = () => {
           {renderShopCard('Billa', '55 лв', '28€', '7.1 км', '12 мин', { width: 28, height: 28 })}
         </View>
 
-        {/* Info Footer */}
         <View style={styles.infoFooter}>
           <Text style={[styles.footerText, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
             💡 Съвет: Изберете магазин за да видите маршрута на картата
@@ -406,6 +420,49 @@ const styles = StyleSheet.create({
   },
   mapInfoText: {
     fontSize: moderateScale(13),
+    fontWeight: '600',
+  },
+  expandButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  expandButtonText: {
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  fullscreenContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  fullscreenButton: {
+    position: 'absolute',
+    top: 50,
+    left: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1000,
+  },
+  fullscreenButtonText: {
+    fontSize: 24,
     fontWeight: '600',
   },
   sectionTitle: {
