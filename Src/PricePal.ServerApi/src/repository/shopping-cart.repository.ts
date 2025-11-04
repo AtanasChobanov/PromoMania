@@ -16,6 +16,7 @@ export default class ShoppingCartRepository {
         },
         item: {
           quantity: shoppingCartItem.quantity,
+          publicId: shoppingCartItem.publicId,
         },
         product: {
           publicId: product.publicId,
