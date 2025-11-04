@@ -50,25 +50,34 @@ export default class StoreSuggestionService {
       pricesByProduct.set(price.productPublicId, prices);
     });
 
-    // Map the cart items with all their prices
+    // Map the cart items with all their prices and filter out items without valid prices
+    const enrichedItems = cart.items.map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        prices: (pricesByProduct.get(item.product.publicId) || []).map(
+          (price) => ({
+            priceBgn: Number(price.priceBgn),
+            priceEur: Number(price.priceEur),
+            discount: price.discount,
+            validFrom: new Date(price.validFrom),
+            validTo: price.validTo ? new Date(price.validTo) : null,
+            storeChain: price.storeChain || { publicId: "", name: "" },
+          })
+        ),
+      },
+    }));
+
+    // Filter out items that have no valid prices (neither BGN nor EUR)
+    const filteredItems = enrichedItems.filter((item) =>
+      item.product.prices.some(
+        (price) => !isNaN(price.priceBgn) || !isNaN(price.priceEur)
+      )
+    );
+
     return {
       ...cart,
-      items: cart.items.map((item) => ({
-        ...item,
-        product: {
-          ...item.product,
-          prices: (pricesByProduct.get(item.product.publicId) || []).map(
-            (price) => ({
-              priceBgn: Number(price.priceBgn),
-              priceEur: Number(price.priceEur),
-              discount: price.discount,
-              validFrom: new Date(price.validFrom),
-              validTo: price.validTo ? new Date(price.validTo) : null,
-              storeChain: price.storeChain || { publicId: "", name: "" },
-            })
-          ),
-        },
-      })),
+      items: filteredItems,
     };
   }
 }

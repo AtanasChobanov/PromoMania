@@ -140,10 +140,14 @@ export default class ProductRepository {
       .where(inArray(product.publicId, publicProductIds))
       .orderBy(price.priceBgn);
 
-    // Group by product and take the lowest price for each
+    // Group by product and take the lowest price for each, ensuring at least one price exists
     const productMap = new Map<string, (typeof results)[0]>();
     for (const row of results) {
-      if (!productMap.has(row.productPublicId) && row.priceBgn !== null) {
+      // Only include products that have at least one valid price (either BGN or EUR)
+      if (
+        !productMap.has(row.productPublicId) &&
+        (row.priceBgn !== null || row.priceEur !== null)
+      ) {
         productMap.set(row.productPublicId, row);
       }
     }
