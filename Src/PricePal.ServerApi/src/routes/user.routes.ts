@@ -1,5 +1,6 @@
 import { Router } from "express";
 import UserController from "../controllers/user.controller.js";
+import StoreSuggestionController from "../controllers/shopping-suggestion.controller.js";
 
 const router = Router({ mergeParams: true });
 
@@ -20,5 +21,8 @@ router.delete(
   "/shopping-cart/items/:publicItemId",
   UserController.deleteCartItem
 );
+
+// GET /users/:publicUserId/shopping-cart/suggest-store
+router.get("/shopping-cart/suggest", StoreSuggestionController.suggest);
 
 export default router;

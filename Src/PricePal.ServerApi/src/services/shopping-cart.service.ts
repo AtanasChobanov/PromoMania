@@ -72,9 +72,13 @@ export default class ShoppingCartService {
             barcode: enrichedProduct.barcode,
             imageUrl: enrichedProduct.imageUrl,
             unit: enrichedProduct.unit,
-            priceBgn: enrichedProduct.priceBgn ?? null,
-            priceEur: enrichedProduct.priceEur ?? null,
-            discount: enrichedProduct.discount ?? null,
+            prices: [
+              {
+                priceBgn: enrichedProduct.priceBgn ?? null,
+                priceEur: enrichedProduct.priceEur ?? null,
+                discount: enrichedProduct.discount ?? null,
+              },
+            ],
           },
         };
       });

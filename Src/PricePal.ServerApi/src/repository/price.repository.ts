@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
 import { price, product, storeChain } from "../db/migrations/schema.js";
 import type { StoreChainName } from "../models/store-chain.model.js";
@@ -37,5 +37,30 @@ export default class PriceRepository {
       .orderBy(asc(price.discount), asc(price.validFrom), asc(price.validTo));
 
     return results;
+  }
+
+  /**
+   * Get all prices for a list of products, including store chain information
+   * Prices are ordered by price (BGN) ascending for each product
+   */
+  async getAllPricesForProducts(productIds: number[]) {
+    return await db
+      .select({
+        productPublicId: product.publicId,
+        priceBgn: price.priceBgn,
+        priceEur: price.priceEur,
+        discount: price.discount,
+        validFrom: price.validFrom,
+        validTo: price.validTo,
+        storeChain: {
+          publicId: storeChain.publicId,
+          name: storeChain.name,
+        },
+      })
+      .from(price)
+      .leftJoin(product, eq(price.productId, product.id))
+      .leftJoin(storeChain, eq(price.chainId, storeChain.id))
+      .where(inArray(product.id, productIds))
+      .orderBy(product.id, price.priceBgn);
   }
 }

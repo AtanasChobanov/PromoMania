@@ -1,3 +1,15 @@
+export interface ProductPriceDto {
+  priceBgn: number | null;
+  priceEur: number | null;
+  discount: number | null;
+  validFrom?: Date;
+  validTo?: Date | null;
+  storeChain?: {
+    publicId: string;
+    name: string;
+  };
+}
+
 export interface ShoppingCartProductDto {
   publicId: string;
   name: string;
@@ -5,9 +17,7 @@ export interface ShoppingCartProductDto {
   barcode: string | null;
   imageUrl: string | null;
   unit: string | null;
-  priceBgn: number | null;
-  priceEur: number | null;
-  discount: number | null;
+  prices: ProductPriceDto[];
 }
 
 export interface ShoppingCartItemDto {
