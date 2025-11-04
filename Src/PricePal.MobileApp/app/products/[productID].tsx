@@ -1,7 +1,11 @@
 import { HeartIcon } from '@/components/boxes/HeartIcon';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
-import { getBestPrice, useProductDetails } from '@/services/useProductDetails';
+import {
+  getAllCurrentPricesWithOriginals,
+  getBestPrice,
+  useProductDetails
+} from '@/services/useProductDetails';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -134,19 +138,14 @@ export default function ProductPage() {
   // Get best price across all chains
   const bestPrice = getBestPrice(product.prices);
 
+  // Get all current prices with originals grouped by chain
+  const pricesByChain = getAllCurrentPricesWithOriginals(product.prices);
+
   // Helper function to safely extract numeric price
   const getNumericPrice = (price: string | undefined): string => {
     if (!price) return '0';
     return price.replace(/[^\d.]/g, '');
   };
-
-  // Get current prices for each chain
-  const activePrices = product.prices.filter(price => {
-    const now = new Date();
-    const validFrom = new Date(price.validFrom);
-    const validTo = price.validTo ? new Date(price.validTo) : null;
-    return validFrom <= now && (!validTo || validTo >= now);
-  });
 
   return (
     <Animated.View
@@ -167,7 +166,7 @@ export default function ProductPage() {
           {/* Product Image */}
           <Animated.View
             entering={FadeInDown.delay(100).duration(600).springify()}
-            style={styles.imageContainer}
+            style={[styles.imageContainer,{borderColor:theme.colors.borderColor}]}
           >
             <Image
               source={
@@ -190,7 +189,7 @@ export default function ProductPage() {
               styles.detailsContainer,
               {
                 backgroundColor: theme.colors.mainBackground,
-                borderColor: theme.colors.textSecondary,
+                borderColor: theme.colors.borderColor,
                 borderWidth: 1,
               },
             ]}
@@ -322,15 +321,15 @@ export default function ProductPage() {
             </Animated.View>
           </Animated.View>
 
-          {/* Retail Prices - Show all active prices */}
-          {activePrices.length > 0 && (
+          {/* Retail Prices - Show all active prices with original prices */}
+          {pricesByChain.size > 0 && (
             <Animated.View
               entering={FadeInDown.delay(300).duration(600).springify()}
               style={[
                 styles.retailsContainer,
                 {
                   backgroundColor: theme.colors.mainBackground,
-                  borderColor: theme.colors.textSecondary,
+                  borderColor: theme.colors.borderColor,
                   borderWidth: 1,
                 },
               ]}
@@ -338,9 +337,9 @@ export default function ProductPage() {
               <Text style={[styles.retailTitle, { color: theme.colors.textPrimary }]}>
                 Цени в различните вериги
               </Text>
-              {activePrices.map((price, index) => (
+              {Array.from(pricesByChain.entries()).map(([chainName, pricePair], index) => (
                 <Animated.View
-                  key={price.id}
+                  key={chainName}
                   entering={FadeIn.delay(350 + index * 50).duration(500)}
                   style={styles.OneRetailBox}
                 >
@@ -349,17 +348,17 @@ export default function ProductPage() {
                       <Image
                         style={styles.retailImages}
                         source={
-                          chainLogos[price.storeChain.name] ||
+                          chainLogos[chainName] ||
                           require('../../assets/icons/pricelpal-logo.png')
                         }
                       />
                       <Text
                         style={[styles.retailText, { color: theme.colors.textPrimary }]}
                       >
-                        {price.storeChain.name}
+                        {chainName}
                       </Text>
                     </View>
-                    {price.discount && (
+                    {pricePair.discounted.discount && (
                       <View
                         style={[
                           styles.discountContainer,
@@ -372,24 +371,54 @@ export default function ProductPage() {
                             { color: theme.colors.textPrimary },
                           ]}
                         >
-                          {price.discount}%
+                          {pricePair.discounted.discount}%
                         </Text>
                       </View>
                     )}
                   </View>
+
+                  {/* BGN Prices Column */}
                   <View style={styles.rightSection}>
                     <Text
-                      style={[styles.retailPrice, { color: theme.colors.textBlue }]}
+                      style={[
+                        styles.retailPrice, 
+                        { color: theme.colors.textBlue }
+                      ]}
                     >
-                      {getNumericPrice(price.priceBgn)} лв.
+                      {getNumericPrice(pricePair.discounted.priceBgn)} лв.
                     </Text>
+                    {pricePair.original && (
+                      <Text
+                        style={[
+                          styles.originalPrice,
+                          { color: theme.colors.textSecondary }
+                        ]}
+                      >
+                        {getNumericPrice(pricePair.original.priceBgn)} лв.
+                      </Text>
+                    )}
                   </View>
+
+                  {/* EUR Prices Column */}
                   <View style={styles.rightSection}>
                     <Text
-                      style={[styles.retailPrice, { color: theme.colors.textBlue }]}
+                      style={[
+                        styles.retailPrice, 
+                        { color: theme.colors.textBlue }
+                      ]}
                     >
-                      {getNumericPrice(price.priceEur)} €
+                      {getNumericPrice(pricePair.discounted.priceEur)} €
                     </Text>
+                    {pricePair.original && (
+                      <Text
+                        style={[
+                          styles.originalPrice,
+                          { color: theme.colors.textSecondary }
+                        ]}
+                      >
+                        {getNumericPrice(pricePair.original.priceEur)} €
+                      </Text>
+                    )}
                   </View>
                 </Animated.View>
               ))}
@@ -405,7 +434,7 @@ export default function ProductPage() {
                 backgroundColor: theme.colors.mainBackground,
                 paddingHorizontal: 16,
                 overflow: 'hidden',
-                borderColor: theme.colors.textSecondary,
+                borderColor: theme.colors.borderColor,
                 borderWidth: 1,
               },
             ]}
@@ -676,6 +705,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#006D77',
     marginBottom: 2,
+  },
+  originalPrice: {
+    fontSize: getFontSize(18),
+    color: '#999',
+    textDecorationLine: 'line-through',
   },
   discountContainer: {
     backgroundColor: 'rgba(143,228,201,1)',

@@ -38,6 +38,12 @@ export interface ProductDetails {
   prices: ProductPrice[];
 }
 
+// NEW: Interface for price pair (discounted + original)
+export interface PricePair {
+  discounted: ProductPrice;
+  original: ProductPrice | null;
+}
+
 const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 
 // Fetch function for a single product
@@ -96,25 +102,87 @@ export const useProductDetails = (
   };
 };
 
+// NEW: Get current price with both discounted and original prices for a chain
+export const getCurrentPriceWithOriginal = (
+  prices: ProductPrice[],
+  chainName: string
+): PricePair | null => {
+  // Filter prices for the specific chain - database already filtered by date
+  const chainPrices = prices.filter(price => price.storeChain.name === chainName);
+  
+  if (!chainPrices.length) return null;
+  
+  // Find discounted price (has discount value)
+  const discounted = chainPrices.find(p => p.discount !== null);
+  
+  // Find original price (no discount, no validTo - the base price)
+  const original = chainPrices.find(p => p.discount === null && p.validTo === null);
+  
+  // If there's a discounted price, return both
+  if (discounted && original) {
+    return {
+      discounted,
+      original
+    };
+  }
+  
+  // If no discount, return the regular price as "discounted" (current price)
+  return {
+    discounted: chainPrices[0],
+    original: null
+  };
+};
+
+// NEW: Get all current prices with originals grouped by chain
+export const getAllCurrentPricesWithOriginals = (
+  prices: ProductPrice[]
+): Map<string, PricePair> => {
+  const priceMap = new Map<string, PricePair>();
+  
+  // Get unique chain names - database already filtered by date
+  const chainNames = [...new Set(prices.map(p => p.storeChain.name))];
+  
+  chainNames.forEach(chainName => {
+    const pricePair = getCurrentPriceWithOriginal(prices, chainName);
+    if (pricePair) {
+      priceMap.set(chainName, pricePair);
+    }
+  });
+  
+  return priceMap;
+};
+
 // Helper function to get the best price (lowest current price) for a product
 export const getBestPrice = (prices: ProductPrice[]): ProductPrice | null => {
   if (!prices.length) return null;
 
-  const currentPrices = prices.filter(price => {
-    const now = new Date();
-    const validFrom = new Date(price.validFrom);
-    const validTo = price.validTo ? new Date(price.validTo) : null;
-    
-    return validFrom <= now && (!validTo || validTo >= now);
-  });
-
-  if (!currentPrices.length) return null;
-
-  return currentPrices.reduce((best, current) => {
+  // Database already filtered by date, so just find the lowest price
+  return prices.reduce((best, current) => {
     const bestPrice = parseFloat(best.priceBgn);
     const currentPrice = parseFloat(current.priceBgn);
     return currentPrice < bestPrice ? current : best;
   });
+};
+
+// NEW: Get best price with original (for showing discount)
+export const getBestPriceWithOriginal = (prices: ProductPrice[]): PricePair | null => {
+  const allPricesMap = getAllCurrentPricesWithOriginals(prices);
+  
+  if (!allPricesMap.size) return null;
+  
+  // Find the chain with the lowest current price
+  let bestPair: PricePair | null = null;
+  let lowestPrice = Infinity;
+  
+  allPricesMap.forEach((pricePair) => {
+    const currentPrice = parseFloat(pricePair.discounted.priceBgn);
+    if (currentPrice < lowestPrice) {
+      lowestPrice = currentPrice;
+      bestPair = pricePair;
+    }
+  });
+  
+  return bestPair;
 };
 
 // Helper function to get prices grouped by store chain
@@ -137,16 +205,8 @@ export const getCurrentPriceForChain = (
   prices: ProductPrice[],
   chainName: string
 ): ProductPrice | null => {
-  const now = new Date();
-  
-  const currentPrice = prices.find(price => {
-    if (price.storeChain.name !== chainName) return false;
-    
-    const validFrom = new Date(price.validFrom);
-    const validTo = price.validTo ? new Date(price.validTo) : null;
-    
-    return validFrom <= now && (!validTo || validTo >= now);
-  });
+  // Database already filtered by date
+  const currentPrice = prices.find(price => price.storeChain.name === chainName);
   
   return currentPrice || null;
 };
