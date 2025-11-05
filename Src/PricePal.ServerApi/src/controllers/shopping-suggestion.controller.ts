@@ -16,7 +16,7 @@ export default class StoreSuggestionController {
 
     try {
       const cartWithAllPrices =
-        await StoreSuggestionController.storeSuggestionService.getCartItemsWithAllPrices(
+        await StoreSuggestionController.storeSuggestionService.suggestCheapestStoreOption(
           publicUserId
         );
 

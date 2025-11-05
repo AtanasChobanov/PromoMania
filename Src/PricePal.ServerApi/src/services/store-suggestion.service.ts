@@ -1,12 +1,24 @@
 import PriceRepository from "../repository/price.repository.js";
 import ShoppingCartService from "../services/shopping-cart.service.js";
 import ProductRepository from "../repository/product.repository.js";
-import type { ShoppingCartDto } from "../models/shopping-cart.dto.js";
+import type {
+  ShoppingCartDto,
+  ShoppingCartItemDto,
+  StorePrices,
+  StoreProductPrice,
+} from "../models/shopping-cart.dto.js";
+import { StoreChainName } from "../models/store-chain.model.js";
 
 export default class StoreSuggestionService {
   private readonly priceRepository: PriceRepository;
   private readonly shoppingCartService: ShoppingCartService;
   private readonly productRepository: ProductRepository;
+  // Exchange rate BGN -> EUR. Use environment variable in production for configurability.
+  // If the env var is missing or invalid, fall back to the canonical rate 1.9558.
+  static readonly BGN_TO_EUR_RATE =
+    process.env.BGN_TO_EUR_RATE && Number(process.env.BGN_TO_EUR_RATE) > 0
+      ? Number(process.env.BGN_TO_EUR_RATE)
+      : 1.9558;
 
   constructor() {
     this.priceRepository = new PriceRepository();
@@ -14,7 +26,103 @@ export default class StoreSuggestionService {
     this.productRepository = new ProductRepository();
   }
 
-  async getCartItemsWithAllPrices(
+  async suggestCheapestStoreOption(publicUserId: string) {
+    const cartProducts = await this.getCartItemsWithAllPrices(publicUserId);
+    if (!cartProducts) return null;
+
+    const storeOptions = await this.calculateLowestPricesPerStore(
+      cartProducts.items
+    );
+    return storeOptions;
+  }
+
+  private async calculateLowestPricesPerStore(
+    cartItems: ShoppingCartItemDto[]
+  ): Promise<StorePrices[]> {
+    const currentDate = new Date();
+
+    // Process each store chain concurrently using Promise.all
+    const storePromises = Object.values(StoreChainName).map(
+      async (storeChain) => {
+        const products: StoreProductPrice[] = [];
+        let totalPriceBgn = 0;
+        let totalPriceEur = 0;
+
+        // For each cart item, find the lowest valid price in this store
+        for (const item of cartItems) {
+          // Filter prices for current store and check validity
+          const validPrices = item.product.prices.filter((price) => {
+            if (!price.storeChain?.name || !price.validFrom) return false;
+
+            const isCurrentStore = price.storeChain.name === storeChain;
+            const isValidNow =
+              new Date(price.validFrom) <= currentDate &&
+              (!price.validTo || new Date(price.validTo) >= currentDate);
+
+            return isCurrentStore && isValidNow;
+          });
+
+          if (validPrices.length === 0) continue;
+
+          // Find the lowest price among valid prices
+          const lowestPrice = validPrices.reduce((lowest, current) => {
+            if (!lowest) return current;
+
+            // For regular prices (no discount), or comparing same type of prices
+            if (
+              (!lowest.discount && !current.discount) ||
+              (lowest.discount && current.discount)
+            ) {
+              return (current.priceBgn ?? Infinity) <
+                (lowest.priceBgn ?? Infinity)
+                ? current
+                : lowest;
+            }
+            // Prefer discounted prices over regular ones
+            return current.discount ? current : lowest;
+          });
+
+          // If we found a valid price for this product in this store
+          if (
+            lowestPrice &&
+            (lowestPrice.priceBgn !== null || lowestPrice.priceEur !== null)
+          ) {
+            const productPrice: StoreProductPrice = {
+              productPublicId: item.product.publicId,
+              quantity: item.quantity,
+              priceBgn: lowestPrice.priceBgn ?? 0,
+              priceEur: lowestPrice.priceEur ?? 0,
+            };
+
+            products.push(productPrice);
+            totalPriceBgn += (lowestPrice.priceBgn ?? 0) * item.quantity;
+          }
+        }
+
+        // Derive EUR total from BGN total using the configured exchange rate.
+        // Use a sane fallback if the configured rate is invalid or zero.
+        totalPriceEur =
+          Math.round(
+            (totalPriceBgn / StoreSuggestionService.BGN_TO_EUR_RATE) * 100
+          ) / 100;
+
+        return {
+          storeChain,
+          products,
+          totalPriceBgn,
+          totalPriceEur,
+        };
+      }
+    );
+
+    // Wait for all store calculations to complete
+    const allStorePrices = await Promise.all(storePromises);
+
+    // Filter out stores that don't have prices for any products
+    return allStorePrices.filter((store) => store.products.length > 0);
+  }
+
+  private async getCartItemsWithAllPrices(
     publicUserId: string
   ): Promise<ShoppingCartDto | null> {
     // Get the cart using existing service
