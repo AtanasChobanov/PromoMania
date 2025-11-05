@@ -33,7 +33,26 @@ export default class StoreSuggestionService {
     const storeOptions = await this.calculateLowestPricesPerStore(
       cartProducts.items
     );
-    return storeOptions;
+
+    const { bestOffer, otherOffers } = this.selectBestOffer(storeOptions);
+    return { bestOffer, otherOffers };
+  }
+
+  private selectBestOffer(storeOptions: StorePrices[]) {
+    if (storeOptions.length === 0) {
+      return {
+        bestOffer: null as StorePrices | null,
+        otherOffers: [] as StorePrices[],
+      };
+    }
+
+    // Make a shallow copy and sort by totalPriceBgn ascending
+    const sortedOffers = [...storeOptions].sort(
+      (a, b) => a.totalPriceBgn - b.totalPriceBgn
+    );
+    const bestOffer = sortedOffers[0];
+    const otherOffers = sortedOffers.slice(1);
+    return { bestOffer, otherOffers };
   }
 
   private async calculateLowestPricesPerStore(
@@ -118,8 +137,10 @@ export default class StoreSuggestionService {
     // Wait for all store calculations to complete
     const allStorePrices = await Promise.all(storePromises);
 
-    // Filter out stores that don't have prices for any products
-    return allStorePrices.filter((store) => store.products.length > 0);
+    // Filter out undefined results and stores that don't have prices for any products
+    return allStorePrices.filter(
+      (store) => store.products.length === cartItems.length
+    );
   }
 
   private async getCartItemsWithAllPrices(
