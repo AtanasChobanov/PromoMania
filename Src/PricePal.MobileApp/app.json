@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PricePal",
+    "name": "ПромоМания",
     "slug": "pricepal",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,8 +16,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/icon.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "backgroundColor": "#352"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.PricePal.MobileApp",

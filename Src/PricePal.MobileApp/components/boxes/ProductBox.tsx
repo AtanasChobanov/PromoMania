@@ -31,7 +31,7 @@ const CartIcon = ({ color = "#1F2937" }: { color?: string }) => (
 );
 
 export const ProductBox: React.FC<{
-   productId: number;
+   productId: string;
   productName: string;
   brand: string;
   priceBgn: string;
@@ -112,7 +112,7 @@ const handleProductPress = useCallback(() => {
               {/* Image Section */}
               <View style={styles.imageContainer}>
                 <Image
-                  source={photo ? { uri: photo } : require("../../assets/icons/pricelpal-logo.png")}
+                  source={photo ? { uri: photo } : require("../../assets/icons/icon.png")}
                   style={[styles.productImage, { width: cardWidth, height: cardWidth, backgroundColor: 'white' }]}
                   resizeMode={photo ? "contain" : "cover"}
                   fadeDuration={0}

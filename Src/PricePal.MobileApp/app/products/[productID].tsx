@@ -172,7 +172,7 @@ export default function ProductPage() {
               source={
                 product.imageUrl
                   ? { uri: product.imageUrl }
-                  : require('../../assets/icons/pricelpal-logo.png')
+                  : require('../../assets/icons/icon.png')
               }
               style={styles.productImage}
               resizeMode={product.imageUrl ? 'contain' : 'cover'}
@@ -349,7 +349,7 @@ export default function ProductPage() {
                         style={styles.retailImages}
                         source={
                           chainLogos[chainName] ||
-                          require('../../assets/icons/pricelpal-logo.png')
+                          require('../../assets/icons/icon.png')
                         }
                       />
                       <Text

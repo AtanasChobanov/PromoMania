@@ -47,7 +47,7 @@ const ProductItem = React.memo(({
 }) => (
   <View style={{ marginBottom: hp(1.5) }}>  
     <ProductBox
-     productId={item.id}
+     productId={item.publicId}
       productName={item.name}
       brand={item.brand || ''}
       priceBgn={item.priceBgn}
@@ -101,7 +101,7 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
   // Key extractor - ensure globally unique keys across all sections
   const keyExtractor = useCallback((item: Product, index: number) => {
     // Create a unique key by combining section, product ID, and index
-    const uniqueKey = `${section}-${item.id || 'no-id'}-${index}`;
+    const uniqueKey = `${section}-${item.publicId || 'no-id'}-${index}`;
     return uniqueKey;
   }, [section]);
 
