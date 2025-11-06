@@ -17,7 +17,7 @@ const Index = () => {
         {/* Logo Container */}
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../assets/icons/pricelpal-logo.png")}            
+            source={require("../../assets/icons/icon.png")}            
             style={styles.logo}
             resizeMode="contain"
           />     

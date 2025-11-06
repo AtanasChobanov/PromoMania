@@ -7,10 +7,9 @@ import axios from "axios";
 
 // Types
 export interface Product {
-  id: number;
+  publicId: string;
   name: string;
   brand: string | null;
-  categoryId: number;
   barcode: string | null;
   imageUrl: string;
   unit: string;
