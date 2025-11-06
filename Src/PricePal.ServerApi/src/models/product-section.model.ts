@@ -1,4 +1,5 @@
 import ProductRepository from "../repository/product.repository.js";
+import type { ProductOverviewDto } from "./product.dto.js";
 import type { Product } from "./product.model.js";
 
 export type ProductSectionName =
@@ -20,12 +21,12 @@ export enum ProductSectionTitle {
 
 export default class ProductSection {
   title: ProductSectionTitle;
-  products: Product[];
+  products: ProductOverviewDto[];
   pagination: { offset: number; limit: number; hasMore: boolean };
 
   constructor(
     title: ProductSectionTitle,
-    products: Product[],
+    products: ProductOverviewDto[],
     pagination: { offset?: number; limit?: number; hasMore: boolean }
   ) {
     this.title = title;

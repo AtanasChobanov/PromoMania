@@ -28,18 +28,17 @@ export default class ProductController {
     }
   }
 
-  static async getProductById(req: Request, res: Response) {
-    try {
-      const productId = Number(req.params.id);
-      if (!productId) {
-        return res
-          .status(400)
-          .json({ message: "Missing product ID parameter." });
-      }
+  static async getProductDetails(req: Request, res: Response) {
+    const publicProductId = req.params.publicProductId;
+    if (!publicProductId) {
+      return res.status(400).json({ message: "Missing product ID parameter." });
+    }
 
-      const product = await ProductController.productService.getProductById(
-        productId
-      );
+    try {
+      const product =
+        await ProductController.productService.getProductDetailsByPublicId(
+          publicProductId
+        );
       res.json(product);
     } catch (error) {
       console.error(error);

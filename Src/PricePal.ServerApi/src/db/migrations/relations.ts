@@ -1,5 +1,14 @@
 import { relations } from "drizzle-orm/relations";
-import { storeChain, store, price, product, category } from "./schema.js";
+import {
+  storeChain,
+  store,
+  price,
+  product,
+  category,
+  user,
+  shoppingCart,
+  shoppingCartItem,
+} from "./schema.js";
 
 export const storeRelations = relations(store, ({ one }) => ({
   storeChain: one(storeChain, {
@@ -35,3 +44,32 @@ export const productRelations = relations(product, ({ one, many }) => ({
 export const categoryRelations = relations(category, ({ many }) => ({
   products: many(product),
 }));
+
+export const userRelations = relations(user, ({ many }) => ({
+  carts: many(shoppingCart),
+}));
+
+export const shoppingCartRelations = relations(
+  shoppingCart,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [shoppingCart.userId],
+      references: [user.id],
+    }),
+    items: many(shoppingCartItem),
+  })
+);
+
+export const shoppingCartItemRelations = relations(
+  shoppingCartItem,
+  ({ one }) => ({
+    cart: one(shoppingCart, {
+      fields: [shoppingCartItem.cartId],
+      references: [shoppingCart.id],
+    }),
+    product: one(product, {
+      fields: [shoppingCartItem.productId],
+      references: [product.id],
+    }),
+  })
+);

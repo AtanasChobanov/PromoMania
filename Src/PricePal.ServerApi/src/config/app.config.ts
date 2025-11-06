@@ -1,15 +1,17 @@
 import express from "express";
 import cors from "cors";
-import productsRouter from "../routes/product.route.js";
+import productsRouter from "../routes/product.routes.js";
+import usersRouter from "../routes/user.routes.js";
 
 const app = express();
 
 // middlewares
 app.use(express.json());
 app.use(cors());
-app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // routes
 app.use("/products", productsRouter);
+app.use("/users/:publicUserId", usersRouter);
 
 export default app;
