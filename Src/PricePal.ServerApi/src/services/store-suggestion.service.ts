@@ -114,7 +114,12 @@ export default class StoreSuggestionService {
             };
 
             products.push(productPrice);
-            totalPriceBgn += (lowestPrice.priceBgn ?? 0) * item.quantity;
+            // Add to total and round to 2 decimal places
+            totalPriceBgn =
+              Math.round(
+                (totalPriceBgn + (lowestPrice.priceBgn ?? 0) * item.quantity) *
+                  100
+              ) / 100;
           }
         }
 
