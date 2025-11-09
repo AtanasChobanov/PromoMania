@@ -1,11 +1,10 @@
 /* eslint-disable react/display-name */
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
-import { useShoppingCart } from '@/services/useShoppingCart';
+import { useCartSuggestions, useShoppingCart } from '@/services/useShoppingCart';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -19,6 +18,7 @@ import {
   View
 } from 'react-native';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+
 
 interface ProductBoxProps {
   publicId: string;
@@ -39,6 +39,8 @@ interface FinalPriceProps {
   saves: number;
   basePrice: number;
   price: number;
+  bestOfferPrice?: number;
+  bestOfferStore?: string;
 }
 
 interface OverviewPriceProps {
@@ -109,7 +111,7 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
 });
 
 const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
-  publicId,
+  publicId, // This is the cart ITEM id
   name,
   brand,
   price,
@@ -122,11 +124,20 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   onViewDetails,
   onSaveForLater,
   index,
+  
 }) => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-
   const [optionsVisible, setOptionsVisible] = useState(false);
+  const [localQuantity, setLocalQuantity] = useState(quantity);
+const updateTimeoutRef = useRef<number | null>(null);  const { 
+   updateItemQuantity
+  } = useShoppingCart();
+
+  // Sync local quantity with prop when it changes from server
+  useEffect(() => {
+    setLocalQuantity(quantity);
+  }, [quantity]);
 
   const handleViewDetails = useCallback(() => {
     setOptionsVisible(false);
@@ -135,7 +146,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
 
   const handleDelete = useCallback(() => {
     setOptionsVisible(false);
-    onDelete?.();
+    onDelete?.(); 
   }, [onDelete]);
 
   const handleSaveForLater = useCallback(() => {
@@ -150,17 +161,56 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   const closeOptions = useCallback(() => {
     setOptionsVisible(false);
   }, []);
+  
+  const debouncedUpdate = useCallback((newQuantity: number) => {
+    // Clear existing timeout
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    // Set new timeout to send request after 500ms of no clicks
+    updateTimeoutRef.current = setTimeout(async () => {
+      try {
+        await updateItemQuantity(publicId, newQuantity);
+        console.log('Item quantity updated successfully');
+      } catch (error) {
+        console.error('Failed to update quantity:', error);
+        // Revert to server quantity on error
+        setLocalQuantity(quantity);
+      }
+    }, 500);
+  }, [publicId, updateItemQuantity, quantity]);
+  
+  const handleDecreaseQuantity = useCallback(() => {
+    const newQuantity = localQuantity - 1;
+    if (newQuantity <= 0) {
+      onDelete?.();
+      return;
+    }
+    setLocalQuantity(newQuantity);
+    debouncedUpdate(newQuantity);
+  }, [localQuantity, debouncedUpdate, onDelete]);
 
+  const handleIncreaseQuantity = useCallback(() => {
+    const newQuantity = localQuantity + 1;
+    setLocalQuantity(newQuantity);
+    debouncedUpdate(newQuantity);
+  }, [localQuantity, debouncedUpdate]);
 
-
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
-      <LinearGradient
-        style={styles.products}
-        colors={theme.colors.blueTeal}
-        start={{ x: 0, y: 1 }}
-        end={{ x: 1, y: 0 }}
+      <View
+        style={[styles.products,{backgroundColor:theme.colors.backgroundColor}]}
+    
       >
         <View style={styles.productContainer}>
           <TouchableOpacity
@@ -173,13 +223,13 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
           <Image 
             style={[styles.productImage, { width: scale(120) }]} 
             source={{ uri: imageUrl }} 
-            resizeMode="cover"
+            resizeMode="contain"
           />
 
           <View style={styles.productDetails}>
             <View>
               {brand && <Text style={[styles.brand,{color:theme.colors.textPrimary}]}>{brand}</Text>}
-              <Text style={[styles.name,{color:theme.colors.textPrimary}]}>{name}</Text>
+              <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name,{color:theme.colors.textPrimary}]}>{name}</Text>
               <Text style={[styles.unit,{color:theme.colors.textPrimary}]}>{unit}</Text>
               <Text style={[styles.price,{color:theme.colors.textPrimary}]}>
                 {priceEur.toFixed(2)} €
@@ -195,39 +245,39 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
             </View>
 
             <View style={styles.quantityRow}>
-  <BlurView
-    intensity={50}
-    tint={theme.colors.TabBarColors as 'dark' | 'light'}
-    style={styles.blurButton}
-  >
-    <TouchableHighlight 
-      underlayColor="transparent"
-      style={styles.buttonTouchable}
-      onPress={() => removeButton(publicId)} // you’ll define this below
-    >
-      <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
-    </TouchableHighlight>
-  </BlurView>
+              <BlurView
+                intensity={50}
+                tint={theme.colors.TabBarColors as 'dark' | 'light'}
+                style={styles.blurButton}
+              >
+                <TouchableHighlight 
+                  underlayColor="transparent"
+                  style={styles.buttonTouchable}
+                   onPress={handleDecreaseQuantity}
+                >
+                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
+                </TouchableHighlight>
+              </BlurView>
 
-  <Text style={[styles.quantityText, { color: theme.colors.textPrimary }]}>{quantity}</Text>
+              <Text style={[styles.quantityText, { color: theme.colors.textPrimary }]}>{localQuantity}</Text>
 
-  <BlurView
-    intensity={50}
-    tint={theme.colors.TabBarColors as 'dark' | 'light'}
-    style={styles.blurButton}
-  >
-    <TouchableHighlight 
-      underlayColor="transparent"
-      style={styles.buttonTouchable}
-      onPress={() => addButton(publicId)} // define below
-    >
-      <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
-    </TouchableHighlight>
-  </BlurView>
-</View>
+              <BlurView
+                intensity={50}
+                tint={theme.colors.TabBarColors as 'dark' | 'light'}
+                style={styles.blurButton}
+              >
+                <TouchableHighlight 
+                  underlayColor="transparent"
+                  style={styles.buttonTouchable}
+                  onPress={handleIncreaseQuantity}
+                >
+                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
+                </TouchableHighlight>
+              </BlurView>
+            </View>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <OptionsMenu
         visible={optionsVisible}
@@ -250,17 +300,16 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
 const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
   price,
   basePrice,
-  saves
+  saves,
+  bestOfferPrice,
+  bestOfferStore
 }) => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
   return (
-    <LinearGradient
-      colors={theme.colors.blueTeal}
-      start={{ x: 0, y: 1 }}
-      end={{ x: 1, y: 0 }}
-      style={[styles.overviewContainer, { padding: scale(20) }]}
+    <View
+      style={[styles.overviewContainer, { padding: scale(20), backgroundColor:theme.colors.backgroundColor }]}
     >
       <View style={styles.summaryContainer}>
         <View style={styles.summaryHeader}>
@@ -275,15 +324,20 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
         </View>
 
         <View style={styles.priceBreakdown}>
-          <Text style={{ fontSize: moderateScale(18),color:theme.colors.textPrimary }}>
+          {bestOfferStore && (
+            <Text style={{ fontSize: moderateScale(14), color: theme.colors.textPrimary, opacity: 0.7, marginBottom: 4 }}>
+              Най-добра оферта от {bestOfferStore}
+            </Text>
+          )}
+          <Text style={{ fontSize: moderateScale(18), color:theme.colors.textPrimary }}>
             Обща цена:
           </Text>
-          <Text style={[styles.totalPriceText, { fontSize: moderateScale(18),color:theme.colors.textPrimary }]}>
-            {price.toFixed(2)} лв ({(price * 0.51).toFixed(2)} €)
+          <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color:theme.colors.textPrimary }]}>
+            {bestOfferPrice ? `${bestOfferPrice.toFixed(2)} лв` : `${price.toFixed(2)} лв`}
           </Text>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 });
 
@@ -292,7 +346,8 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
 }) => {
   const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-
+  const { bestOffer, isLoading } = useCartSuggestions();
+  
   const blurViewProps = {
     intensity: 20,
     tint: theme.colors.TabBarColors as 'dark' | 'light',
@@ -300,9 +355,12 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   };
   
   const ContainerView = (isPerformanceMode
-    ? LinearGradient
+    ? View
     : BlurView) as React.ComponentType<any>;
   const router = useRouter();
+
+  // Display best offer price if available, otherwise use cart total
+  const displayPrice = bestOffer?.totalPriceBgn ?? price;
 
   return (
     <ContainerView
@@ -320,11 +378,18 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
           })}
     >
       <View style={styles.totalPriceRow}>
-        <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>
-          Обща цена
-        </Text>
+        <View>
+          <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>
+            Обща цена
+          </Text>
+          {bestOffer && (
+            <Text style={[styles.storeLabel, {color:theme.colors.textPrimary}]}>
+              {bestOffer.storeChain}
+            </Text>
+          )}
+        </View>
         <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>
-          {price.toFixed(2)} лв
+          {isLoading ? '...' : `${displayPrice.toFixed(2)} лв`}
         </Text>
       </View>
 
@@ -359,10 +424,14 @@ const Cart: React.FC = () => {
     itemCount,
     isLoading, 
     error,
-    refresh 
+    refresh,
+    removeItem, 
   } = useShoppingCart();
 
-  // Calculate savings (if you track original prices)
+  // Use cart suggestions hook
+  const { bestOffer, isLoading: isSuggestionsLoading } = useCartSuggestions();
+
+  // Calculate savings
   const totalSavings = useMemo(() => {
     return items.reduce((sum, item) => {
       if (item.product.prices[0]?.discount) {
@@ -377,7 +446,8 @@ const Cart: React.FC = () => {
   // Convert cart items to ProductBoxProps format
   const products = useMemo(() => {
     return items.map(item => ({
-      publicId: item.publicId,
+      publicId: item.publicId, // This is the cart ITEM ID - correct!
+      productPublicId: item.product.publicId, // This is the product ID
       name: item.product.name,
       brand: item.product.brand,
       price: item.product.prices[0]?.priceBgn || 0,
@@ -389,18 +459,22 @@ const Cart: React.FC = () => {
     }));
   }, [items]);
 
-  const handleDeleteProduct = useCallback((publicId: string) => {
-    // TODO: Implement delete when you add mutations
-    console.log('Delete product:', publicId);
+  const handleDeleteProduct = useCallback(async (cartItemId: string) => {
+    try {
+      await removeItem(cartItemId);
+      console.log('Item removed successfully');
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    }
+  }, [removeItem]);
+
+  const handleViewDetails = useCallback((productPublicId: string) => {
+    router.push(`/products/${productPublicId}`);
   }, []);
 
-  const handleViewDetails = useCallback((publicId: string) => {
-    router.push(`/products/${publicId}`);
-  }, []);
-
-  const handleSaveForLater = useCallback((publicId: string) => {
+  const handleSaveForLater = useCallback((cartItemId: string) => {
     // TODO: Implement save for later
-    console.log('Save for later:', publicId);
+    console.log('Save for later:', cartItemId);
   }, []);
 
   // Render item function for FlatList
@@ -418,7 +492,7 @@ const Cart: React.FC = () => {
       discount={item.discount}
       index={index}
       onDelete={() => handleDeleteProduct(item.publicId)}
-      onViewDetails={() => handleViewDetails(item.publicId)}
+      onViewDetails={() => handleViewDetails(item.productPublicId)}
       onSaveForLater={() => handleSaveForLater(item.publicId)}
     />
   ), [handleDeleteProduct, handleViewDetails, handleSaveForLater]);
@@ -446,11 +520,13 @@ const Cart: React.FC = () => {
           price={totalPrice.bgn}
           basePrice={totalPrice.bgn + totalSavings}
           saves={totalSavings}
+          bestOfferPrice={bestOffer?.totalPriceBgn}
+          bestOfferStore={bestOffer?.storeChain}
         />
       )}
       <View style={{ height: moderateScale(250) }} />
     </>
-  ), [products.length, totalPrice.bgn, totalSavings]);
+  ), [products.length, totalPrice.bgn, totalSavings, bestOffer]);
 
   const ListEmptyComponent = useMemo(() => (
     <View style={styles.emptyContainer}>
@@ -527,7 +603,7 @@ const Cart: React.FC = () => {
           contentContainerStyle={styles.flatListContent}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
-          removeClippedSubviews={true}
+          removeClippedSubviews={false}
           maxToRenderPerBatch={3}
           windowSize={5}
           initialNumToRender={3}
@@ -614,11 +690,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   productImage: {
+    backgroundColor:'white',
     height: "100%",
     borderRadius: 15,
   },
   productDetails: {
     marginLeft: 16,
+    marginRight:scale(30),
     flex: 1,
     justifyContent: "space-between",
     height: "100%",
@@ -649,6 +727,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
 
     marginTop: 8,
+  },
+    storeLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 2,
   },
   quantityText: {
     fontSize: moderateScale(16),

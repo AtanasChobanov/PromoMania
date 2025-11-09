@@ -75,13 +75,12 @@ export default function ProductPage() {
   const heartScale = useSharedValue(1);
   const buttonScale = useSharedValue(1);
 
-  const params = useLocalSearchParams();
-  const productIdParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
-  const productId = productIdParam ? parseInt(productIdParam, 10) : null;
+const params = useLocalSearchParams();
+const productIdParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
+const productId = productIdParam || null; // Remove parseInt - keep as string
 
   // Use the new hook
-  const { product, loading, error, refetch } = useProductDetails(productId);
-
+const { product, loading, error, refetch } = useProductDetails(productId);
   // Animations
   useEffect(() => {
     buttonScale.value = withRepeat(
