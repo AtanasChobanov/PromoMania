@@ -8,8 +8,9 @@ map using real data
 fix apple bugs(fuck apple)
 
 future features:
-cart functionality
+cart functionality - only left is the second api and map
 search functionality
 save functionality
 edit profile page
 login implemenation
+cart- remove updating api first

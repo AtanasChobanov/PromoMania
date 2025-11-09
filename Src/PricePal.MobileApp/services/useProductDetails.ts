@@ -3,20 +3,16 @@ import axios from "axios";
 
 // Types
 export interface StoreChain {
-  id: number;
+  publicId: string;
   name: string;
 }
 
 export interface Category {
-  id: number;
   publicId: string;
   name: string;
 }
 
 export interface ProductPrice {
-  id: number;
-  productId: number;
-  chainId: number;
   priceBgn: string;
   priceEur: string;
   validFrom: string;
@@ -26,11 +22,9 @@ export interface ProductPrice {
 }
 
 export interface ProductDetails {
-  id: number;
   publicId: string;
   name: string;
   brand: string | null;
-  categoryId: number;
   barcode: string | null;
   imageUrl: string;
   unit: string;
@@ -38,7 +32,7 @@ export interface ProductDetails {
   prices: ProductPrice[];
 }
 
-// NEW: Interface for price pair (discounted + original)
+// Interface for price pair (discounted + original)
 export interface PricePair {
   discounted: ProductPrice;
   original: ProductPrice | null;
@@ -47,7 +41,7 @@ export interface PricePair {
 const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 
 // Fetch function for a single product
-const fetchProductDetails = async (productId: number): Promise<ProductDetails> => {
+const fetchProductDetails = async (productId: string): Promise<ProductDetails> => {
   const url = `${API_BASE_URL}/products/${productId}`;
   console.log(`Loading product details for ID ${productId} from:`, url);
   
@@ -66,11 +60,11 @@ interface UseProductDetailsReturn {
 
 /**
  * Hook for fetching a single product with full details including prices across all store chains
- * @param productId - The ID of the product to fetch
+ * @param productId - The publicId of the product to fetch
  * @param enabled - Whether the query should run (default: true)
  */
 export const useProductDetails = (
-  productId: number | null,
+  productId: string | null,
   enabled: boolean = true
 ): UseProductDetailsReturn => {
   const queryClient = useQueryClient();
@@ -102,7 +96,7 @@ export const useProductDetails = (
   };
 };
 
-// NEW: Get current price with both discounted and original prices for a chain
+// Get current price with both discounted and original prices for a chain
 export const getCurrentPriceWithOriginal = (
   prices: ProductPrice[],
   chainName: string
@@ -133,7 +127,7 @@ export const getCurrentPriceWithOriginal = (
   };
 };
 
-// NEW: Get all current prices with originals grouped by chain
+// Get all current prices with originals grouped by chain
 export const getAllCurrentPricesWithOriginals = (
   prices: ProductPrice[]
 ): Map<string, PricePair> => {
@@ -164,7 +158,7 @@ export const getBestPrice = (prices: ProductPrice[]): ProductPrice | null => {
   });
 };
 
-// NEW: Get best price with original (for showing discount)
+// Get best price with original (for showing discount)
 export const getBestPriceWithOriginal = (prices: ProductPrice[]): PricePair | null => {
   const allPricesMap = getAllCurrentPricesWithOriginals(prices);
   
@@ -214,7 +208,7 @@ export const getCurrentPriceForChain = (
 // Clear product details cache
 export const clearProductCache = (
   queryClient: ReturnType<typeof useQueryClient>,
-  productId?: number
+  productId?: string
 ): void => {
   if (productId) {
     queryClient.removeQueries({ queryKey: ['product', productId] });

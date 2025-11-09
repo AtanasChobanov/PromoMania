@@ -115,7 +115,7 @@ const MapScreen = () => {
 
     setSearching(true);
     try {
-      const radius = 10000; // Change this: 5000 = 5km, 10000 = 10km, 15000 = 15km
+      const radius = 15000; // Change this: 5000 = 5km, 10000 = 10km, 15000 = 15km
       
       console.log(`Searching for "${query}" near ${location.latitude}, ${location.longitude}`);
       
@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     position: 'absolute',
-    top: 10,
+    top: 150,
     left: 10,
     right: 10,
     flexDirection: 'row',

@@ -17,7 +17,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/adaptive-icon.png",
-        "backgroundColor": "#352"
+        "backgroundColor": "#353535"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.PricePal.MobileApp",
