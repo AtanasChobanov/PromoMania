@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { scale } from 'react-native-size-matters';
 import Svg, { Path } from 'react-native-svg';
 import { Product, productsArray } from '../(tabs)/categories';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -96,6 +97,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    top:scale(6),
     borderRadius: 20,
     borderColor:'#E5E4E2',
     borderStyle:'solid',
