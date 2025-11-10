@@ -1,11 +1,15 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useCartSuggestions } from '@/services/useShoppingCart';
+import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import * as Location from 'expo-location';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
-import { moderateScale } from 'react-native-size-matters';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { moderateScale, scale } from 'react-native-size-matters';
+import Svg, { Path } from 'react-native-svg';
+import { WebView } from 'react-native-webview';
 
 interface LocationCoords {
   latitude: number;
@@ -28,15 +32,18 @@ interface ShopData {
   route?: RouteInfo;
 }
 
-const MapDelevary = () => {
+const MapDelivery = () => {
+   const navigation = useNavigation();
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
+  const webViewRef = useRef<WebView>(null);
   
   const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [calculatingRoutes, setCalculatingRoutes] = useState<boolean>(false);
+  const [mapLoaded, setMapLoaded] = useState<boolean>(false);
   
   const [shopsData, setShopsData] = useState<ShopData[]>([]);
   
@@ -249,13 +256,10 @@ const MapDelevary = () => {
       }
     }
 
-    // Sort: best price first, then by distance
     updatedShops.sort((a, b) => {
-      // Best offer always first
       if (bestOffer && a.name === bestOffer.storeChain) return -1;
       if (bestOffer && b.name === bestOffer.storeChain) return 1;
       
-      // Then sort by distance
       const distA = a.route?.distance ?? Infinity;
       const distB = b.route?.distance ?? Infinity;
       return distA - distB;
@@ -314,6 +318,35 @@ const MapDelevary = () => {
     }
   }, [userLocation, suggestionsLoading, bestOffer, otherOffers]);
 
+  // Update map when data changes - FIXED: Added isFullscreen to dependencies
+  useEffect(() => {
+    if (mapLoaded && userLocation && webViewRef.current) {
+      updateMap();
+    }
+  }, [shopsData, selectedShop, mapLoaded, isFullscreen]);
+
+  const updateMap = () => {
+    if (!webViewRef.current || !userLocation) return;
+
+    const mapData = {
+      userLocation,
+      shops: shopsData.map(shop => ({
+        name: shop.name,
+        location: shop.location,
+        route: shop.route,
+        color: shopColors[shop.name as keyof typeof shopColors]?.primary || '#999',
+        isSelected: selectedShop === shop.name || selectedShop === null,
+      })),
+    };
+
+    const script = `
+      window.updateMapData(${JSON.stringify(mapData)});
+      true;
+    `;
+
+    webViewRef.current.injectJavaScript(script);
+  };
+
   const handleShopClick = async (shopName: string) => {
     if (!userLocation) {
       Alert.alert('Error', 'Location not available');
@@ -324,7 +357,6 @@ const MapDelevary = () => {
     console.log(`Clicked on ${shopName}`);
   };
 
-  // Find the closest shop (with valid route data)
   const getClosestShop = (): ShopData | null => {
     const shopsWithRoutes = shopsData.filter(shop => shop.route && shop.route.distance);
     if (shopsWithRoutes.length === 0) return null;
@@ -333,6 +365,133 @@ const MapDelevary = () => {
       if (!closest.route || !current.route) return closest;
       return current.route.distance < closest.route.distance ? current : closest;
     });
+  };
+
+  const generateMapHTML = () => {
+    const isDark = isDarkMode;
+    const initialLat = userLocation?.latitude || 42.5;
+    const initialLng = userLocation?.longitude || 25.5;
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <style>
+          * { margin: 0; padding: 0; }
+          html, body, #map { width: 100%; height: 100%; }
+          .leaflet-popup-content-wrapper {
+            background: ${isDark ? '#1e1e1e' : '#ffffff'};
+            color: ${isDark ? '#ffffff' : '#000000'};
+          }
+          .leaflet-popup-tip {
+            background: ${isDark ? '#1e1e1e' : '#ffffff'};
+          }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          var map = L.map('map', {
+            zoomControl: true,
+            attributionControl: false
+          }).setView([${initialLat}, ${initialLng}], 13);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+          }).addTo(map);
+
+          var userMarker = null;
+          var shopMarkers = [];
+          var routePolylines = [];
+
+          window.updateMapData = function(data) {
+            // Clear existing markers and routes
+            if (userMarker) map.removeLayer(userMarker);
+            shopMarkers.forEach(marker => map.removeLayer(marker));
+            routePolylines.forEach(polyline => map.removeLayer(polyline));
+            shopMarkers = [];
+            routePolylines = [];
+
+            // Add user marker
+            userMarker = L.marker([data.userLocation.latitude, data.userLocation.longitude], {
+              icon: L.divIcon({
+                className: 'user-marker',
+                html: '<div style="background: #0066CC; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+              })
+            }).addTo(map).bindPopup('Вие сте тук');
+
+            // Add shop markers and routes
+            data.shops.forEach(function(shop) {
+              var markerIcon = L.divIcon({
+                className: 'shop-marker',
+                html: '<div style="background: ' + shop.color + '; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+              });
+
+              var marker = L.marker([shop.location.latitude, shop.location.longitude], {
+                icon: markerIcon
+              }).addTo(map);
+
+              var popupContent = shop.name;
+              if (shop.route) {
+                popupContent += '<br>' + shop.route.distanceText;
+              }
+              marker.bindPopup(popupContent);
+              
+              shopMarkers.push(marker);
+
+              // Add route if available and should be shown
+              if (shop.route && shop.isSelected) {
+                var coordinates = shop.route.coordinates.map(function(coord) {
+                  return [coord.latitude, coord.longitude];
+                });
+
+                var polyline = L.polyline(coordinates, {
+                  color: shop.color,
+                  weight: shop.isSelected && data.shops.length > 1 ? 5 : 3,
+                  opacity: 0.7
+                }).addTo(map);
+
+                routePolylines.push(polyline);
+              }
+            });
+
+            // Fit bounds to show all markers
+            if (shopMarkers.length > 0) {
+              var group = L.featureGroup([userMarker, ...shopMarkers]);
+              map.fitBounds(group.getBounds().pad(0.1));
+            } else {
+              map.setView([data.userLocation.latitude, data.userLocation.longitude], 13);
+            }
+          };
+
+          // Notify React Native that map is ready
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapReady' }));
+        </script>
+      </body>
+      </html>
+    `;
+  };
+
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'mapReady') {
+        setMapLoaded(true);
+        // Immediately update the map when it's ready
+        setTimeout(() => {
+          updateMap();
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error parsing WebView message:', error);
+    }
   };
 
   const renderShopCard = (
@@ -425,7 +584,7 @@ const MapDelevary = () => {
         )}
         
         {isClosest && !isBestOffer && (
-          <View style={[styles.closestBadge, { backgroundColor: '#00A651' }]}>
+          <View style={[styles.closestBadge, { backgroundColor: colors.primary }]}>
             <Text style={styles.closestText}>📍 Най-близък магазин</Text>
           </View>
         )}
@@ -434,48 +593,20 @@ const MapDelevary = () => {
   };
 
   const renderMapContent = () => (
-    <MapView
-   
+    <WebView
+      ref={webViewRef}
+      source={{ html: generateMapHTML() }}
       style={styles.mapInBox}
-      region={{
-        latitude: userLocation!.latitude,
-        longitude: userLocation!.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      }}
-      showsUserLocation={true}
-      showsMyLocationButton={false}
-    >
-      <Marker 
-        coordinate={userLocation!} 
-        title="Вие сте тук" 
-        pinColor="blue" 
-      />
-
-      {shopsData.map((shop, index) => (
-        <Marker
-          key={`${shop.name}-${index}`}
-          coordinate={shop.location}
-          title={shop.name}
-          description={shop.route ? `${shop.route.distanceText} - ${shop.price_bgn.toFixed(2)} лв` : `${shop.price_bgn.toFixed(2)} лв`}
-          pinColor={shopColors[shop.name as keyof typeof shopColors]?.primary || '#999'}
-        />
-      ))}
-
-      {shopsData.map((shop, index) => {
-        if (shop.route && (selectedShop === shop.name || selectedShop === null)) {
-          return (
-            <Polyline
-              key={`route-${shop.name}-${index}`}
-              coordinates={shop.route.coordinates}
-              strokeColor={shopColors[shop.name as keyof typeof shopColors]?.primary || '#999'}
-              strokeWidth={selectedShop === shop.name ? 5 : 3}
-            />
-          );
-        }
-        return null;
-      })}
-    </MapView>
+      onMessage={handleWebViewMessage}
+      javaScriptEnabled={true}
+      domStorageEnabled={true}
+      startInLoadingState={true}
+      renderLoading={() => (
+        <View style={styles.mapLoadingContainer}>
+          <ActivityIndicator size="large" color="#0066CC" />
+        </View>
+      )}
+    />
   );
 
   if (loading || !userLocation) {
@@ -545,11 +676,37 @@ const MapDelevary = () => {
 
   const closestShop = getClosestShop();
 
+
+
+    const BackButton = () => (
+     <TouchableOpacity
+               onPress={() => router.back()}
+               style={styles.backButton}
+             >
+               <BlurView
+                 intensity={20} 
+                 tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                 experimentalBlurMethod="dimezisBlurView"
+                 style={StyleSheet.absoluteFillObject}
+               />
+               <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                 <Path
+                   d="M15 18l-6-6 6-6"
+                   stroke={theme.colors.textPrimary}
+                   strokeWidth={2}
+                   strokeLinecap="round"
+                   strokeLinejoin="round"
+                 />
+               </Svg>
+             </TouchableOpacity>
+  );
+
   return (
     <ImageBackground
       source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
+       <BackButton />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -632,6 +789,7 @@ const MapDelevary = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
@@ -678,6 +836,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.3,
   },
+   backButton: {
+     width: 40,
+     height: 40,
+     top:scale(6),
+    marginHorizontal: 20,
+
+     borderRadius: 20,
+     borderColor: 'white',
+     borderStyle: 'solid',
+     borderWidth: 1,
+     overflow: 'hidden',
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+  backButtonText: {
+    fontSize: moderateScale(16),
+    fontWeight: '600',
+  },
   mapContainer: {
     position: 'relative',
     marginBottom: moderateScale(32),
@@ -696,6 +872,16 @@ const styles = StyleSheet.create({
   },
   mapInBox: {
     flex: 1,
+  },
+  mapLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   mapInfoBadge: {
     position: 'absolute',
@@ -739,8 +925,10 @@ const styles = StyleSheet.create({
   },
   fullscreenButton: {
     position: 'absolute',
-    top: 50,
-    left: 16,
+    top:moderateScale(80
+
+    ),
+    left: moderateScale(5),
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -829,9 +1017,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(12),
     paddingVertical: moderateScale(7),
     borderRadius: 10,
-    marginRight:moderateScale(3),
+    marginRight: moderateScale(3),
     borderWidth: 1.5,
-  
   },
   dataText: {
     fontSize: moderateScale(14),
@@ -912,4 +1099,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapDelevary;
+export default MapDelivery;

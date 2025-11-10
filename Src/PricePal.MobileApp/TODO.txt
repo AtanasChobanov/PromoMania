@@ -1,11 +1,14 @@
 generic implenetations:
 topbar transparecy clickability 
-skeleton loading
-responsive loading
+skeleton loading- done
+responsive loading-done
 improve responsivness even further
-map using real data
+map using real data-done
 виж още секция
 fix apple bugs(fuck apple)
+fix perf mode and scalibity mode
+add more animations
+more svgs
 
 future features:
 cart functionality - only left is the second api and map

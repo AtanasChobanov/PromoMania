@@ -128,7 +128,7 @@ const ChoiceDelivery = () => {
             }]}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, { backgroundColor: '#fff3cd' }]}>
+            <View style={[styles.iconContainer, { backgroundColor: '#fff3cd' , borderColor:theme.colors.textTertiary }]}>
               <TruckIcon height={48} width={48} color="#ffcd1b"/>
             </View>
             <View style={styles.textContainer}>
@@ -158,7 +158,7 @@ const ChoiceDelivery = () => {
             }]}
             onPress={() => router.navigate('/delivaryAndMap/mapDelivery')}
           >
-            <View style={[styles.iconContainer, { backgroundColor: '#d4f4ea' }]}>
+            <View style={[styles.iconContainer, { backgroundColor: '#d4f4ea',    borderColor:theme.colors.textTertiary, }]}>
               <ToolIcon height={48} width={48} color="#67dabf"/>
             </View>
             <View style={styles.textContainer}>
@@ -234,6 +234,8 @@ const styles = StyleSheet.create({
     width: moderateScale(70),
     height: moderateScale(70),
     borderRadius: 16,
+    borderWidth:1,
+    borderColor:'gray',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: moderateScale(16),

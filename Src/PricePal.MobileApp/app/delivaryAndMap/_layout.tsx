@@ -2,11 +2,12 @@ import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter, useSegments } from 'expo-router';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale } from 'react-native-size-matters';
 import Svg, { Path } from 'react-native-svg';
+
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -23,24 +24,25 @@ export default function SubcategoryProductLayout() {
   const { categoryName } = useLocalSearchParams();
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
+  const segments = useSegments();
+
+  // Get the current screen (last part of the path)
+  const currentRoute = segments[segments.length - 1];
+
+  const showTopBar = currentRoute !== 'mapDelivery'; // hide for mapDelivery
 
   return (
-         <SafeAreaView style={{ flex: 1, backgroundColor:theme.colors.SafeviewColor }}  edges={['top']}>
-        {/* Custom Top Bar */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.SafeviewColor }} edges={['top']}>
+      {showTopBar && (
         <View style={styles.topbar}>
           <LinearGradient
             colors={theme.colors.TopBarColors}
             locations={[0, 0.6, 1]}
             style={StyleSheet.absoluteFill}
           />
-
-          {/* Back Button with SVG */}
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <BlurView 
-              intensity={20} 
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <BlurView
+              intensity={20}
               tint={theme.colors.TabBarColors as 'light' | 'dark'}
               experimentalBlurMethod="dimezisBlurView"
               style={StyleSheet.absoluteFillObject}
@@ -55,24 +57,20 @@ export default function SubcategoryProductLayout() {
               />
             </Svg>
           </TouchableOpacity>
-
-          {/* Title */}
-          <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
-            {categoryName}
-          </Text>
+          <Text style={[styles.title, { color: theme.colors.textPrimary }]}>{categoryName}</Text>
         </View>
+      )}
 
-        {/* Your stack screens */}
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen name="map" />
-          <Stack.Screen name="choiceDelivary" />
-        </Stack>
-      </SafeAreaView>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="mapDelivery" options={{ headerShown: false }} />
+        <Stack.Screen name="choiceDelivary" />
+      </Stack>
+    </SafeAreaView>
   );
 }
 
