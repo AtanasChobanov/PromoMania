@@ -306,7 +306,8 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
 }) => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-  
+    const { bestOffer, isLoading } = useCartSuggestions();
+
   return (
     <View
       style={[styles.overviewContainer, { padding: scale(20), backgroundColor:theme.colors.backgroundColor }]}
@@ -323,19 +324,24 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
           )}
         </View>
 
-        <View style={styles.priceBreakdown}>
-          {bestOfferStore && (
-            <Text style={{ fontSize: moderateScale(14), color: theme.colors.textPrimary, opacity: 0.7, marginBottom: 4 }}>
-              Най-добра оферта от {bestOfferStore}
-            </Text>
-          )}
-          <Text style={{ fontSize: moderateScale(18), color:theme.colors.textPrimary }}>
-            Обща цена:
-          </Text>
-          <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color:theme.colors.textPrimary }]}>
-            {bestOfferPrice ? `${bestOfferPrice.toFixed(2)} лв` : `${price.toFixed(2)} лв`}
-          </Text>
-        </View>
+       <View style={styles.priceBreakdown}>
+  {bestOfferStore && (
+    <Text style={{ fontSize: moderateScale(14), color: theme.colors.textPrimary, opacity: 0.7, marginBottom: 4 }}>
+      Най-добра оферта от {bestOfferStore}
+    </Text>
+  )}
+  <Text style={{ fontSize: moderateScale(18), color: theme.colors.textPrimary }}>
+    Обща цена:
+  </Text>
+  <View style={{ alignItems: 'flex-start',flexDirection:'row', gap:moderateScale(10) }}>
+    <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
+      {bestOfferPrice ? `${bestOfferPrice.toFixed(2)} лв` : `${price.toFixed(2)} лв`}
+    </Text>
+    <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
+      {isLoading ? '...' : `${bestOffer?.totalPriceEur.toFixed(2)} €`}
+    </Text>
+  </View>
+</View>
       </View>
     </View>
   );
@@ -361,6 +367,8 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
 
   // Display best offer price if available, otherwise use cart total
   const displayPrice = bestOffer?.totalPriceBgn ?? price;
+    const displayPriceEur = bestOffer?.totalPriceEur ?? price;
+
 
   return (
     <ContainerView
@@ -382,15 +390,18 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
           <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>
             Обща цена
           </Text>
-          {bestOffer && (
-            <Text style={[styles.storeLabel, {color:theme.colors.textPrimary}]}>
-              {bestOffer.storeChain}
-            </Text>
-          )}
+        
         </View>
+        <View style={styles.pricesConclusion}>
+
+    
         <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>
           {isLoading ? '...' : `${displayPrice.toFixed(2)} лв`}
+                 
+          
         </Text>
+         <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>   {isLoading ? '...' : `${displayPriceEur.toFixed(2)} €`}</Text>
+             </View>
       </View>
 
       <BlurView
@@ -741,6 +752,7 @@ const styles = StyleSheet.create({
   summaryContainer: {
     flex: 1,
     justifyContent: 'space-between',
+    
   },
   summaryHeader: {
     alignItems: 'center',
@@ -758,10 +770,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.5)',
     paddingTop: 12,
+
+
   },
   totalPriceText: {
     fontWeight: 'bold',
     marginTop: 4,
+  
   },
   modalOverlay: {
     flex: 1,
@@ -937,7 +952,9 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(18),
     fontWeight: "bold",
   },
-
+  pricesConclusion:{
+    flexDirection:'row'
+  }
 });
 
 export default React.memo(Cart);
