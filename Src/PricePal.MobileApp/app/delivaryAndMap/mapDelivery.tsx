@@ -374,12 +374,12 @@ const MapDelevary = () => {
             Цена
           </Text>
           <View style={styles.dataGroup}>
-            <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, backgroundColor:theme.colors.cardBackground }]}>
               <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                 {shopData.price_bgn.toFixed(2)} лв
               </Text>
             </View>
-            <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}` }]}>
               <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                 {shopData.price_eur.toFixed(2)}€
               </Text>
@@ -393,12 +393,12 @@ const MapDelevary = () => {
           </Text>
           {shopData.route ? (
             <View style={styles.dataGroup}>
-              <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+              <View style={[styles.dataBadge, { borderColor: `${colors.primary}` }]}>
                 <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                   🚗 {shopData.route.distanceText}
                 </Text>
               </View>
-              <View style={[styles.dataBadge, { borderColor: `${colors.primary}30` }]}>
+              <View style={[styles.dataBadge, { borderColor: `${colors.primary}` }]}>
                 <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                   ⏱️ {shopData.route.durationText}
                 </Text>
@@ -587,7 +587,7 @@ const MapDelevary = () => {
 
           <View style={[styles.mapInfoBadge, { backgroundColor: theme.colors.cardBackground }]}>
             <Text style={[styles.mapInfoText, { color: theme.colors.textPrimary }]}>
-              📍 {shopsData.length} магазина наблизо
+              {shopsData.length} магазина наблизо
             </Text>
           </View>
         </View>
@@ -829,8 +829,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(12),
     paddingVertical: moderateScale(7),
     borderRadius: 10,
+    marginRight:moderateScale(3),
     borderWidth: 1.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  
   },
   dataText: {
     fontSize: moderateScale(14),

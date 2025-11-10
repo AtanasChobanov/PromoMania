@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { scale } from 'react-native-size-matters';
 import Svg, { Path } from 'react-native-svg';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -90,6 +91,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    top:scale(6),
     borderRadius: 20,
     borderColor: 'white',
     borderStyle: 'solid',
