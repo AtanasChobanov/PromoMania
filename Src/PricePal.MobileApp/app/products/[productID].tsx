@@ -1,3 +1,4 @@
+
 import { HeartIcon } from '@/components/boxes/HeartIcon';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -6,10 +7,12 @@ import {
   getBestPrice,
   useProductDetails
 } from '@/services/useProductDetails';
+import { useShoppingCart } from '@/services/useShoppingCart';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   ImageBackground,
@@ -25,7 +28,6 @@ import Animated, {
   FadeInDown,
   FadeInUp,
   SlideInRight,
-  SlideOutRight,
   ZoomIn,
   useSharedValue,
   withRepeat,
@@ -75,12 +77,16 @@ export default function ProductPage() {
   const heartScale = useSharedValue(1);
   const buttonScale = useSharedValue(1);
 
-const params = useLocalSearchParams();
-const productIdParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
-const productId = productIdParam || null; // Remove parseInt - keep as string
+  const params = useLocalSearchParams();
+  const productIdParam = Array.isArray(params.productID) ? params.productID[0] : params.productID;
+  const productId = productIdParam || null;
 
-  // Use the new hook
-const { product, loading, error, refetch } = useProductDetails(productId);
+  // Use the product details hook
+  const { product, loading, error, refetch } = useProductDetails(productId);
+  
+  // Use the shopping cart hook
+  const { addItem, isAdding } = useShoppingCart();
+
   // Animations
   useEffect(() => {
     buttonScale.value = withRepeat(
@@ -93,10 +99,58 @@ const { product, loading, error, refetch } = useProductDetails(productId);
     );
   }, []);
 
+  // Cart handler
+  const handleAddToCart = useCallback(async () => {
+    // Validate quantity
+    if (quantity < 1) {
+      Alert.alert(
+        "Невалидно количество",
+        "Моля, въведете валидно количество (минимум 1)",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    if (!productId) {
+      Alert.alert(
+        "Грешка",
+        "Невалиден продукт",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      // Add item to cart using the API
+      await addItem(productId, quantity);
+      
+      // Show success alert
+      Alert.alert(
+        "Добавено към количката",
+        `${quantity} x ${product?.name || 'Продукт'} ${quantity === 1 ? 'беше добавен' : 'бяха добавени'} към количката`,
+        [{ text: "Продължи" }],
+        { cancelable: true }
+      );
+      
+      // Reset quantity to 1 after successful add
+      setQuantity(1);
+    } catch (error) {
+      // Show error alert
+      Alert.alert(
+        "Грешка",
+        "Не успяхме да добавим продукта към количката. Моля, опитайте отново.",
+        [{ text: "OK" }],
+        { cancelable: true }
+      );
+      console.error('Failed to add to cart:', error);
+    }
+  }, [quantity, productId, product?.name, addItem]);
+  const LoadingContainer =isPerformanceMode ? View : Animated.View;
+
   // Loading state
   if (loading) {
     return (
-      <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
+      <LoadingContainer style={{ flex: 1 }} entering={isPerformanceMode ? undefined :SlideInRight.duration(200)}>
         <ImageBackground
           source={theme.backgroundImage}
           style={styles.backgroundImage}
@@ -107,14 +161,16 @@ const { product, loading, error, refetch } = useProductDetails(productId);
             </Text>
           </View>
         </ImageBackground>
-      </Animated.View>
+      </LoadingContainer>
     );
   }
+   const ErrorContainer =isPerformanceMode ? View : Animated.View;
 
   // Error or not found state
   if (error || !product) {
     return (
-      <Animated.View style={{ flex: 1 }} entering={SlideInRight.duration(200)}>
+
+      <ErrorContainer style={{ flex: 1 }} entering={isPerformanceMode ? undefined :SlideInRight.duration(200)}>
         <ImageBackground
           source={theme.backgroundImage}
           style={styles.backgroundImage}
@@ -130,7 +186,7 @@ const { product, loading, error, refetch } = useProductDetails(productId);
             </TouchableOpacity>
           </View>
         </ImageBackground>
-      </Animated.View>
+      </ErrorContainer>
     );
   }
 
@@ -145,13 +201,20 @@ const { product, loading, error, refetch } = useProductDetails(productId);
     if (!price) return '0';
     return price.replace(/[^\d.]/g, '');
   };
+   const ImageContainer =isPerformanceMode ? View : Animated.View;
+   const ProductContainer =isPerformanceMode ? View : Animated.View;
+   const CategoryContainer =isPerformanceMode ? View : Animated.View;
+     const RatingContainer =isPerformanceMode ? View : Animated.View;
+     const BestPriceContainer =isPerformanceMode ? View : Animated.View;
+     const UnitContainer =isPerformanceMode ? View : Animated.View;
+     const QuanitityContainer =isPerformanceMode ? View : Animated.View;
+     const RetailStoresContainer =isPerformanceMode ? View : Animated.View;
+     const PriceHistoryContainer =isPerformanceMode ? View : Animated.View;
+     const BuyButtonContainer =isPerformanceMode ? View : Animated.View;
+const TitleText = isPerformanceMode ? Text : Animated.Text;
 
   return (
-    <Animated.View
-      style={{ flex: 1 }}
-      entering={SlideInRight.duration(300)}
-      exiting={SlideOutRight.duration(100)}
-    >
+
       <ImageBackground
         source={theme.backgroundImage}
         style={styles.backgroundImage}
@@ -163,8 +226,8 @@ const { product, loading, error, refetch } = useProductDetails(productId);
           contentContainerStyle={styles.scrollContent}
         >
           {/* Product Image */}
-          <Animated.View
-            entering={FadeInDown.delay(100).duration(600).springify()}
+          <ImageContainer
+            entering={isPerformanceMode ? undefined :FadeInDown.delay(100).duration(600).springify()}
             style={[styles.imageContainer,{borderColor:theme.colors.borderColor}]}
           >
             <Image
@@ -179,57 +242,57 @@ const { product, loading, error, refetch } = useProductDetails(productId);
             <View style={styles.heartOverlay}>
               <HeartIcon heartSize={wp(9)} />
             </View>
-          </Animated.View>
+          </ImageContainer>
 
           {/* Product Details */}
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(600).springify()}
+          <ProductContainer
+            entering={isPerformanceMode ? undefined :FadeInDown.delay(200).duration(600).springify()}
             style={[
               styles.detailsContainer,
               {
-                backgroundColor: theme.colors.mainBackground,
+                backgroundColor: theme.colors.cardBackground,
                 borderColor: theme.colors.borderColor,
                 borderWidth: 1,
               },
             ]}
           >
-            <Animated.Text
-              entering={FadeIn.delay(300).duration(500)}
+            <TitleText
+              entering={isPerformanceMode ? undefined :FadeIn.delay(300).duration(500)}
               style={[styles.productName, { color: theme.colors.textPrimary }]}
             >
               {product.name}
-            </Animated.Text>
+            </TitleText>
 
             {/* Brand */}
             {product.brand && (
-              <Animated.Text
-                entering={FadeIn.delay(320).duration(500)}
+              <TitleText
+                entering={isPerformanceMode ? undefined :FadeIn.delay(320).duration(500)}
                 style={[styles.brandText, { color: theme.colors.textSecondary }]}
               >
                 {product.brand}
-              </Animated.Text>
+              </TitleText>
             )}
 
             {/* Category */}
-            <Animated.View
-              entering={FadeIn.delay(340).duration(500)}
+            <CategoryContainer
+              entering={isPerformanceMode ? undefined :FadeIn.delay(340).duration(500)}
               style={styles.categoryContainer}
             >
               <Text style={[styles.categoryText, { color: theme.colors.textSecondary }]}>
                 Категория: {product.category.name}
               </Text>
-            </Animated.View>
+            </CategoryContainer>
 
             {/* Rating */}
-            <Animated.View
-              entering={FadeIn.delay(350).duration(500)}
+            <RatingContainer
+              entering={isPerformanceMode ? undefined :FadeIn.delay(350).duration(500)}
               style={styles.ratingContainer}
             >
               <View style={styles.starsContainer}>
                 {[...Array(5)].map((_, i) => (
-                  <Animated.View
+                  <RatingContainer
                     key={i}
-                    entering={ZoomIn.delay(400 + i * 50)
+                    entering={isPerformanceMode ? undefined :ZoomIn.delay(400 + i * 50)
                       .duration(400)
                       .springify()}
                   >
@@ -239,18 +302,18 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                         fill={i < 4 ? theme.colors.textGreen : '#E0E0E0'}
                       />
                     </Svg>
-                  </Animated.View>
+                  </RatingContainer>
                 ))}
               </View>
               <Text style={[styles.ratingText, { color: theme.colors.textPrimary }]}>
                 4.8 (124 reviews)
               </Text>
-            </Animated.View>
+            </RatingContainer>
 
             {/* Best Price */}
             {bestPrice && (
-              <Animated.View
-                entering={FadeIn.delay(450).duration(500)}
+              <BestPriceContainer
+                entering={isPerformanceMode ? undefined :FadeIn.delay(450).duration(500)}
                 style={styles.priceContainer}
               >
                 <Text style={[styles.priceLabel, { color: theme.colors.textSecondary }]}>
@@ -276,19 +339,19 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                     </Text>
                   </View>
                 )}
-              </Animated.View>
+              </BestPriceContainer>
             )}
 
-            <Animated.View
-              entering={FadeIn.delay(500).duration(500)}
+            <UnitContainer
+              entering={isPerformanceMode ? undefined :FadeIn.delay(500).duration(500)}
               style={styles.unitContainer}
             >
               <Text style={{ color: theme.colors.textPrimary }}>{product.unit}</Text>
-            </Animated.View>
+            </UnitContainer>
 
             {/* Quantity */}
-            <Animated.View
-              entering={FadeInUp.delay(550).duration(600).springify()}
+            <QuanitityContainer
+              entering={isPerformanceMode ? undefined :FadeInUp.delay(550).duration(600).springify()}
               style={styles.quantitySection}
             >
               <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
@@ -317,17 +380,17 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
-            </Animated.View>
-          </Animated.View>
+            </QuanitityContainer>
+          </ProductContainer>
 
           {/* Retail Prices - Show all active prices with original prices */}
           {pricesByChain.size > 0 && (
-            <Animated.View
-              entering={FadeInDown.delay(300).duration(600).springify()}
+            <RetailStoresContainer
+              entering={isPerformanceMode ? undefined :FadeInDown.delay(300).duration(600).springify()}
               style={[
                 styles.retailsContainer,
                 {
-                  backgroundColor: theme.colors.mainBackground,
+                  backgroundColor: theme.colors.cardBackground,
                   borderColor: theme.colors.borderColor,
                   borderWidth: 1,
                 },
@@ -337,9 +400,9 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                 Цени в различните вериги
               </Text>
               {Array.from(pricesByChain.entries()).map(([chainName, pricePair], index) => (
-                <Animated.View
+                <RetailStoresContainer
                   key={chainName}
-                  entering={FadeIn.delay(350 + index * 50).duration(500)}
+                  entering={isPerformanceMode ? undefined :FadeIn.delay(350 + index * 50).duration(500)}
                   style={styles.OneRetailBox}
                 >
                   <View style={styles.leftSection}>
@@ -419,18 +482,18 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                       </Text>
                     )}
                   </View>
-                </Animated.View>
+                </RetailStoresContainer>
               ))}
-            </Animated.View>
+            </RetailStoresContainer>
           )}
 
           {/* Price History Chart */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(600).springify()}
+          <PriceHistoryContainer
+            entering={isPerformanceMode ? undefined :FadeInDown.delay(400).duration(600).springify()}
             style={[
               styles.chartContainer,
               {
-                backgroundColor: theme.colors.mainBackground,
+                backgroundColor: theme.colors.cardBackground,
                 paddingHorizontal: 16,
                 overflow: 'hidden',
                 borderColor: theme.colors.borderColor,
@@ -470,7 +533,7 @@ const { product, loading, error, refetch } = useProductDetails(productId);
               stripHeight={200}
               stripOpacity={0.3}
               rulesType="dashed"
-              rulesColor={theme.colors.mainBackground}
+              rulesColor={theme.colors.cardBackground}
               showVerticalLines={false}
               maxValue={20}
               noOfSections={4}
@@ -489,7 +552,7 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                 fontSize: 12,
                 fontWeight: '500',
               }}
-              backgroundColor={theme.colors.mainBackground}
+              backgroundColor={theme.colors.cardBackground}
               curved
               curvature={0.2}
               pointerConfig={{
@@ -526,18 +589,22 @@ const { product, loading, error, refetch } = useProductDetails(productId);
                 +15% спрямо миналия месец
               </Text>
             </View>
-          </Animated.View>
+          </PriceHistoryContainer>
         </ScrollView>
 
         {/* Cart Button */}
-        <Animated.View entering={ZoomIn.delay(500).duration(500).springify()}>
+        <BuyButtonContainer entering={isPerformanceMode ? undefined :ZoomIn.delay(500).duration(500).springify()}>
           <BlurView
             intensity={40}
             tint={theme.colors.TabBarColors as 'light' | 'dark'}
             experimentalBlurMethod="dimezisBlurView"
             style={[styles.blurContainer, { borderColor: 'white' }]}
           >
-            <TouchableOpacity style={styles.cartButton}>
+            <TouchableOpacity 
+              style={styles.cartButton}
+              onPress={handleAddToCart}
+              disabled={isAdding}
+            >
               <Svg
                 width={24}
                 height={24}
@@ -550,13 +617,12 @@ const { product, loading, error, refetch } = useProductDetails(productId);
               <Text
                 style={[styles.cartButtonText, { color: theme.colors.textPrimary }]}
               >
-                Добави към количката
+                {isAdding ? 'Добавяне...' : 'Добави към количката'}
               </Text>
             </TouchableOpacity>
           </BlurView>
-        </Animated.View>
+        </BuyButtonContainer>
       </ImageBackground>
-    </Animated.View>
   );
 }
 
@@ -690,7 +756,7 @@ const styles = StyleSheet.create({
   },
   leftSection: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   storeInfo: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-  rightSection: { alignItems: 'flex-end', paddingHorizontal: 5 },
+  rightSection: { alignItems: 'flex-end', paddingHorizontal: 5, textAlign: 'center', justifyContent:'center' },
   retailImages: { width: wp(10), height: wp(10) },
   retailText: {
     paddingLeft: wp(2),

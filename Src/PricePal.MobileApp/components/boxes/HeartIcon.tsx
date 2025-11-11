@@ -1,7 +1,9 @@
 import { styles } from '@/components/styles/homeStyles';
+import { useSettings } from '@/contexts/SettingsContext';
 import React, { useCallback, useState } from 'react';
 import {
-  TouchableOpacity
+  TouchableOpacity,
+  View
 } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -28,9 +30,12 @@ export const HeartIcon: React.FC<{ filled?: boolean, heartSize: number }> = Reac
       withTiming(1, { duration: 150 })
     );
   }, []);
+    const {isPerformanceMode } = useSettings();
+
+   const HeartContainer = isPerformanceMode ? View : Animated.View;
 
   return (
-    <Animated.View style={scaleStyle}>
+    <Animated.View style={isPerformanceMode ? undefined :scaleStyle}>
       <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorite} activeOpacity={0.7}>
         <Svg viewBox="0 0 24 24" width={heartSize} height={heartSize}>
           <Path

@@ -7,6 +7,7 @@ import { router, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Image,
   ImageBackground,
@@ -18,6 +19,7 @@ import {
   View
 } from 'react-native';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 
 interface ProductBoxProps {
@@ -38,13 +40,13 @@ interface ProductBoxProps {
 interface FinalPriceProps {
   saves: number;
   basePrice: number;
-  price: number;
-  bestOfferPrice?: number;
+  basePriceEur:number;
   bestOfferStore?: string;
 }
 
 interface OverviewPriceProps {
-  price: number;
+  priceBgn: number;
+  priceEur: number;
 }
 
 interface OptionsMenuProps {
@@ -62,11 +64,32 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
   onDelete,
   onSaveForLater,
 }) => {
+    const {isPerformanceMode } = useSettings();
+  
+  const slideAnim = useRef(new Animated.Value(300)).current;
+ const MoreOptionsContainer =  isPerformanceMode ? View :Animated.View;
+  useEffect(() => {
+    if (visible) {
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 9,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 300,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}
       transparent={true}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
       <TouchableOpacity 
@@ -74,44 +97,65 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
         activeOpacity={1} 
         onPress={onClose}
       >
-        <View style={styles.bottomSheet}>
+        <MoreOptionsContainer
+         style={[
+    styles.bottomSheet,
+    ...(isPerformanceMode ? [] : [{ transform: [{ translateY: slideAnim }] }]),
+  ]}
+>
           <BlurView
-            intensity={30}
-            tint="light"
-            experimentalBlurMethod="dimezisBlurView"
-            style={styles.blurContainer}
-          >
-            <View style={styles.handleBar} />
-            
-            <Text style={styles.optionsTitle}>Опции за продукта</Text>
-            
-            <TouchableOpacity style={styles.optionItem} onPress={onViewDetails}>
-              <Text style={styles.optionIcon}>👁️</Text>
-              <Text style={styles.optionText}>Преглед на детайли</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.optionItem} onPress={onSaveForLater}>
-              <Text style={styles.optionIcon}>❤️</Text>
-              <Text style={styles.optionText}>Запази за по-късно</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.optionItem} onPress={onDelete}>
-              <Text style={styles.optionIcon}>🗑️</Text>
-              <Text style={[styles.optionText, styles.deleteText]}>Премахни от количката</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelText}>Отказ</Text>
-            </TouchableOpacity>
-          </BlurView>
-        </View>
+  intensity={30}
+  tint="light"
+  experimentalBlurMethod="dimezisBlurView"
+  style={styles.blurContainer}
+>
+  <View style={styles.handleBar} />
+  
+  <Text style={styles.optionsTitle}>Опции за продукта</Text>
+  
+  <TouchableOpacity style={styles.optionItem} onPress={onViewDetails}>
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 5C7 5 2.73 8.11 1 12.5 2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
+        fill="#333"
+      />
+      <Circle cx="12" cy="12.5" r="2.5" fill="#333" />
+    </Svg>
+    <Text style={styles.optionText}>Преглед на детайли</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity style={styles.optionItem} onPress={onSaveForLater}>
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+        fill="#FF6B6B"
+      />
+    </Svg>
+    <Text style={styles.optionText}>Запази за по-късно</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity style={styles.optionItem} onPress={onDelete}>
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+        fill="#FF3B30"
+      />
+    </Svg>
+    <Text style={[styles.optionText, styles.deleteText]}>Премахни от количката</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+    <Text style={styles.cancelText}>Отказ</Text>
+  </TouchableOpacity>
+</BlurView>
+        </MoreOptionsContainer>
       </TouchableOpacity>
     </Modal>
   );
 });
 
 const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
-  publicId, // This is the cart ITEM id
+  publicId,
   name,
   brand,
   price,
@@ -124,20 +168,59 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   onViewDetails,
   onSaveForLater,
   index,
-  
 }) => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(quantity);
-const updateTimeoutRef = useRef<number | null>(null);  const { 
-   updateItemQuantity
-  } = useShoppingCart();
+  const updateTimeoutRef = useRef<number | null>(null);
+  const { updateItemQuantity } = useShoppingCart();
+  
+  // Animation refs
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const quantityScaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Sync local quantity with prop when it changes from server
+  // Entrance animation
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        delay: index * 100,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   useEffect(() => {
     setLocalQuantity(quantity);
   }, [quantity]);
+
+  // Quantity change animation
+  const animateQuantityChange = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(quantityScaleAnim, {
+        toValue: 1.3,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(quantityScaleAnim, {
+        toValue: 1,
+        tension: 300,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const handleViewDetails = useCallback(() => {
     setOptionsVisible(false);
@@ -145,9 +228,23 @@ const updateTimeoutRef = useRef<number | null>(null);  const {
   }, [onViewDetails]);
 
   const handleDelete = useCallback(() => {
-    setOptionsVisible(false);
-    onDelete?.(); 
-  }, [onDelete]);
+    // Animate out before deleting
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: -50,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setOptionsVisible(false);
+      onDelete?.();
+    });
+  }, [onDelete, fadeAnim, slideAnim]);
 
   const handleSaveForLater = useCallback(() => {
     setOptionsVisible(false);
@@ -163,19 +260,16 @@ const updateTimeoutRef = useRef<number | null>(null);  const {
   }, []);
   
   const debouncedUpdate = useCallback((newQuantity: number) => {
-    // Clear existing timeout
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
     
-    // Set new timeout to send request after 500ms of no clicks
     updateTimeoutRef.current = setTimeout(async () => {
       try {
         await updateItemQuantity(publicId, newQuantity);
         console.log('Item quantity updated successfully');
       } catch (error) {
         console.error('Failed to update quantity:', error);
-        // Revert to server quantity on error
         setLocalQuantity(quantity);
       }
     }, 500);
@@ -188,16 +282,34 @@ const updateTimeoutRef = useRef<number | null>(null);  const {
       return;
     }
     setLocalQuantity(newQuantity);
+    animateQuantityChange();
     debouncedUpdate(newQuantity);
-  }, [localQuantity, debouncedUpdate, onDelete]);
+  }, [localQuantity, debouncedUpdate, onDelete, animateQuantityChange]);
 
   const handleIncreaseQuantity = useCallback(() => {
     const newQuantity = localQuantity + 1;
     setLocalQuantity(newQuantity);
+    animateQuantityChange();
     debouncedUpdate(newQuantity);
-  }, [localQuantity, debouncedUpdate]);
+  }, [localQuantity, debouncedUpdate, animateQuantityChange]);
 
-  // Cleanup timeout on unmount
+  // Button press animation
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   useEffect(() => {
     return () => {
       if (updateTimeoutRef.current) {
@@ -205,79 +317,108 @@ const updateTimeoutRef = useRef<number | null>(null);  const {
       }
     };
   }, []);
+  const {isPerformanceMode } = useSettings();
+
+ const ProductContainer = isPerformanceMode ? View : Animated.View;
+const QuantityText = isPerformanceMode ? Text : Animated.Text;
 
   return (
     <>
-      <View
-        style={[styles.products,{backgroundColor:theme.colors.backgroundColor}]}
-    
-      >
-        <View style={styles.productContainer}>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={openOptions}
-          >
-            <Text style={[styles.menuDots, {color:theme.colors.textPrimary}]}>⋯</Text>
-          </TouchableOpacity>
 
-          <Image 
-            style={[styles.productImage, { width: scale(120) }]} 
-            source={{ uri: imageUrl }} 
-            resizeMode="contain"
-          />
+<ProductContainer
+  style={[
+    styles.products,
+    {
+      backgroundColor: theme.colors.backgroundColor,
+      borderColor: '#FFFFFF',
+      borderWidth: 1,
+      ...(isPerformanceMode
+        ? {}
+        : {
+            opacity: fadeAnim,
+            transform: [
+              { translateY: slideAnim },
+              { scale: scaleAnim },
+            ],
+          }),
+    },
+  ]}
+>
+  <View style={styles.productContainer}>
+    <TouchableOpacity 
+      style={styles.menuButton} 
+      onPress={openOptions}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+    >
+      <Text style={[styles.menuDots, { color: theme.colors.textPrimary }]}>⋯</Text>
+    </TouchableOpacity>
 
-          <View style={styles.productDetails}>
-            <View>
-              {brand && <Text style={[styles.brand,{color:theme.colors.textPrimary}]}>{brand}</Text>}
-              <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name,{color:theme.colors.textPrimary}]}>{name}</Text>
-              <Text style={[styles.unit,{color:theme.colors.textPrimary}]}>{unit}</Text>
-              <Text style={[styles.price,{color:theme.colors.textPrimary}]}>
-                {priceEur.toFixed(2)} €
-              </Text>
-              <Text style={[styles.price,{color:theme.colors.textPrimary}]}>
-                {price.toFixed(2)} лв.
-              </Text>
-              {discount && (
-                <Text style={[styles.discount,{color: '#DC2626'}]}>
-                  {discount}% отстъпка
-                </Text>
-              )}
-            </View>
+    <Image 
+      style={[styles.productImage, { width: scale(120) }]} 
+      source={{ uri: imageUrl }} 
+      resizeMode="contain"
+    />
 
-            <View style={styles.quantityRow}>
-              <BlurView
-                intensity={50}
-                tint={theme.colors.TabBarColors as 'dark' | 'light'}
-                style={styles.blurButton}
-              >
-                <TouchableHighlight 
-                  underlayColor="transparent"
-                  style={styles.buttonTouchable}
-                   onPress={handleDecreaseQuantity}
-                >
-                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
-                </TouchableHighlight>
-              </BlurView>
-
-              <Text style={[styles.quantityText, { color: theme.colors.textPrimary }]}>{localQuantity}</Text>
-
-              <BlurView
-                intensity={50}
-                tint={theme.colors.TabBarColors as 'dark' | 'light'}
-                style={styles.blurButton}
-              >
-                <TouchableHighlight 
-                  underlayColor="transparent"
-                  style={styles.buttonTouchable}
-                  onPress={handleIncreaseQuantity}
-                >
-                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
-                </TouchableHighlight>
-              </BlurView>
-            </View>
-          </View>
-        </View>
+    <View style={styles.productDetails}>
+      <View>
+        {brand && <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text>}
+        <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textPrimary }]}>{name}</Text>
+        <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit}</Text>
+        <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur.toFixed(2)} €</Text>
+        <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price.toFixed(2)} лв.</Text>
+        {discount && (
+          <Text style={[styles.discount, { color: '#DC2626' }]}>
+            {discount}% отстъпка
+          </Text>
+        )}
       </View>
+
+      <View style={styles.quantityRow}>
+        <BlurView
+          intensity={50}
+          tint={theme.colors.TabBarColors as 'dark' | 'light'}
+          style={styles.blurButton}
+        >
+          <TouchableHighlight 
+            underlayColor="transparent"
+            style={styles.buttonTouchable}
+            onPress={handleDecreaseQuantity}
+          >
+            <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
+          </TouchableHighlight>
+        </BlurView>
+
+       <QuantityText
+  style={[
+    styles.quantityText,
+    { 
+      color: theme.colors.textPrimary,
+      ...(isPerformanceMode ? {} : { transform: [{ scale: quantityScaleAnim }] }),
+    },
+  ]}
+>
+  {localQuantity}
+</QuantityText>
+
+        <BlurView
+          intensity={50}
+          tint={theme.colors.TabBarColors as 'dark' | 'light'}
+          style={styles.blurButton}
+        >
+          <TouchableHighlight 
+            underlayColor="transparent"
+            style={styles.buttonTouchable}
+            onPress={handleIncreaseQuantity}
+          >
+            <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
+          </TouchableHighlight>
+        </BlurView>
+      </View>
+    </View>
+  </View>
+</ProductContainer>
+
 
       <OptionsMenu
         visible={optionsVisible}
@@ -298,23 +439,56 @@ const updateTimeoutRef = useRef<number | null>(null);  const {
 });
 
 const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
-  price,
   basePrice,
+  basePriceEur,
   saves,
-  bestOfferPrice,
   bestOfferStore
 }) => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-    const { bestOffer, isLoading } = useCartSuggestions();
+  const { bestOffer, isLoading } = useCartSuggestions();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+    const {isPerformanceMode } = useSettings();
+
+const FinalPriceContainer = isPerformanceMode ? View : Animated.View;
 
   return (
-    <View
-      style={[styles.overviewContainer, { padding: scale(20), backgroundColor:theme.colors.backgroundColor }]}
-    >
+    <FinalPriceContainer 
+       style={[
+    styles.overviewContainer,
+    {
+      padding: scale(20),
+      borderColor: '#FFFFFF',
+      backgroundColor: theme.colors.backgroundColor,
+      ...(isPerformanceMode
+        ? {}
+        : {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          }),
+    },
+  ]}
+>
       <View style={styles.summaryContainer}>
         <View style={styles.summaryHeader}>
-          <Text style={[styles.summaryTitle, { fontSize: moderateScale(19), color:theme.colors.textPrimary }]}>
+          <Text style={[styles.summaryTitle, { fontSize: moderateScale(19), color: theme.colors.textPrimary }]}>
             Обобщение на покупките
           </Text>
           {saves > 0 && (
@@ -323,36 +497,50 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
             </Text>
           )}
         </View>
-
-       <View style={styles.priceBreakdown}>
-  {bestOfferStore && (
-    <Text style={{ fontSize: moderateScale(14), color: theme.colors.textPrimary, opacity: 0.7, marginBottom: 4 }}>
-      Най-добра оферта от {bestOfferStore}
-    </Text>
-  )}
-  <Text style={{ fontSize: moderateScale(18), color: theme.colors.textPrimary }}>
-    Обща цена:
-  </Text>
-  <View style={{ alignItems: 'flex-start',flexDirection:'row', gap:moderateScale(10) }}>
-    <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
-      {bestOfferPrice ? `${bestOfferPrice.toFixed(2)} лв` : `${price.toFixed(2)} лв`}
-    </Text>
-    <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
-      {isLoading ? '...' : `${bestOffer?.totalPriceEur.toFixed(2)} €`}
-    </Text>
-  </View>
-</View>
+        <View style={styles.priceBreakdown}>
+          {bestOfferStore && (
+            <Text style={{ fontSize: moderateScale(14), color: theme.colors.textPrimary, marginBottom: 4 }}>
+              Най-добра оферта от {bestOfferStore}
+            </Text>
+          )}
+          <Text style={{ fontSize: moderateScale(16), color: theme.colors.textPrimary }}>
+            Оригинална цена:
+            </Text>
+            <View style={styles.pricesConclusion}>
+            <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
+              {isLoading ? '...' : `${basePrice.toFixed(2)} лв`}
+            </Text>
+               <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
+              {isLoading ? '...' : `${basePriceEur.toFixed(2)} €`}
+            </Text>
+            </View>
+          <Text style={{ fontSize: moderateScale(16), color: theme.colors.textPrimary }}>
+            Обща цена:
+          </Text>
+          
+          <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: moderateScale(10) }}>
+            <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
+              {isLoading ? '...' : `${bestOffer?.totalPriceBgn.toFixed(2)} лв`}
+            </Text>
+            <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
+              {isLoading ? '...' : `${bestOffer?.totalPriceEur.toFixed(2)} €`}
+            </Text>
+          </View>
+        </View>
       </View>
-    </View>
+    </FinalPriceContainer>
   );
 });
 
 const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
-  price,
+  priceBgn,
+  priceEur,
 }) => {
   const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
-  const { bestOffer, isLoading } = useCartSuggestions();
+  const { isLoading } = useCartSuggestions();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   
   const blurViewProps = {
     intensity: 20,
@@ -360,15 +548,41 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
     experimentalBlurMethod: 'dimezisBlurView' as const,
   };
   
-  const ContainerView = (isPerformanceMode
-    ? View
-    : BlurView) as React.ComponentType<any>;
+  const ContainerView = (isPerformanceMode ? View : BlurView) as React.ComponentType<any>;
   const router = useRouter();
 
-  // Display best offer price if available, otherwise use cart total
-  const displayPrice = bestOffer?.totalPriceBgn ?? price;
-    const displayPriceEur = bestOffer?.totalPriceEur ?? price;
+  // Pulse animation for price changes
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(pulseAnim, {
+        toValue: 1.05,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [priceBgn, priceEur]);
 
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.98,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+ const OverviewPriceContainer = isPerformanceMode ? View : Animated.View;
 
   return (
     <ContainerView
@@ -385,41 +599,49 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
             end: { x: 1, y: 0 },
           })}
     >
-      <View style={styles.totalPriceRow}>
+      <OverviewPriceContainer
+         style={[
+    styles.totalPriceRow,
+    ...(isPerformanceMode ? [] : [{ transform: [{ scale: pulseAnim }] }]),
+  ]}
+>
+
         <View>
-          <Text style={[styles.totalPriceLabel,{color:theme.colors.textPrimary}]}>
+          <Text style={[styles.totalPriceLabel, {color: theme.colors.textPrimary}]}>
             Обща цена
           </Text>
-        
         </View>
         <View style={styles.pricesConclusion}>
-
-    
-        <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>
-          {isLoading ? '...' : `${displayPrice.toFixed(2)} лв`}
-                 
-          
-        </Text>
-         <Text style={[styles.totalPriceValue,{color:theme.colors.textPrimary}]}>   {isLoading ? '...' : `${displayPriceEur.toFixed(2)} €`}</Text>
-             </View>
-      </View>
-
+          <Text style={[styles.totalPriceValue, {color: theme.colors.textPrimary}]}>
+            {isLoading ? '...' : `${priceBgn.toFixed(2)} лв`}
+          </Text>
+          <Text style={[styles.totalPriceValue, {color: theme.colors.textPrimary}]}>
+            {isLoading ? '...' : `${priceEur.toFixed(2)} €`}
+          </Text>
+        </View>
+      </OverviewPriceContainer>
+    <TouchableHighlight 
+            style={ styles.continueButtonContainer } 
+            underlayColor="transparent" 
+            onPress={() => router.navigate('/delivaryAndMap/choiceDelivary')}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+          >
       <BlurView
         intensity={55}
-        tint={theme.colors.TabBarColors as 'dark'| 'light'}
+        tint={theme.colors.TabBarColors as 'dark' | 'light'}
         experimentalBlurMethod="dimezisBlurView"
-        style={styles.continueButtonContainer}
+        style={styles.continueButton}
       >
-        <TouchableHighlight 
-          style={styles.continueButton} 
-          underlayColor="transparent" 
-          onPress={() => router.navigate('/delivaryAndMap/choiceDelivary')}
-        >
-          <Text style={[styles.continueButtonText,{color:theme.colors.textPrimary}]}>
-            Продължи
-          </Text>
-        </TouchableHighlight>
+        <View >
+      
+            <Text style={[styles.continueButtonText, {color: theme.colors.textPrimary}]}>
+              Продължи
+            </Text>
+        </View>
       </BlurView>
+                </TouchableHighlight>
+
     </ContainerView>
   );
 });
@@ -428,7 +650,6 @@ const Cart: React.FC = () => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
-  // Use the shopping cart hook
   const { 
     items, 
     totalPrice, 
@@ -439,10 +660,8 @@ const Cart: React.FC = () => {
     removeItem, 
   } = useShoppingCart();
 
-  // Use cart suggestions hook
   const { bestOffer, isLoading: isSuggestionsLoading } = useCartSuggestions();
 
-  // Calculate savings
   const totalSavings = useMemo(() => {
     return items.reduce((sum, item) => {
       if (item.product.prices[0]?.discount) {
@@ -454,11 +673,10 @@ const Cart: React.FC = () => {
     }, 0);
   }, [items]);
 
-  // Convert cart items to ProductBoxProps format
   const products = useMemo(() => {
     return items.map(item => ({
-      publicId: item.publicId, // This is the cart ITEM ID - correct!
-      productPublicId: item.product.publicId, // This is the product ID
+      publicId: item.publicId,
+      productPublicId: item.product.publicId,
       name: item.product.name,
       brand: item.product.brand,
       price: item.product.prices[0]?.priceBgn || 0,
@@ -484,11 +702,9 @@ const Cart: React.FC = () => {
   }, []);
 
   const handleSaveForLater = useCallback((cartItemId: string) => {
-    // TODO: Implement save for later
     console.log('Save for later:', cartItemId);
   }, []);
 
-  // Render item function for FlatList
   const renderProduct = useCallback(({ item, index }: { item: typeof products[0]; index: number }) => (
     <ProductBox
       key={item.publicId}
@@ -508,16 +724,15 @@ const Cart: React.FC = () => {
     />
   ), [handleDeleteProduct, handleViewDetails, handleSaveForLater]);
 
-  // Key extractor for FlatList
   const keyExtractor = useCallback((item: typeof products[0]) => item.publicId, []);
 
   const ListHeaderComponent = useMemo(() => (
     <View style={styles.titleContainer}>
-      <Text style={[styles.mainTitle, { fontSize: moderateScale(30), color:theme.colors.textPrimary }]}>
+      <Text style={[styles.mainTitle, { fontSize: moderateScale(30), color: theme.colors.textPrimary }]}>
         Количка
       </Text>
       {itemCount > 0 && (
-        <Text style={[styles.itemCount, { color:theme.colors.textPrimary }]}>
+        <Text style={[styles.itemCount, { color: theme.colors.textPrimary }]}>
           {itemCount} {itemCount === 1 ? 'артикул' : 'артикула'}
         </Text>
       )}
@@ -528,10 +743,9 @@ const Cart: React.FC = () => {
     <>
       {products.length > 0 && (
         <FinalPrice
-          price={totalPrice.bgn}
-          basePrice={totalPrice.bgn + totalSavings}
+          basePrice={bestOffer?.totalPriceBgn ?? 0 + totalSavings}
+          basePriceEur={bestOffer?.totalPriceEur ?? 0 + totalSavings}
           saves={totalSavings}
-          bestOfferPrice={bestOffer?.totalPriceBgn}
           bestOfferStore={bestOffer?.storeChain}
         />
       )}
@@ -545,7 +759,7 @@ const Cart: React.FC = () => {
         Количката ви е празна
       </Text>
       <TouchableOpacity 
-        style={styles.shopButton}
+        style={[styles.shopButton,{backgroundColor:theme.colors.textGreen}]}
         onPress={() => router.push('/(tabs)')}
       >
         <Text style={styles.shopButtonText}>Започни пазаруване</Text>
@@ -559,38 +773,39 @@ const Cart: React.FC = () => {
     index,
   }), []);
 
-  // Show loading state
   if (isLoading) {
     return (
-      <ImageBackground
-        source={theme.backgroundImage}
-        style={styles.backgroundImage}
-      >
-        <View style={[styles.container, styles.centerContent]}>
-          <ActivityIndicator size="large" color={theme.colors.textPrimary} />
-          <Text style={[styles.loadingText, { color: theme.colors.textPrimary }]}>
-            Зареждане на количката...
-          </Text>
-        </View>
+      <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
+         <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'transparent',
+            }}
+          >
+            <ActivityIndicator size="large" color={theme.colors.textPrimary} />
+            <Text style={{
+              marginTop: scale(2),
+              fontSize: scale(16),
+              color: theme.colors.textPrimary,
+              fontWeight: '600'
+            }}>
+              Зареждане на продукти...
+            </Text>
+            </View>
       </ImageBackground>
     );
   }
 
-  // Show error state
   if (error) {
     return (
-      <ImageBackground
-        source={theme.backgroundImage}
-        style={styles.backgroundImage}
-      >
+      <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
         <View style={[styles.container, styles.centerContent]}>
           <Text style={[styles.errorText, { color: '#DC2626' }]}>
             Грешка при зареждане на количката
           </Text>
-          <TouchableOpacity 
-            style={styles.retryButton}
-            onPress={refresh}
-          >
+          <TouchableOpacity style={styles.retryButton} onPress={refresh}>
             <Text style={styles.retryButtonText}>Опитай отново</Text>
           </TouchableOpacity>
         </View>
@@ -598,11 +813,11 @@ const Cart: React.FC = () => {
     );
   }
 
+  const displayPriceBgn = bestOffer?.totalPriceBgn ?? totalPrice.bgn;
+  const displayPriceEur = bestOffer?.totalPriceEur ?? totalPrice.eur;
+
   return (
-    <ImageBackground
-      source={theme.backgroundImage}
-      style={styles.backgroundImage}
-    >
+    <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
       <View style={styles.container}>
         <FlatList
           data={products}
@@ -621,7 +836,12 @@ const Cart: React.FC = () => {
           getItemLayout={getItemLayout}
         />
         
-        {products.length > 0 && <OverviewPrice price={totalPrice.bgn} />}
+        {products.length > 0 && (
+          <OverviewPrice 
+            priceBgn={displayPriceBgn} 
+            priceEur={displayPriceEur}
+          />
+        )}
       </View>
     </ImageBackground>
   );
@@ -673,8 +893,10 @@ const styles = StyleSheet.create({
   },
   overviewContainer: {
     width: scale(325),
-    height: moderateScale(195),
+    height: moderateScale(245),
     borderRadius: 15,
+    elevation:5,
+    borderWidth:1,
   },
   productContainer: {
     flexDirection: "row",
@@ -826,6 +1048,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: moderateScale(18),
     color: '#333',
+    marginLeft:moderateScale(5),
     fontWeight: '500',
   },
   deleteText: {
@@ -898,7 +1121,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: moderateScale(100),
+    height:'100%',
   },
   emptyText: {
     fontSize: moderateScale(20),
@@ -906,10 +1129,11 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(20),
   },
   shopButton: {
-    backgroundColor: '#3B82F6',
     paddingHorizontal: moderateScale(30),
     paddingVertical: moderateScale(15),
     borderRadius: 12,
+    elevation:10,
+  
   },
   shopButtonText: {
     color: 'white',
@@ -918,7 +1142,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: moderateScale(20),
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(12),
   },
   errorText: {
     fontSize: moderateScale(18),
@@ -953,7 +1177,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   pricesConclusion:{
-    flexDirection:'row'
+    flexDirection:'row',
+    gap:moderateScale(10),
   }
 });
 

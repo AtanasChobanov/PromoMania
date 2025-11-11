@@ -37,12 +37,10 @@ const ChevronRight = ({ size = 24, color = '#000' }: { size?: number; color?: st
 const ProductItem = React.memo(({ 
   item, 
   index, 
-  gradientColors,
   section
 }: { 
   item: Product; 
   index: number; 
-  gradientColors: [string, string, ...string[]];
   section: SectionType;
 }) => (
   <View style={{ marginBottom: hp(1.5) }}>  
@@ -54,7 +52,6 @@ const ProductItem = React.memo(({
       priceEur={item.priceEur}
       unit={item.unit}
       photo={item.imageUrl}
-      colors={gradientColors}
       index={index}
     />
   </View>
@@ -63,13 +60,11 @@ ProductItem.displayName = 'ProductItem';
 
 interface ProductSectionProps {
   section: SectionType;
-  gradientColors: [string, string, ...string[]];
   initialLimit?: number;
 }
 
 export const ProductSection: React.FC<ProductSectionProps> = React.memo(({ 
   section, 
-  gradientColors,
   initialLimit = 4 
 }) => {
   const { isDarkMode, isSimpleMode, isPerformanceMode } = useSettings();
@@ -107,8 +102,8 @@ export const ProductSection: React.FC<ProductSectionProps> = React.memo(({
 
   // Render item
   const renderProduct = useCallback(({ item, index }: { item: Product; index: number }) => (
-    <ProductItem item={item} index={index} gradientColors={gradientColors} section={section} />
-  ), [gradientColors, section]);
+    <ProductItem item={item} index={index} section={section} />
+  ), [ section]);
 
   // Handle end reached for lazy loading
   const handleEndReached = useCallback(() => {

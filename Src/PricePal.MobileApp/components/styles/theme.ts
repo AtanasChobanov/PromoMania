@@ -45,7 +45,7 @@ export const lightTheme = {
     unitBorderColor: "rgba(31, 41, 55, 0.2)",
 
 
-    TopBarColors:['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'transparent'] as [string, string, ...string[]],
+    TopBarColors:['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'rgba(255,255,255,0)'] as [string, string, ...string[]],
     TabBarColors:'light',
 SafeviewColor:'rgba(255, 255, 255, 0.9)'
 
