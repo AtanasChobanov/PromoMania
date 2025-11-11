@@ -187,7 +187,7 @@ export const ProductBox: React.FC<{
               
               {/* Content Section */}
               <View
-                style={[styles.products, { width: cardWidth, backgroundColor: theme.colors.backgroundColor }]}
+                style={[styles.products, { width: cardWidth, backgroundColor: theme.colors.backgroundColor, borderColor:"#FFFFFF", borderWidth:1 }]}
               >
                 <ProductContent
                   productName={productName}

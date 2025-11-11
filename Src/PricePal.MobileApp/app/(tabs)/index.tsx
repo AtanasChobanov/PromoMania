@@ -14,7 +14,6 @@ type SectionItem = {
   type: 'header' | 'categories' | 'product-section' | 'loading' | 'spacer';
   sectionType?: SectionType;
   title?: string;
-  gradientColors?: [string, string, ...string[]];
   categories?: string[];
 };
 
@@ -130,11 +129,11 @@ const Index: React.FC = () => {
       { type: 'categories', categories },
     ];
 
-    sectionsToShow.forEach(({ sectionType, gradientColors }) => {
+    sectionsToShow.forEach(({ sectionType }) => {
       listSections.push({
         type: 'product-section',
         sectionType,
-        gradientColors
+        
       });
     });
 
@@ -212,7 +211,6 @@ const Index: React.FC = () => {
         return (
           <ProductSection 
             section={item.sectionType}
-            gradientColors={item.gradientColors!}
             initialLimit={4}
           />
         );

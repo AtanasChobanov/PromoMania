@@ -182,7 +182,7 @@ const TopBar = React.memo(() => {
         onPress={() => router.push('/(profile)/settings')}
         style={{ zIndex: 2 }}
       >
-        <View style={styles.settingsButton}>
+        <View style={[styles.settingsButton,{borderColor:"#FFFFFF", borderWidth:1}]}>
           <>
             {isPerformanceMode ? (
               <View 
@@ -194,7 +194,7 @@ const TopBar = React.memo(() => {
                 intensity={20} 
                 tint={theme.colors.TabBarColors as 'light' | 'dark'}
                 experimentalBlurMethod="dimezisBlurView"
-                style={StyleSheet.absoluteFillObject}
+                style={[StyleSheet.absoluteFillObject,]}
               />
             )}
           </>   
@@ -350,6 +350,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: '100%',
     zIndex: 1,
+    
   },
 
   settingsButton: {

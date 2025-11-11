@@ -124,7 +124,7 @@ const ChoiceDelivery = () => {
           <TouchableOpacity 
             style={[styles.optionContainer, {  
               backgroundColor: theme.colors.cardBackground,
-              borderColor: theme.colors.border,
+              borderColor: theme.colors.textPrimary,
             }]}
             activeOpacity={0.7}
           >
@@ -154,7 +154,7 @@ const ChoiceDelivery = () => {
           <TouchableOpacity 
             style={[styles.optionContainer, {  
               backgroundColor: theme.colors.cardBackground,
-              borderColor: theme.colors.border,
+              borderColor: theme.colors.textPrimary,
             }]}
             onPress={() => router.navigate('/delivaryAndMap/mapDelivery')}
           >
@@ -221,8 +221,7 @@ const styles = StyleSheet.create({
     paddingVertical: moderateScale(20),
     paddingHorizontal: moderateScale(20),
     borderRadius: 20,
-
-    borderWidth: 2,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
