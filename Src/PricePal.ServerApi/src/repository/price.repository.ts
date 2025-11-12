@@ -1,42 +1,128 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, lte, gte, isNull, and, or } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
 import { price, product, storeChain } from "../db/migrations/schema.js";
 import type { StoreChainName } from "../models/store-chain.model.js";
 
 export default class PriceRepository {
   async getLowestPricePerProduct() {
-    return await db
-      .selectDistinctOn([price.productId], {
+    const now = new Date().toISOString();
+
+    // Fetch all prices valid now, ordered by product and price ascending
+    const rows = await db
+      .select({
         id: price.id,
+        productId: price.productId,
+        priceBgn: price.priceBgn,
+        priceEur: price.priceEur,
       })
       .from(price)
-      .orderBy(asc(price.productId), asc(price.priceBgn), asc(price.priceEur))
-      .limit(6);
+      .where(
+        and(
+          lte(price.validFrom, now),
+          or(isNull(price.validTo), gte(price.validTo, now))
+        )
+      )
+      .orderBy(asc(price.priceBgn), asc(price.priceEur));
+
+    // Group by productId in JS and take the first (lowest) price per product
+    const map = new Map<
+      number,
+      {
+        id: number;
+        productId: number;
+        priceBgn: number | null;
+        priceEur: number | null;
+      }
+    >();
+    for (const r of rows) {
+      const pid = r.productId as number;
+      if (!map.has(pid)) {
+        map.set(pid, r as any);
+      }
+    }
+
+    return Array.from(map.values()).map((r) => ({
+      id: r.id,
+      productId: r.productId,
+    }));
   }
 
   async getBiggestDiscountPerProduct() {
-    return await db
+    const now = new Date().toISOString();
+
+    // Fetch all prices valid now, ordered by product and discount ascending (biggest discount first)
+    const rows = await db
       .select({
         id: price.id,
         productId: price.productId,
         discount: price.discount,
       })
       .from(price)
-      .orderBy(asc(price.discount), asc(price.validFrom), asc(price.validTo));
+      .where(
+        and(
+          lte(price.validFrom, now),
+          or(isNull(price.validTo), gte(price.validTo, now))
+        )
+      )
+      .orderBy(asc(price.discount));
+
+    // Group by productId in JS and take the first (biggest discount) price per product
+    const map = new Map<
+      number,
+      { id: number; productId: number; discount: string | null }
+    >();
+    for (const r of rows) {
+      const pid = r.productId as number;
+      if (!map.has(pid)) {
+        map.set(pid, r as any);
+      }
+    }
+
+    return Array.from(map.values()).map((r) => ({
+      id: r.id,
+      productId: r.productId,
+      discount: r.discount,
+    }));
   }
 
   async getBiggestDiscountPerProductByStoreChain(chain: StoreChainName) {
-    const results = await db
+    const now = new Date().toISOString();
+
+    // Fetch all prices valid now for the given store chain, ordered by product and discount ascending
+    const rows = await db
       .select({
         id: price.id,
         productId: price.productId,
+        discount: price.discount,
       })
       .from(price)
       .leftJoin(storeChain, eq(price.chainId, storeChain.id))
-      .where(eq(storeChain.name, chain))
-      .orderBy(asc(price.discount), asc(price.validFrom), asc(price.validTo));
+      .where(
+        and(
+          eq(storeChain.name, chain),
+          lte(price.validFrom, now),
+          or(isNull(price.validTo), gte(price.validTo, now))
+        )
+      )
+      .orderBy(asc(price.discount));
 
-    return results;
+    // Group by productId in JS and take the first (biggest discount) price per product
+    const map = new Map<
+      number,
+      { id: number; productId: number; discount: string | null }
+    >();
+    for (const r of rows) {
+      const pid = r.productId as number;
+      if (!map.has(pid)) {
+        map.set(pid, r as any);
+      }
+    }
+
+    return Array.from(map.values()).map((r) => ({
+      id: r.id,
+      productId: r.productId,
+      discount: r.discount,
+    }));
   }
 
   /**
