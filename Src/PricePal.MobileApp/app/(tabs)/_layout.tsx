@@ -111,7 +111,7 @@ const SearchButton = React.memo(({ bottomInset, isFocused }: { bottomInset: numb
 
   return (
     <>
-      {/* Original Search Button - Always rendered */}
+
       <TouchableOpacity
         style={[styles.searchButton]}
         onPress={() => router.push('/search')}
@@ -168,6 +168,8 @@ const TopBar = React.memo(() => {
       <LinearGradient
         colors={theme.colors.TopBarColors}
         locations={[0, 0.6, 1]}
+        pointerEvents="none"
+
         style={styles.gradientBackground}
       />
       <TouchableOpacity 
@@ -219,7 +221,7 @@ const Layout = () => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.SafeviewColor }} edges={['top']}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, }}>
           <TopBar />
           
           <Tabs
@@ -257,6 +259,7 @@ const Layout = () => {
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={[styles.tabBarBlur]}
+                      
                     />
                   ) : (
                     <BlurView

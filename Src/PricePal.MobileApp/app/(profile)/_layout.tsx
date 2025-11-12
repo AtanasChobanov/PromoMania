@@ -31,6 +31,8 @@ export default function SubcategoryProductLayout() {
           <LinearGradient
             colors={theme.colors.TopBarColors}
             locations={[0, 0.6, 1]}
+            pointerEvents="none"
+
             style={StyleSheet.absoluteFill}
           />
 
