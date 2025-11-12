@@ -9,8 +9,9 @@ import {
 } from '@/services/useProductDetails';
 import { useShoppingCart } from '@/services/useShoppingCart';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { ComponentType, useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -211,7 +212,8 @@ export default function ProductPage() {
      const RetailStoresContainer =isPerformanceMode ? View : Animated.View;
      const PriceHistoryContainer =isPerformanceMode ? View : Animated.View;
      const BuyButtonContainer =isPerformanceMode ? View : Animated.View;
-const TitleText = isPerformanceMode ? Text : Animated.Text;
+    const TitleText = isPerformanceMode ? Text : Animated.Text;
+    const BlurButton = (isPerformanceMode ? LinearGradient : BlurView) as ComponentType<any>;
 
   return (
 
@@ -594,9 +596,12 @@ const TitleText = isPerformanceMode ? Text : Animated.Text;
 
         {/* Cart Button */}
         <BuyButtonContainer entering={isPerformanceMode ? undefined :ZoomIn.delay(500).duration(500).springify()}>
-          <BlurView
-            intensity={40}
-            tint={theme.colors.TabBarColors as 'light' | 'dark'}
+          <BlurButton
+                  start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+            intensity={isPerformanceMode? undefined :40}
+            tint={isPerformanceMode? undefined :theme.colors.TabBarColors as 'light' | 'dark'}
+            colors={isPerformanceMode? theme.colors.blueTeal : undefined}
             experimentalBlurMethod="dimezisBlurView"
             style={[styles.blurContainer, { borderColor: 'white' }]}
           >
@@ -620,7 +625,7 @@ const TitleText = isPerformanceMode ? Text : Animated.Text;
                 {isAdding ? 'Добавяне...' : 'Добави към количката'}
               </Text>
             </TouchableOpacity>
-          </BlurView>
+          </BlurButton>
         </BuyButtonContainer>
       </ImageBackground>
   );

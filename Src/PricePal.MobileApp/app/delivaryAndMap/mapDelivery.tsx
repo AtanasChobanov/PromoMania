@@ -34,7 +34,7 @@ interface ShopData {
 
 const MapDelivery = () => {
    const navigation = useNavigation();
-  const { isDarkMode } = useSettings();
+  const { isDarkMode,isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const webViewRef = useRef<WebView>(null);
   
@@ -749,12 +749,19 @@ const renderShopCard = (
                onPress={() => router.back()}
                style={styles.backButton}
              >
-               <BlurView
-                 intensity={20} 
-                 tint={theme.colors.TabBarColors as 'light' | 'dark'}
-                 experimentalBlurMethod="dimezisBlurView"
-                 style={StyleSheet.absoluteFillObject}
-               />
+               {isPerformanceMode ? (
+              <View 
+        
+                style={[styles.tabBarBlur,{backgroundColor:theme.colors.backgroundColor}]} 
+              />
+            ) : (
+              <BlurView 
+                intensity={20} 
+                tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                experimentalBlurMethod="dimezisBlurView"
+                style={[StyleSheet.absoluteFillObject,]}
+              />
+            )}
                <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
                  <Path
                    d="M15 18l-6-6 6-6"
@@ -1162,6 +1169,9 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(15),
     fontWeight: '500',
     textAlign: 'center',
+  },
+    tabBarBlur: {
+    ...StyleSheet.absoluteFillObject,
   },
 });
 
