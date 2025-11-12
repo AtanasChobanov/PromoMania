@@ -82,7 +82,7 @@ export default class ProductService {
           const currentDiscount = p.discount ?? 0;
           const existingDiscount = existing?.discount ?? 0;
 
-          if (!existing || currentDiscount < existingDiscount) {
+          if (!existing || currentDiscount > existingDiscount) {
             map.set(p.productId, p);
           }
           return map;

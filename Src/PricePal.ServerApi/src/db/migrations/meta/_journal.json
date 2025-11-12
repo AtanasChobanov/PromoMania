@@ -36,6 +36,13 @@
       "when": 1761681760572,
       "tag": "0004_add-public-id-in-shopping-cart-item",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1762973639810,
+      "tag": "0005_fuzzy_northstar",
+      "breakpoints": true
     }
   ]
 }
