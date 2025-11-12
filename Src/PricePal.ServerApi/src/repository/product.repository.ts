@@ -1,4 +1,4 @@
-import { eq, inArray, asc, SQL, type AnyColumn } from "drizzle-orm";
+import { eq, inArray, asc, SQL, and, lte, or, isNull, gte } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
 import {
   product,
@@ -72,6 +72,7 @@ export default class ProductRepository {
   }
 
   async getDetailsByPublicId(publicProductId: string) {
+    const now = new Date().toISOString();
     return await db
       .select({
         product: {
@@ -102,7 +103,13 @@ export default class ProductRepository {
       .leftJoin(category, eq(category.id, product.categoryId))
       .leftJoin(price, eq(price.productId, product.id))
       .leftJoin(storeChain, eq(storeChain.id, price.chainId))
-      .where(eq(product.publicId, publicProductId));
+      .where(
+        and(
+          eq(product.publicId, publicProductId),
+          lte(price.validFrom, now),
+          or(isNull(price.validTo), gte(price.validTo, now))
+        )
+      );
   }
 
   /**

@@ -174,22 +174,10 @@ export default class ProductService {
       return null;
     }
 
-    // Filter for valid prices based on current date
-    const now = new Date();
-    const prices = rows
-      .filter((r) => {
-        const price = r.price;
-        if (!price || !price.validFrom) return false;
-
-        const validFrom = new Date(price.validFrom);
-        const validTo = price.validTo ? new Date(price.validTo) : null;
-
-        return validFrom <= now && (!validTo || validTo >= now);
-      })
-      .map((r) => ({
-        ...r.price,
-        storeChain: r.storeChain,
-      }));
+    const prices = rows.map((r) => ({
+      ...r.price,
+      storeChain: r.storeChain,
+    }));
 
     return {
       ...product.product,
