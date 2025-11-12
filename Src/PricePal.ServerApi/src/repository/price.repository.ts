@@ -1,4 +1,4 @@
-import { asc, eq, inArray, lte, gte, isNull, and, or } from "drizzle-orm";
+import { asc, eq, inArray, lte, gte, isNull, and, or, desc } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
 import { price, product, storeChain } from "../db/migrations/schema.js";
 import type { StoreChainName } from "../models/store-chain.model.js";
@@ -49,7 +49,6 @@ export default class PriceRepository {
 
   async getBiggestDiscountPerProduct() {
     const now = new Date().toISOString();
-
     // Fetch all prices valid now, ordered by product and discount ascending (biggest discount first)
     const rows = await db
       .select({
@@ -64,7 +63,7 @@ export default class PriceRepository {
           or(isNull(price.validTo), gte(price.validTo, now))
         )
       )
-      .orderBy(asc(price.discount));
+      .orderBy(desc(price.discount));
 
     // Group by productId in JS and take the first (biggest discount) price per product
     const map = new Map<
@@ -104,7 +103,7 @@ export default class PriceRepository {
           or(isNull(price.validTo), gte(price.validTo, now))
         )
       )
-      .orderBy(asc(price.discount));
+      .orderBy(desc(price.discount));
 
     // Group by productId in JS and take the first (biggest discount) price per product
     const map = new Map<

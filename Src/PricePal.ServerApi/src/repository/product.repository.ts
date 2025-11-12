@@ -1,4 +1,4 @@
-import { eq, inArray, asc, SQL, and, lte, or, isNull, gte } from "drizzle-orm";
+import { eq, inArray, asc, and, lte, or, isNull, gte, desc } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
 import {
   product,
@@ -58,7 +58,7 @@ export default class ProductRepository {
           priceIds.map((p) => p.id)
         )
       )
-      .orderBy(asc(price.discount))
+      .orderBy(desc(price.discount))
       .limit((pagination?.limit || ProductRepository.DEFAULT_LIMIT) + 1)
       .offset(pagination?.offset || ProductRepository.DEFAULT_OFFSET);
   }
@@ -129,6 +129,7 @@ export default class ProductRepository {
    * @returns Array of products with their lowest prices and associated discounts
    */
   async getBatchedLowestPrices(publicProductIds: string[]) {
+    const now = new Date().toISOString();
     // First, get all prices for the requested products
     const results = await db
       .select({
@@ -144,7 +145,13 @@ export default class ProductRepository {
       })
       .from(product)
       .leftJoin(price, eq(price.productId, product.id))
-      .where(inArray(product.publicId, publicProductIds))
+      .where(
+        and(
+          inArray(product.publicId, publicProductIds),
+          lte(price.validFrom, now),
+          or(isNull(price.validTo), gte(price.validTo, now))
+        )
+      )
       .orderBy(price.priceBgn);
 
     // Group by product and take the lowest price for each, ensuring at least one price exists

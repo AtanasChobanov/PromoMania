@@ -68,7 +68,7 @@ export const price = pgTable(
       mode: "string",
     }).notNull(),
     validTo: timestamp("valid_to", { precision: 3, mode: "string" }),
-    discount: integer(),
+    discount: integer().notNull().default(0),
   },
   (table) => [
     foreignKey({
