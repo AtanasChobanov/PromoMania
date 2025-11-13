@@ -605,6 +605,9 @@ export default function ProductPage() {
             experimentalBlurMethod="dimezisBlurView"
             style={[styles.blurContainer, { borderColor: 'white' }]}
           >
+            <View>
+
+           
             <TouchableOpacity 
               style={styles.cartButton}
               onPress={handleAddToCart}
@@ -625,6 +628,7 @@ export default function ProductPage() {
                 {isAdding ? 'Добавяне...' : 'Добави към количката'}
               </Text>
             </TouchableOpacity>
+             </View>
           </BlurButton>
         </BuyButtonContainer>
       </ImageBackground>
