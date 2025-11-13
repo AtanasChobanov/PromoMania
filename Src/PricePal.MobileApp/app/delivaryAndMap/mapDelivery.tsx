@@ -146,18 +146,12 @@ const MapDelivery = () => {
       
       const variations = shopNameVariations[shopName] || [shopName];
       
-      const queries = variations.map(variation => `
-        node["name"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        way["name"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        relation["name"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        node["brand"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        way["brand"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        relation["brand"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        node["name:en"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        way["name:en"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        node["name:bg"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-        way["name:bg"="${variation}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-      `).join('');
+     const queries = variations.map(v => `
+  nwr["name"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+  nwr["brand"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+  nwr["name:en"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+  nwr["name:bg"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+`).join('');
       
       const overpassQuery = `[out:json][timeout:25];(${queries});out center;`;
 
