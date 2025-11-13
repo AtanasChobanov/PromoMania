@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
 import { shoppingCartItem } from "../db/migrations/schema.js";
 
@@ -32,8 +32,10 @@ export default class ShoppingCartItemRepository {
       })
       .from(shoppingCartItem)
       .where(
-        eq(shoppingCartItem.cartId, cartId) &&
+        and(
+          eq(shoppingCartItem.cartId, cartId),
           eq(shoppingCartItem.productId, productId)
+        )
       );
     return result[0] || null;
   }
