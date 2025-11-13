@@ -3,7 +3,6 @@ import ProductSection, {
   type ProductSectionName,
 } from "../models/product-section.model.js";
 import type { ProductOverviewDto } from "../models/product.dto.js";
-import type { Product } from "../models/product.model.js";
 import { StoreChainName } from "../models/store-chain.model.js";
 import PriceRepository from "../repository/price.repository.js";
 import ProductRepository from "../repository/product.repository.js";
@@ -50,8 +49,15 @@ export default class ProductService {
   }): Promise<ProductSection> {
     const priceIds = await this.priceRepository.getLowestPricePerProduct();
 
-    let productData: ProductOverviewDto[] =
-      await this.productRepository.getOrderedByPrice(priceIds, pagination);
+    let productData: ProductOverviewDto[] = (
+      await this.productRepository.getOrderedByPrice(priceIds, pagination)
+    ).map((product) => {
+      return {
+        ...product,
+        priceBgn: product.priceBgn ? Number(product.priceBgn) : null,
+        priceEur: product.priceEur ? Number(product.priceEur) : null,
+      };
+    });
 
     const hasMore =
       productData.length >
@@ -90,8 +96,15 @@ export default class ProductService {
         .values()
     );
 
-    let productData: ProductOverviewDto[] =
-      await this.productRepository.getOrderedByDiscount(priceIds, pagination);
+    let productData: ProductOverviewDto[] = (
+      await this.productRepository.getOrderedByDiscount(priceIds, pagination)
+    ).map((product) => {
+      return {
+        ...product,
+        priceBgn: product.priceBgn ? Number(product.priceBgn) : null,
+        priceEur: product.priceEur ? Number(product.priceEur) : null,
+      };
+    });
 
     const hasMore =
       productData.length >
@@ -138,8 +151,15 @@ export default class ProductService {
           .values()
       );
 
-      let productData: ProductOverviewDto[] =
-        await this.productRepository.getOrderedByDiscount(priceIds, pagination);
+      let productData: ProductOverviewDto[] = (
+        await this.productRepository.getOrderedByDiscount(priceIds, pagination)
+      ).map((product) => {
+        return {
+          ...product,
+          priceBgn: product.priceBgn ? Number(product.priceBgn) : null,
+          priceEur: product.priceEur ? Number(product.priceEur) : null,
+        };
+      });
 
       const hasMore =
         productData.length >
@@ -176,6 +196,8 @@ export default class ProductService {
 
     const prices = rows.map((r) => ({
       ...r.price,
+      priceBgn: r.price?.priceBgn ? Number(r.price.priceBgn) : null,
+      priceEur: r.price?.priceEur ? Number(r.price.priceEur) : null,
       storeChain: r.storeChain,
     }));
 
