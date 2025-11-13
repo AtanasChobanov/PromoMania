@@ -13,8 +13,8 @@ export interface Category {
 }
 
 export interface ProductPrice {
-  priceBgn: string;
-  priceEur: string;
+  priceBgn: number;
+  priceEur: number;
   validFrom: string;
   validTo: string | null;
   discount: number | null;
@@ -152,9 +152,8 @@ export const getBestPrice = (prices: ProductPrice[]): ProductPrice | null => {
 
   // Database already filtered by date, so just find the lowest price
   return prices.reduce((best, current) => {
-    const bestPrice = parseFloat(best.priceBgn);
-    const currentPrice = parseFloat(current.priceBgn);
-    return currentPrice < bestPrice ? current : best;
+
+    return current.priceBgn < best.priceBgn ? current : best;
   });
 };
 
@@ -168,13 +167,13 @@ export const getBestPriceWithOriginal = (prices: ProductPrice[]): PricePair | nu
   let bestPair: PricePair | null = null;
   let lowestPrice = Infinity;
   
-  allPricesMap.forEach((pricePair) => {
-    const currentPrice = parseFloat(pricePair.discounted.priceBgn);
-    if (currentPrice < lowestPrice) {
-      lowestPrice = currentPrice;
-      bestPair = pricePair;
-    }
-  });
+allPricesMap.forEach((pricePair) => {
+  const currentPrice = pricePair.discounted.priceBgn;
+  if (currentPrice < lowestPrice) {
+    lowestPrice = currentPrice;
+    bestPair = pricePair;
+  }
+});
   
   return bestPair;
 };
