@@ -169,20 +169,20 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   onSaveForLater,
   index,
 }) => {
-  const { isDarkMode } = useSettings();
+  const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
+
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(quantity);
   const updateTimeoutRef = useRef<number | null>(null);
   const { updateItemQuantity } = useShoppingCart();
-  
+
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const quantityScaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Entrance animation
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -205,7 +205,6 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
     setLocalQuantity(quantity);
   }, [quantity]);
 
-  // Quantity change animation
   const animateQuantityChange = useCallback(() => {
     Animated.sequence([
       Animated.timing(quantityScaleAnim, {
@@ -228,7 +227,6 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   }, [onViewDetails]);
 
   const handleDelete = useCallback(() => {
-    // Animate out before deleting
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -244,37 +242,29 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
       setOptionsVisible(false);
       onDelete?.();
     });
-  }, [onDelete, fadeAnim, slideAnim]);
+  }, [onDelete]);
 
   const handleSaveForLater = useCallback(() => {
     setOptionsVisible(false);
     onSaveForLater?.();
   }, [onSaveForLater]);
 
-  const openOptions = useCallback(() => {
-    setOptionsVisible(true);
-  }, []);
+  const openOptions = useCallback(() => setOptionsVisible(true), []);
+  const closeOptions = useCallback(() => setOptionsVisible(false), []);
 
-  const closeOptions = useCallback(() => {
-    setOptionsVisible(false);
-  }, []);
-  
   const debouncedUpdate = useCallback((newQuantity: number) => {
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+
     updateTimeoutRef.current = setTimeout(async () => {
       try {
         await updateItemQuantity(publicId, newQuantity);
-        console.log('Item quantity updated successfully');
       } catch (error) {
         console.error('Failed to update quantity:', error);
         setLocalQuantity(quantity);
       }
     }, 500);
   }, [publicId, updateItemQuantity, quantity]);
-  
+
   const handleDecreaseQuantity = useCallback(() => {
     const newQuantity = localQuantity - 1;
     if (newQuantity <= 0) {
@@ -284,141 +274,90 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
     setLocalQuantity(newQuantity);
     animateQuantityChange();
     debouncedUpdate(newQuantity);
-  }, [localQuantity, debouncedUpdate, onDelete, animateQuantityChange]);
+  }, [localQuantity, animateQuantityChange, debouncedUpdate, onDelete]);
 
   const handleIncreaseQuantity = useCallback(() => {
     const newQuantity = localQuantity + 1;
     setLocalQuantity(newQuantity);
     animateQuantityChange();
     debouncedUpdate(newQuantity);
-  }, [localQuantity, debouncedUpdate, animateQuantityChange]);
+  }, [localQuantity, animateQuantityChange, debouncedUpdate]);
 
-  // Button press animation
   const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start();
   }, []);
-
   const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 300,
-      friction: 10,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scaleAnim, { toValue: 1, tension: 300, friction: 10, useNativeDriver: true }).start();
   }, []);
 
   useEffect(() => {
     return () => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     };
   }, []);
-  const {isPerformanceMode } = useSettings();
 
- const ProductContainer = isPerformanceMode ? View : Animated.View;
-const QuantityText = isPerformanceMode ? Text : Animated.Text;
+  const ProductContainer = isPerformanceMode ? View : Animated.View;
+  const QuantityText = isPerformanceMode ? Text : Animated.Text;
 
   return (
     <>
-
-<ProductContainer
-  style={[
-    styles.products,
-    {
-      backgroundColor: theme.colors.backgroundColor,
-      borderColor: '#FFFFFF',
-      borderWidth: 1,
-      ...(isPerformanceMode
-        ? {}
-        : {
-            opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim },
-            ],
-          }),
-    },
-  ]}
->
-  <View style={styles.productContainer}>
-    <TouchableOpacity 
-      style={styles.menuButton} 
-      onPress={openOptions}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
-      <Text style={[styles.menuDots, { color: theme.colors.textPrimary }]}>⋯</Text>
-    </TouchableOpacity>
-
-    <Image 
-      style={[styles.productImage, { width: scale(120) }]} 
-      source={{ uri: imageUrl }} 
-      resizeMode="contain"
-    />
-
-    <View style={styles.productDetails}>
-      <View>
-        {brand && <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text>}
-        <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textPrimary }]}>{name}</Text>
-        <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit}</Text>
-        <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur.toFixed(2)} €</Text>
-        <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price.toFixed(2)} лв.</Text>
-        {discount && (
-          <Text style={[styles.discount, { color: '#DC2626' }]}>
-            {discount}% отстъпка
-          </Text>
-        )}
-      </View>
-
-      <View style={styles.quantityRow}>
-        <BlurView
-          intensity={50}
-          tint={theme.colors.TabBarColors as 'dark' | 'light'}
-          style={styles.blurButton}
-        >
-          <TouchableHighlight 
-            underlayColor="transparent"
-            style={styles.buttonTouchable}
-            onPress={handleDecreaseQuantity}
+      <ProductContainer
+        style={[
+          styles.products,
+          {
+            backgroundColor: theme.colors.backgroundColor,
+            borderColor: '#FFFFFF',
+            borderWidth: 1,
+            ...(isPerformanceMode ? {} : { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }),
+          },
+        ]}
+      >
+        <View style={styles.productContainer}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={openOptions}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
           >
-            <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
-          </TouchableHighlight>
-        </BlurView>
+            <Text style={[styles.menuDots, { color: theme.colors.textPrimary }]}>⋯</Text>
+          </TouchableOpacity>
 
-       <QuantityText
-  style={[
-    styles.quantityText,
-    { 
-      color: theme.colors.textPrimary,
-      ...(isPerformanceMode ? {} : { transform: [{ scale: quantityScaleAnim }] }),
-    },
-  ]}
->
-  {localQuantity}
-</QuantityText>
+          <Image
+            style={[styles.productImage, { width: scale(120) }]}
+            source={imageUrl ? { uri: imageUrl } : require("../../assets/icons/icon.png")}
+            resizeMode={imageUrl ? "contain" : "cover"}
+          />
 
-        <BlurView
-          intensity={50}
-          tint={theme.colors.TabBarColors as 'dark' | 'light'}
-          style={styles.blurButton}
-        >
-          <TouchableHighlight 
-            underlayColor="transparent"
-            style={styles.buttonTouchable}
-            onPress={handleIncreaseQuantity}
-          >
-            <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
-          </TouchableHighlight>
-        </BlurView>
-      </View>
-    </View>
-  </View>
-</ProductContainer>
+          <View style={styles.productDetails}>
+            <View>
+              {brand ? <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text> : null}
+              <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textPrimary }]}>{name ?? ""}</Text>
+              <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit ?? ""}</Text>
+              <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
+              <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
+              {discount != null && <Text style={[styles.discount, { color: '#DC2626' }]}>{discount}% отстъпка</Text>}
+            </View>
 
+            <View style={styles.quantityRow}>
+              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={styles.blurButton}>
+                <TouchableHighlight underlayColor="transparent" style={styles.buttonTouchable} onPress={handleDecreaseQuantity}>
+                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
+                </TouchableHighlight>
+              </BlurView>
+
+              <QuantityText style={[styles.quantityText, { color: theme.colors.textPrimary, ...(isPerformanceMode ? {} : { transform: [{ scale: quantityScaleAnim }] }) }]}>
+                {localQuantity}
+              </QuantityText>
+
+              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={styles.blurButton}>
+                <TouchableHighlight underlayColor="transparent" style={styles.buttonTouchable} onPress={handleIncreaseQuantity}>
+                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
+                </TouchableHighlight>
+              </BlurView>
+            </View>
+          </View>
+        </View>
+      </ProductContainer>
 
       <OptionsMenu
         visible={optionsVisible}
@@ -429,14 +368,12 @@ const QuantityText = isPerformanceMode ? Text : Animated.Text;
       />
     </>
   );
-}, (prevProps, nextProps) => {
-  return (
-    prevProps.publicId === nextProps.publicId &&
-    prevProps.quantity === nextProps.quantity &&
-    prevProps.price === nextProps.price &&
-    prevProps.index === nextProps.index
-  );
-});
+}, (prevProps, nextProps) => (
+  prevProps.publicId === nextProps.publicId &&
+  prevProps.quantity === nextProps.quantity &&
+  prevProps.price === nextProps.price &&
+  prevProps.index === nextProps.index
+));
 
 const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
   basePrice,
@@ -504,8 +441,7 @@ const FinalPriceContainer = isPerformanceMode ? View : Animated.View;
             </Text>
           )}
           <Text style={{ fontSize: moderateScale(16), color: theme.colors.textPrimary }}>
-            Оригинална цена:
-            </Text>
+            Оригинална цена:</Text>
             <View style={styles.pricesConclusion}>
             <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
               {isLoading ? '...' : `${basePrice.toFixed(2)} лв`}
@@ -514,16 +450,16 @@ const FinalPriceContainer = isPerformanceMode ? View : Animated.View;
               {isLoading ? '...' : `${basePriceEur.toFixed(2)} €`}
             </Text>
             </View>
-          <Text style={{ fontSize: moderateScale(16), color: theme.colors.textPrimary }}>
+           <Text style={{ fontSize: moderateScale(16), color: theme.colors.textPrimary }}>
             Обща цена:
           </Text>
           
-          <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: moderateScale(10) }}>
+          <View style={styles.pricesConclusion}>
             <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
-              {isLoading ? '...' : `${bestOffer?.totalPriceBgn.toFixed(2)} лв`}
+              {isLoading ? '...' : `${(basePrice - saves).toFixed(2)} лв`}
             </Text>
             <Text style={[styles.totalPriceText, { fontSize: moderateScale(18), color: theme.colors.textPrimary }]}>
-              {isLoading ? '...' : `${bestOffer?.totalPriceEur.toFixed(2)} €`}
+              {isLoading ? '...' : `${(basePriceEur - saves).toFixed(2)} €`}
             </Text>
           </View>
         </View>
@@ -739,19 +675,22 @@ const Cart: React.FC = () => {
     </View>
   ), [theme.colors.textPrimary, itemCount]);
 
+ const displayPriceBgn = bestOffer?.totalPriceBgn ?? totalPrice.bgn;
+  const displayPriceEur = bestOffer?.totalPriceEur ?? totalPrice.eur;
+
   const ListFooterComponent = useMemo(() => (
     <>
       {products.length > 0 && (
         <FinalPrice
-          basePrice={bestOffer?.totalPriceBgn ?? 0 + totalSavings}
-          basePriceEur={bestOffer?.totalPriceEur ?? 0 + totalSavings}
+          basePrice={displayPriceBgn + totalSavings}
+          basePriceEur={displayPriceEur + totalSavings}
           saves={totalSavings}
           bestOfferStore={bestOffer?.storeChain}
         />
       )}
       <View style={{ height: moderateScale(250) }} />
     </>
-  ), [products.length, totalPrice.bgn, totalSavings, bestOffer]);
+  ), [products.length, displayPriceBgn, displayPriceEur, totalSavings, bestOffer]);
 
   const ListEmptyComponent = useMemo(() => (
     <View style={styles.emptyContainer}>
@@ -813,8 +752,7 @@ const Cart: React.FC = () => {
     );
   }
 
-  const displayPriceBgn = bestOffer?.totalPriceBgn ?? totalPrice.bgn;
-  const displayPriceEur = bestOffer?.totalPriceEur ?? totalPrice.eur;
+
 
   return (
     <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
