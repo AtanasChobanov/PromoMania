@@ -198,10 +198,13 @@ export default function ProductPage() {
   const pricesByChain = getAllCurrentPricesWithOriginals(product.prices);
 
   // Helper function to safely extract numeric price
-  const getNumericPrice = (price: string | undefined): string => {
-    if (!price) return '0';
-    return price.replace(/[^\d.]/g, '');
-  };
+ const getNumericPrice = (price: string | number | undefined): number => {
+  if (price == null) return 0;
+
+  if (typeof price === "number") return price;
+
+  return parseFloat(price.replace("лв.", "").replace(",", "."));
+};
    const ImageContainer =isPerformanceMode ? View : Animated.View;
    const ProductContainer =isPerformanceMode ? View : Animated.View;
    const CategoryContainer =isPerformanceMode ? View : Animated.View;
