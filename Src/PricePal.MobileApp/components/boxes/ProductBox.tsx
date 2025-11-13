@@ -37,9 +37,9 @@ export const ProductBox: React.FC<{
   productId: string;
   productName: string;
   brand: string;
-  priceBgn: string;
+  priceBgn: number;  
   unit?: string;
-  priceEur: string;
+  priceEur: number; 
   photo?: string;
   colors?: [string, string, ...string[]];
   index: number;
@@ -61,8 +61,8 @@ export const ProductBox: React.FC<{
   const cartButtonScale = useSharedValue(1);
 
   const cardWidth = wp(45);
-  const processedBgn = priceBgn.replace(/\s*лв\.?.*$/i, '');
-  const processedEur = priceEur.replace(/€.*/, '');
+    const processedBgn = (priceBgn || 0).toFixed(2);
+const processedEur = (priceEur || 0).toFixed(2);
 
   const gradientColors = colors || ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'];
 
