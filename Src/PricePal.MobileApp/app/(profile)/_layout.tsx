@@ -21,7 +21,7 @@ const getFontSize = (size: number) => {
 export default function SubcategoryProductLayout() {
   const router = useRouter();
   const { categoryName } = useLocalSearchParams();
-  const { isDarkMode } = useSettings();
+  const { isDarkMode,isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
@@ -41,12 +41,19 @@ export default function SubcategoryProductLayout() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <BlurView 
-              intensity={20} 
-              tint={theme.colors.TabBarColors as 'light' | 'dark'}
-              experimentalBlurMethod="dimezisBlurView"
-              style={StyleSheet.absoluteFillObject}
-            />
+              {isPerformanceMode ? (
+                         <View 
+                   
+                           style={[styles.tabBarBlur,{backgroundColor:theme.colors.backgroundColor}]} 
+                         />
+                       ) : (
+                         <BlurView 
+                           intensity={20} 
+                           tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                           experimentalBlurMethod="dimezisBlurView"
+                           style={[StyleSheet.absoluteFillObject,]}
+                         />
+                       )}
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M15 18l-6-6 6-6"
@@ -108,5 +115,8 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(18),
     fontWeight: 'bold',
     marginRight: 40,
+  },
+    tabBarBlur: {
+    ...StyleSheet.absoluteFillObject,
   },
 });

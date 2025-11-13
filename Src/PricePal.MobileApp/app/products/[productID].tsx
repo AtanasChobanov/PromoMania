@@ -389,108 +389,112 @@ export default function ProductPage() {
           </ProductContainer>
 
           {/* Retail Prices - Show all active prices with original prices */}
-          {pricesByChain.size > 0 && (
-            <RetailStoresContainer
-              entering={isPerformanceMode ? undefined :FadeInDown.delay(300).duration(600).springify()}
+         {pricesByChain.size > 0 && (
+  <RetailStoresContainer
+    entering={isPerformanceMode ? undefined : FadeInDown.delay(300).duration(600).springify()}
+    style={[
+      styles.retailsContainer,
+      {
+        backgroundColor: theme.colors.cardBackground,
+        borderColor: theme.colors.borderColor,
+        borderWidth: 1,
+      },
+    ]}
+  >
+    <Text style={[styles.retailTitle, { color: theme.colors.textPrimary }]}>
+      Цени в различните вериги
+    </Text>
+    {Array.from(pricesByChain.entries()).map(([chainName, pricePair], index) => {
+      const AnimatedContainer = isPerformanceMode ? View : Animated.View;
+      
+      return (
+        <AnimatedContainer
+          key={chainName}
+          entering={isPerformanceMode ? undefined : FadeIn.delay(350 + index * 50).duration(500)}
+          style={styles.OneRetailBox}
+        >
+          <View style={styles.leftSection}>
+            <View style={styles.storeInfo}>
+              <Image
+                style={styles.retailImages}
+                source={
+                  chainLogos[chainName] ||
+                  require('../../assets/icons/icon.png')
+                }
+              />
+              <Text
+                style={[styles.retailText, { color: theme.colors.textPrimary }]}
+              >
+                {chainName}
+              </Text>
+            </View>
+            {pricePair.discounted.discount && (
+              <View
+                style={[
+                  styles.discountContainer,
+                  { backgroundColor: theme.colors.textGreen },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.discountText,
+                    { color: theme.colors.textPrimary },
+                  ]}
+                >
+                  {pricePair.discounted.discount}%
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* BGN Prices Column */}
+          <View style={styles.rightSection}>
+            <Text
               style={[
-                styles.retailsContainer,
-                {
-                  backgroundColor: theme.colors.cardBackground,
-                  borderColor: theme.colors.borderColor,
-                  borderWidth: 1,
-                },
+                styles.retailPrice, 
+                { color: theme.colors.textBlue }
               ]}
             >
-              <Text style={[styles.retailTitle, { color: theme.colors.textPrimary }]}>
-                Цени в различните вериги
+              {getNumericPrice(pricePair.discounted.priceBgn)} лв.
+            </Text>
+            {pricePair.original && (
+              <Text
+                style={[
+                  styles.originalPrice,
+                  { color: theme.colors.textSecondary }
+                ]}
+              >
+                {getNumericPrice(pricePair.original.priceBgn)} лв.
               </Text>
-              {Array.from(pricesByChain.entries()).map(([chainName, pricePair], index) => (
-                <RetailStoresContainer
-                  key={chainName}
-                  entering={isPerformanceMode ? undefined :FadeIn.delay(350 + index * 50).duration(500)}
-                  style={styles.OneRetailBox}
-                >
-                  <View style={styles.leftSection}>
-                    <View style={styles.storeInfo}>
-                      <Image
-                        style={styles.retailImages}
-                        source={
-                          chainLogos[chainName] ||
-                          require('../../assets/icons/icon.png')
-                        }
-                      />
-                      <Text
-                        style={[styles.retailText, { color: theme.colors.textPrimary }]}
-                      >
-                        {chainName}
-                      </Text>
-                    </View>
-                    {pricePair.discounted.discount && (
-                      <View
-                        style={[
-                          styles.discountContainer,
-                          { backgroundColor: theme.colors.textGreen },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.discountText,
-                            { color: theme.colors.textPrimary },
-                          ]}
-                        >
-                          {pricePair.discounted.discount}%
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+            )}
+          </View>
 
-                  {/* BGN Prices Column */}
-                  <View style={styles.rightSection}>
-                    <Text
-                      style={[
-                        styles.retailPrice, 
-                        { color: theme.colors.textBlue }
-                      ]}
-                    >
-                      {getNumericPrice(pricePair.discounted.priceBgn)} лв.
-                    </Text>
-                    {pricePair.original && (
-                      <Text
-                        style={[
-                          styles.originalPrice,
-                          { color: theme.colors.textSecondary }
-                        ]}
-                      >
-                        {getNumericPrice(pricePair.original.priceBgn)} лв.
-                      </Text>
-                    )}
-                  </View>
-
-                  {/* EUR Prices Column */}
-                  <View style={styles.rightSection}>
-                    <Text
-                      style={[
-                        styles.retailPrice, 
-                        { color: theme.colors.textBlue }
-                      ]}
-                    >
-                      {getNumericPrice(pricePair.discounted.priceEur)} €
-                    </Text>
-                    {pricePair.original && (
-                      <Text
-                        style={[
-                          styles.originalPrice,
-                          { color: theme.colors.textSecondary }
-                        ]}
-                      >
-                        {getNumericPrice(pricePair.original.priceEur)} €
-                      </Text>
-                    )}
-                  </View>
-                </RetailStoresContainer>
-              ))}
-            </RetailStoresContainer>
-          )}
+          {/* EUR Prices Column */}
+          <View style={styles.rightSection}>
+            <Text
+              style={[
+                styles.retailPrice, 
+                { color: theme.colors.textBlue }
+              ]}
+            >
+              {getNumericPrice(pricePair.discounted.priceEur)} €
+            </Text>
+            {pricePair.original && (
+              <Text
+                style={[
+                  styles.originalPrice,
+                  { color: theme.colors.textSecondary }
+                ]}
+              >
+                {getNumericPrice(pricePair.original.priceEur)} €
+              </Text>
+            )}
+          </View>
+        </AnimatedContainer>
+      );
+    })}
+  </RetailStoresContainer>
+)}
 
           {/* Price History Chart */}
           <PriceHistoryContainer
