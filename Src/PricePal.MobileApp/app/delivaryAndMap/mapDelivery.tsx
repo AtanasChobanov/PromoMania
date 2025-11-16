@@ -139,83 +139,110 @@ const MapDelivery = () => {
       return null;
     }
   };
+const overpassEndpoints = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.nchc.org.tw/api/interpreter',
+];
+ const findShopLocation = async (
+  shopName: string,
+  userLoc: LocationCoords
+): Promise<LocationCoords | null> => {
+  try {
+    const radius = 15000; // 15 km search radius
+    const variations = shopNameVariations[shopName] || [shopName];
 
-  const findShopLocation = async (shopName: string, userLoc: LocationCoords): Promise<LocationCoords | null> => {
-    try {
-      const radius = 15000;
-      
-      const variations = shopNameVariations[shopName] || [shopName];
-      
-     const queries = variations.map(v => `
-  nwr["name"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-  nwr["brand"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-  nwr["name:en"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-  nwr["name:bg"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
-`).join('');
-      
-      const overpassQuery = `[out:json][timeout:25];(${queries});out center;`;
+    // Build query for each name variation
+    const queries = variations
+      .map(
+        (v) => `
+        nwr["name"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+        nwr["brand"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+        nwr["name:en"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+        nwr["name:bg"="${v}"](around:${radius},${userLoc.latitude},${userLoc.longitude});
+      `
+      )
+      .join('');
 
-      console.log(`Searching for ${shopName}`);
+    const overpassQuery = `[out:json][timeout:30];(${queries});out center qt;`;
 
-      const url = 'https://overpass-api.de/api/interpreter';
-      const response = await fetch(url, {
-        method: 'POST',
-        body: `data=${encodeURIComponent(overpassQuery)}`,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
+    console.log(`🔎 Searching for "${shopName}" near ${userLoc.latitude},${userLoc.longitude}`);
 
-      const text = await response.text();
-      
-      if (text.startsWith('<')) {
-        console.error(`Overpass API returned HTML for ${shopName}`);
-        return null;
+    // Try multiple endpoints until one works
+    let response: Response | null = null;
+    for (const endpoint of overpassEndpoints) {
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          body: `data=${encodeURIComponent(overpassQuery)}`,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+
+        if (response.ok) break;
+      } catch (err) {
+        console.warn(`⚠️ Overpass endpoint failed: ${endpoint}`);
       }
-      
-      const data = JSON.parse(text);
+    }
 
-      console.log(`Found ${data.elements?.length || 0} results for ${shopName}`);
-
-      if (data.elements && data.elements.length > 0) {
-        let closestElement = null;
-        let minDistance = Infinity;
-        
-        for (const element of data.elements) {
-          const lat = element.lat || element.center?.lat;
-          const lon = element.lon || element.center?.lon;
-          
-          if (lat && lon) {
-            const R = 6371;
-            const dLat = (lat - userLoc.latitude) * Math.PI / 180;
-            const dLon = (lon - userLoc.longitude) * Math.PI / 180;
-            const a = 
-              Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLoc.latitude * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c;
-            
-            if (distance < minDistance) {
-              minDistance = distance;
-              closestElement = { latitude: lat, longitude: lon };
-            }
-          }
-        }
-        
-        if (closestElement) {
-          console.log(`Using closest location for ${shopName} at ${minDistance.toFixed(2)} km:`, closestElement);
-          return closestElement;
-        }
-      }
-      
-      console.log(`No results found for ${shopName}`);
-      return null;
-    } catch (error) {
-      console.error(`Error finding ${shopName}:`, error);
+    if (!response) {
+      console.error('❌ All Overpass endpoints failed.');
       return null;
     }
-  };
+
+    const text = await response.text();
+
+    // Overpass may return HTML error instead of JSON
+    if (text.startsWith('<')) {
+      console.error(`❌ Overpass returned HTML for ${shopName}`);
+      return null;
+    }
+
+    const data = JSON.parse(text);
+    const elements = data.elements || [];
+
+    console.log(`✅ Found ${elements.length} results for "${shopName}"`);
+
+    if (elements.length === 0) return null;
+
+    // Find the closest result
+    let closestElement: LocationCoords | null = null;
+    let minDistance = Infinity;
+
+    for (const element of elements) {
+      const lat = element.lat || element.center?.lat;
+      const lon = element.lon || element.center?.lon;
+      if (!lat || !lon) continue;
+
+      const dLat = ((lat - userLoc.latitude) * Math.PI) / 180;
+      const dLon = ((lon - userLoc.longitude) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(userLoc.latitude * Math.PI / 180) *
+          Math.cos(lat * Math.PI / 180) *
+          Math.sin(dLon / 2) ** 2;
+      const distance = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestElement = { latitude: lat, longitude: lon };
+      }
+    }
+
+    if (closestElement) {
+      console.log(
+        `📍 Closest ${shopName}: ${minDistance.toFixed(2)} km away at`,
+        closestElement
+      );
+      return closestElement;
+    }
+
+    console.log(`🚫 No valid coordinates found for "${shopName}"`);
+    return null;
+  } catch (error) {
+    console.error(`❌ Error finding ${shopName}:`, error);
+    return null;
+  }
+};
 
   const calculateShopRoutes = async (userLoc: LocationCoords, offers: any[]) => {
     if (offers.length === 0) return;
@@ -751,7 +778,7 @@ const renderShopCard = (
             ) : (
               <BlurView 
                 intensity={20} 
-                tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                           tint={theme.colors.GlassColor}
                 experimentalBlurMethod="dimezisBlurView"
                 style={[StyleSheet.absoluteFillObject,]}
               />

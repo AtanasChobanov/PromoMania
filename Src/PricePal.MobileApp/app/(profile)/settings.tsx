@@ -151,7 +151,7 @@ const [userId, setUserId] = useState<string | null>(null);
           { 
             fontSize: getFontSize(isSimpleMode ? 32 : 28),
             color: theme.colors.textPrimary,
-            marginTop:hp(5)
+            marginTop:moderateScale(40)
           }
         ]}>
           Настройки

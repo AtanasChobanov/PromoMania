@@ -49,8 +49,8 @@ export default function SubcategoryProductLayout() {
                          />
                        ) : (
                          <BlurView 
-                           intensity={20} 
-                           tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                            intensity={20} 
+                           tint={theme.colors.GlassColor}
                            experimentalBlurMethod="dimezisBlurView"
                            style={[StyleSheet.absoluteFillObject,]}
                          />

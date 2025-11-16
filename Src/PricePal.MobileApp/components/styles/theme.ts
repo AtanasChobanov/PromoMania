@@ -1,3 +1,5 @@
+import { BlurTint } from "expo-blur";
+
 export const lightTheme = {
   colors: {
     // Backgrounds
@@ -43,7 +45,8 @@ export const lightTheme = {
 
     unitColor:"rgba(31, 41, 55, 0.1)",
     unitBorderColor: "rgba(31, 41, 55, 0.2)",
-
+GlassColor:'systemUltraThinMaterialDark' as BlurTint,
+GlassColorReverse:'light'as BlurTint,
 
     TopBarColors:['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)', 'rgba(255,255,255,0)'] as [string, string, ...string[]],
     TabBarColors:'light',
@@ -102,6 +105,9 @@ export const darkTheme = {
 unitColor: "rgba(229, 231, 235, 0.1)",
 unitBorderColor: "rgba(229, 231, 235, 0.2)",
 
+            
+GlassColor:'light'as BlurTint,
+GlassColorReverse:'systemUltraThinMaterialDark'as BlurTint,
 
 TopBarColors:['rgba(31, 41, 55, 0.9)', 'rgba(31, 41, 55, 0.7)', 'transparent'] as [string, string, ...string[]],
 TabBarColors:'dark',
