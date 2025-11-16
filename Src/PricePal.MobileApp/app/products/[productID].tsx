@@ -606,8 +606,8 @@ export default function ProductPage() {
           <BlurButton
                   start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
-            intensity={isPerformanceMode? undefined :40}
-            tint={isPerformanceMode? undefined :theme.colors.TabBarColors as 'light' | 'dark'}
+            intensity={isPerformanceMode? undefined :30}
+            tint={isPerformanceMode? undefined :theme.colors.GlassColor}
             colors={isPerformanceMode? theme.colors.blueTeal : undefined}
             experimentalBlurMethod="dimezisBlurView"
             style={[styles.blurContainer, { borderColor: 'white' }]}

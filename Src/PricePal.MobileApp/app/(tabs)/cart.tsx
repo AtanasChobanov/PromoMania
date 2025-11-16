@@ -64,8 +64,8 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
   onDelete,
   onSaveForLater,
 }) => {
-    const {isPerformanceMode } = useSettings();
-  
+    const {isPerformanceMode, isDarkMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const slideAnim = useRef(new Animated.Value(300)).current;
  const MoreOptionsContainer =  isPerformanceMode ? View :Animated.View;
   useEffect(() => {
@@ -83,7 +83,7 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
 
   return (
     <Modal
@@ -143,11 +143,12 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
     </Svg>
     <Text style={[styles.optionText, styles.deleteText]}>Премахни от количката</Text>
   </TouchableOpacity>
-  
-  <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+
+    <TouchableOpacity style={styles.cancelButton}  onPress={onClose}>
     <Text style={styles.cancelText}>Отказ</Text>
   </TouchableOpacity>
-</BlurView>
+  </BlurView>
+
         </MoreOptionsContainer>
       </TouchableOpacity>
     </Modal>
@@ -199,7 +200,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim,index, slideAnim]);
 
   useEffect(() => {
     setLocalQuantity(quantity);
@@ -219,7 +220,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [quantityScaleAnim]);
 
   const handleViewDetails = useCallback(() => {
     setOptionsVisible(false);
@@ -242,7 +243,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
       setOptionsVisible(false);
       onDelete?.();
     });
-  }, [onDelete]);
+  }, [onDelete,fadeAnim,slideAnim]);
 
   const handleSaveForLater = useCallback(() => {
     setOptionsVisible(false);
@@ -285,10 +286,10 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start();
-  }, []);
+  }, [scaleAnim]);
   const handlePressOut = useCallback(() => {
     Animated.spring(scaleAnim, { toValue: 1, tension: 300, friction: 10, useNativeDriver: true }).start();
-  }, []);
+  }, [scaleAnim]);
 
   useEffect(() => {
     return () => {
@@ -401,7 +402,7 @@ const FinalPrice: React.FC<FinalPriceProps> = React.memo(({
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim,slideAnim]);
     const {isPerformanceMode } = useSettings();
 
 const FinalPriceContainer = isPerformanceMode ? View : Animated.View;
@@ -501,14 +502,14 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [priceBgn, priceEur]);
+  }, [priceBgn, priceEur,pulseAnim]);
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, {
       toValue: 0.98,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [scaleAnim]);
 
   const handlePressOut = useCallback(() => {
     Animated.spring(scaleAnim, {
@@ -517,7 +518,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
       friction: 10,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [scaleAnim]);
  const OverviewPriceContainer = isPerformanceMode ? View : Animated.View;
 
   return (
@@ -565,7 +566,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
           >
       <BlurView
         intensity={55}
-        tint={theme.colors.TabBarColors as 'dark' | 'light'}
+        tint='systemUltraThinMaterialDark'
         experimentalBlurMethod="dimezisBlurView"
         style={styles.continueButton}
       >
@@ -704,7 +705,7 @@ const Cart: React.FC = () => {
         <Text style={styles.shopButtonText}>Започни пазаруване</Text>
       </TouchableOpacity>
     </View>
-  ), [theme.colors.textPrimary]);
+  ), [theme.colors.textPrimary, theme.colors.textGreen]);
 
   const getItemLayout = useCallback((data: any, index: number) => ({
     length: moderateScale(176),
@@ -996,7 +997,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     paddingVertical: 15,
     borderRadius: 12,
+    overflow:'hidden',
     marginTop: 10,
+    borderColor:'gray',
+    borderWidth:1,
   },
   cancelText: {
     fontSize: moderateScale(20),
@@ -1039,7 +1043,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: 'white',
     shadowColor: '#000',
     shadowOpacity: 0.2,

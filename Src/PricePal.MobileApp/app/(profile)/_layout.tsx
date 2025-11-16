@@ -10,7 +10,6 @@ import Svg, { Path } from 'react-native-svg';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const wp = (percentage: number) => (percentage * screenWidth) / 100;
 const hp = (percentage: number) => (percentage * screenHeight) / 100;
 const getFontSize = (size: number) => {
   if (screenWidth < 350) return size * 0.85;
@@ -49,7 +48,7 @@ export default function SubcategoryProductLayout() {
                        ) : (
                          <BlurView 
                            intensity={20} 
-                           tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                           tint={theme.colors.GlassColor}
                            experimentalBlurMethod="dimezisBlurView"
                            style={[StyleSheet.absoluteFillObject,]}
                          />

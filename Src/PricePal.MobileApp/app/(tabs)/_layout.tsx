@@ -80,11 +80,11 @@ const TabIcon = React.memo(({ focused, IconComponent, title }: any) => {
   
   if (focused) {
     return (
-      <View style={[styles.focusedTab, { overflow: 'hidden' }]}>
+      <View style={[styles.focusedTab, { overflow: 'hidden', elevation:2 }]}>
         <BlurView 
           experimentalBlurMethod="dimezisBlurView"
-          intensity={50} 
-          tint={theme.colors.TabBarColors as 'light' | 'dark'}
+          intensity={30} 
+          tint='systemUltraThinMaterialDark'
           style={StyleSheet.absoluteFillObject}
         />
         <View style={{ zIndex: 1 }}>
@@ -122,7 +122,7 @@ const SearchButton = React.memo(({ bottomInset, isFocused }: { bottomInset: numb
             <View style={[styles.tabBarBlur, { backgroundColor: theme.colors.textGreen }]} />
           ) : (
             <BlurView 
-              intensity={30} 
+              intensity={50} 
               experimentalBlurMethod="dimezisBlurView"
               tint={theme.colors.TabBarColors as 'light' | 'dark'}
               style={styles.searchButtonBlur}
@@ -144,7 +144,7 @@ const SearchButton = React.memo(({ bottomInset, isFocused }: { bottomInset: numb
           <BlurView 
             experimentalBlurMethod="dimezisBlurView"
             intensity={50} 
-            tint={theme.colors.TabBarColors as 'light' | 'dark'}
+            tint={theme.colors.GlassColor}
             style={StyleSheet.absoluteFillObject}
           />
           <View style={{ zIndex: 1 }}>
@@ -159,7 +159,6 @@ const SearchButton = React.memo(({ bottomInset, isFocused }: { bottomInset: numb
 SearchButton.displayName = 'SearchButton';
 
 const TopBar = React.memo(() => {
-  const insets = useSafeAreaInsets();
   const { isDarkMode, isPerformanceMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   
@@ -194,7 +193,7 @@ const TopBar = React.memo(() => {
             ) : (
               <BlurView 
                 intensity={20} 
-                tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                tint={theme.colors.GlassColor}
                 experimentalBlurMethod="dimezisBlurView"
                 style={[StyleSheet.absoluteFillObject,]}
               />
@@ -236,8 +235,8 @@ const Layout = () => {
               tabBarStyle: {
                 position: 'absolute',
                 bottom: moderateScale(28),
-                paddingLeft: scale(20),
-                paddingRight: scale(20),
+                paddingLeft: scale(10),
+                paddingRight: scale(10),
                 marginHorizontal: scale(10),
                 height: moderateScale(70),
                 width: scale(265),
@@ -263,8 +262,8 @@ const Layout = () => {
                     />
                   ) : (
                     <BlurView
-                      intensity={20}
-                      tint={theme.colors.TabBarColors as 'light' | 'dark'}
+                      intensity={50}
+                      tint={theme.colors.GlassColorReverse}
                       experimentalBlurMethod="dimezisBlurView"
                       style={styles.tabBarBlur}
                     />
@@ -369,17 +368,16 @@ const styles = StyleSheet.create({
   },
 
   focusedTab: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: scale(100),
-    marginTop: ScreenHeight > 860 ? moderateScale(35) : moderateScale(32),
+    marginTop:  moderateScale(32),
     height: moderateScale(60),
     borderColor: "white",
     borderWidth: 0.5,
-    width: scale(100),
     paddingHorizontal: scale(12),
-    minWidth: scale(100),
+    minWidth: scale(90),
     maxWidth: scale(120),
     
   },
@@ -407,7 +405,7 @@ const styles = StyleSheet.create({
     right: scale(13),
     width: scale(58),
     height: moderateScale(62),
-    borderRadius: scale(52),
+    borderRadius: scale(202),
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',

@@ -6,7 +6,9 @@ fix scalibity mode
 add more animations
 deconstruct code
 брошура и презентация
-
+condition for when store not close enough
+condition for 0% namalenie
+optinal liquid glass and ios liquad glass
 
 future features:
 search functionality

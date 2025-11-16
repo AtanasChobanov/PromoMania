@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { moderateScale } from "react-native-size-matters";
 import { getFontSize, hp, wp } from '../utils/dimenstions';
 
 export const styles = StyleSheet.create({
@@ -73,8 +74,7 @@ export const styles = StyleSheet.create({
 
   // Categories
   categories: {
-    padding: wp(3),
-    height: hp(6),
+    height:moderateScale(47),
     borderRadius: 15,
     elevation: 5,
     alignItems: "center",
