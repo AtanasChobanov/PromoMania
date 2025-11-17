@@ -480,7 +480,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   const pulseAnim = useRef(new Animated.Value(1)).current;
   
   const blurViewProps = {
-    intensity: 20,
+    intensity: 50,
     tint: theme.colors.TabBarColors as 'dark' | 'light',
     experimentalBlurMethod: 'dimezisBlurView' as const,
   };
@@ -565,14 +565,14 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
             onPressOut={handlePressOut}
           >
       <BlurView
-        intensity={55}
+        intensity={75}
         tint='systemUltraThinMaterialDark'
         experimentalBlurMethod="dimezisBlurView"
         style={styles.continueButton}
       >
         <View >
       
-            <Text style={[styles.continueButtonText, {color: theme.colors.textPrimary}]}>
+            <Text style={[styles.continueButtonText, {color: theme.colors.textReverse}]}>
               Продължи
             </Text>
         </View>
