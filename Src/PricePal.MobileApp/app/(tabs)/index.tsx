@@ -97,11 +97,7 @@ const Index: React.FC = () => {
         sectionType: 'our-choice' as SectionType, 
         gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
       },
-    ];
-
-    if (!isSimpleMode) {
-      baseSections.push(
-        { 
+         { 
           sectionType: 'kaufland' as SectionType, 
           gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
         },
@@ -117,8 +113,9 @@ const Index: React.FC = () => {
           sectionType: 'tmarket' as SectionType, 
           gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
         }
-      );
-    }
+    ];
+
+
 
     return baseSections;
   }, [isSimpleMode, theme]);
