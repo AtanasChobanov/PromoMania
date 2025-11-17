@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import productsRouter from "../routes/product.routes.js";
 import usersRouter from "../routes/user.routes.js";
+import authRouter from "../routes/auth.routes.js";
 
 const app = express();
 
@@ -13,5 +14,6 @@ app.use(express.urlencoded({ extended: true }));
 // routes
 app.use("/products", productsRouter);
 app.use("/users/:publicUserId", usersRouter);
+app.use("/auth", authRouter);
 
 export default app;

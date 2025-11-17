@@ -3,6 +3,7 @@ import { z } from "zod";
 const strongPassword = z
   .string()
   .min(8)
+  .max(128)
   .regex(/[A-Z]/, "Must contain at least one uppercase letter")
   .regex(/[a-z]/, "Must contain at least one lowercase letter")
   .regex(/[0-9]/, "Must contain at least one number")
