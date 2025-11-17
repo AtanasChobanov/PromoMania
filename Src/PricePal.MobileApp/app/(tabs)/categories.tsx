@@ -2,7 +2,7 @@ import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Dimensions, FlatList, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -15,10 +15,7 @@ import Animated, {
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Width and height functions
-const wp = (percentage: number): number => {
-  return (percentage * screenWidth) / 100;
-};
+
 
 const hp = (percentage: number): number => {
   return (percentage * screenHeight) / 100;
@@ -376,53 +373,10 @@ export const categoriesArray: CategoriesProps[] = [
 ];
 
 // Memoize color mapping to avoid recalculation
-const CATEGORY_COLOR_MAP = new Map<string, [string, string]>([
-  // Food & Beverages - Green gradient
-  ["🍎Плодове и зеленчуци", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🥩Месо и птици", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🐟Риба и морски дарове", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🧀Млечни продукти", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🍞Хлебни изделия", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["❄️Замразени храни", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🥫Консерви и пакетирани храни", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🥖Основни продукти и подправки", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🍿Снаксове", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🍫Сладки и десерти", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🥣Закуска и зърнени продукти", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🥤Напитки", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  ["🍷Алкохол", ['rgba(203,230,246,1)', 'rgba(143,228,201,1)']],
-  
-  // Household - Blue gradient
-  ["🧼Почистващи и перилни препарати", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
-  ["🧻Хартиени продукти", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
-  ["🥡Еднократни съдове и опаковки", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
-  ["📦Организация и съхранение", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
-  ["🐾Грижа за домашни любимци", ['rgba(255,218,185,1)', 'rgba(255,182,193,1)']],
-  
-  // Personal Care - Purple gradient
-  ["🧴Тоалетни принадлежности", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
-  ["💆‍♀️Грижа за кожата", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
-  ["💇‍♀️Грижа за косата", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
-  ["💊Здраве и уелнес", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
-  ["👶Бебешки продукти", ['rgba(221,214,243,1)', 'rgba(196,181,253,1)']],
-  
-  // General Merchandise - Orange gradient
-  ["🍳Кухня и сервиране", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🔌Електроуреди", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🔋Електроника и аксесоари", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🧦Текстил и облекло", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🖊️Офис и канцеларски материали", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🚗Автомобилни продукти", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🌱Сезонни и градински продукти", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-  ["🏋️‍♂️Спорт и свободно време", ['rgba(143,228,201,1)', 'rgba(150,210,255,1)']],
-]);
 
-const DEFAULT_COLORS: [string, string] = ['rgba(203,230,246,1)', 'rgba(143,228,201,1)'];
 
-// Optimized color getter
-const getCategoryColors = (categoryText: string): [string, string] => {
-  return CATEGORY_COLOR_MAP.get(categoryText) || DEFAULT_COLORS;
-};
+
+
 
 // Fixed 2 columns
 const numColumns = 2;
@@ -445,7 +399,6 @@ const ContainerView = isPerformanceMode ? View : Animated.View;
 
 
 
-  const colors = useMemo(() => getCategoryColors(item.text), [item.text]);
   const scale = useSharedValue(0);
   const pressScale = useSharedValue(1);
   
@@ -463,26 +416,26 @@ const ContainerView = isPerformanceMode ? View : Animated.View;
       scale.value = 0;
       pressScale.value = 1;
     }
-  }, [isScreenFocused, index]);
+  }, [isScreenFocused, index,pressScale,scale]);
 
   const handlePressIn = useCallback(() => {
     pressScale.value = withSpring(0.95, {
       damping: 5,
       stiffness: 100,
     });
-  }, []);
+  }, [pressScale]);
 
   const handlePressOut = useCallback(() => {
     pressScale.value = withSpring(1, {
       damping: 5,
       stiffness: 100,
     });
-  }, []);
+  }, [pressScale]);
   
   const handlePress = useCallback(() => {
     pressScale.value = 1;
     onPress(item);
-  }, [item, onPress]);
+  }, [item, onPress,pressScale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value * pressScale.value }],
@@ -530,7 +483,7 @@ const Categories = () => {
       };
     }, [])
   );
-  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const { isDarkMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const handleCategoryPress = useCallback((category: CategoriesProps) => {
     router.push({

@@ -3,7 +3,6 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter, useSegments } from 'expo-router';
-import { ComponentType } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale } from 'react-native-size-matters';
@@ -12,7 +11,6 @@ import Svg, { Path } from 'react-native-svg';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const wp = (percentage: number) => (percentage * screenWidth) / 100;
 const hp = (percentage: number) => (percentage * screenHeight) / 100;
 const getFontSize = (size: number) => {
   if (screenWidth < 350) return size * 0.85;
@@ -31,7 +29,6 @@ export default function SubcategoryProductLayout() {
   const currentRoute = segments[segments.length - 1];
 
   const showTopBar = currentRoute !== 'mapDelivery'; // hide for mapDelivery
-  const BackButton = (isPerformanceMode ? View : BlurView) as ComponentType<any>;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.SafeviewColor }} edges={['top']}>
       {showTopBar && (
