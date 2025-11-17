@@ -75,7 +75,6 @@ export default function ProductPage() {
 
   const [quantity, setQuantity] = useState(1);
 
-  const heartScale = useSharedValue(1);
   const buttonScale = useSharedValue(1);
 
   const params = useLocalSearchParams();
@@ -98,7 +97,7 @@ export default function ProductPage() {
       -1,
       true
     );
-  }, []);
+  }, [buttonScale]);
 
   // Cart handler
   const handleAddToCart = useCallback(async () => {

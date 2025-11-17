@@ -10,7 +10,6 @@ import Svg, { Path } from 'react-native-svg';
 import { Product, productsArray } from '../(tabs)/categories';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const wp = (percentage: number) => (percentage * screenWidth) / 100;
 const hp = (percentage: number) => (percentage * screenHeight) / 100;
 const getFontSize = (size: number) => {
   if (screenWidth < 350) return size * 0.85;
