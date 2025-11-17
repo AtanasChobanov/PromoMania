@@ -336,7 +336,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
               <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit ?? ""}</Text>
               <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
               <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
-              {discount != null && <Text style={[styles.discount, { color: '#DC2626' }]}>{discount}% отстъпка</Text>}
+{discount != null && discount !== 0 && <Text style={[styles.discount, { color: '#DC2626' }]}>{discount}% отстъпка</Text>}
             </View>
 
             <View style={styles.quantityRow}>

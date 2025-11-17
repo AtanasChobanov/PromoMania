@@ -604,22 +604,39 @@ const renderShopCard = (
           </Text>
         </View>
 
-        <View style={styles.infoSection}>
+            <View style={styles.infoSection}>
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
-            Цена
+            Разстояние
           </Text>
-          <View style={styles.dataGroup}>
-            <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, backgroundColor:theme.colors.cardBackground }]}>
-              <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
-                {shopData.price_bgn.toFixed(2)} лв
+          {shopData.route ? (
+            <View style={styles.dataGroup}>
+              <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                <CarIcon size={15} color={theme.colors.textPrimary} />
+                <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
+                  {shopData.route.distanceText}
+                </Text>
+              </View>
+              <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                <ClockIcon size={14} color={theme.colors.textPrimary} />
+                <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
+                  {shopData.route.durationText}
+                </Text>
+              </View>
+            </View>
+          ) : shopData.location.latitude === userLocation?.latitude && shopData.location.longitude === userLocation?.longitude ? (
+            <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, opacity: 0.6 }]}>
+              <Text style={[styles.dataText, { color: theme.colors.textSecondary }]}>
+                Няма намерен магазин
               </Text>
             </View>
-            <View style={[styles.dataBadge, { borderColor: `${colors.primary}` }]}>
-              <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
-                {shopData.price_eur.toFixed(2)}€
+          ) : (
+            <View style={styles.dataGroup}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={[styles.calculatingText, { color: theme.colors.textSecondary }]}>
+                Изчисляване...
               </Text>
             </View>
-          </View>
+          )}
         </View>
 
         <View style={styles.infoSection}>
@@ -800,19 +817,21 @@ const renderShopCard = (
       source={theme.backgroundImage}
       style={styles.backgroundImage}
     >
-       <BackButton />
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.titleContainer}>
-          <Text style={[styles.mainTitle, { 
-            fontSize: moderateScale(30), 
-            color: theme.colors.textPrimary 
-          }]}>
-            Избери магазин
-          </Text>
+          <View style={styles.backButtonContainer}>
+      <BackButton />
+    </View>
+       <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.titleContainer}>
+        <Text style={[styles.mainTitle, { 
+          fontSize: moderateScale(30), 
+          color: theme.colors.textPrimary 
+        }]}>
+          Избери магазин
+        </Text>
           <Text style={[styles.subtitle, { 
             fontSize: moderateScale(15), 
             color: theme.colors.textSecondary || theme.colors.textPrimary,
@@ -930,20 +949,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.3,
   },
-   backButton: {
-     width: 40,
-     height: 40,
-     top:scale(6),
-    marginHorizontal: 20,
+ backButtonContainer: {
+  position: 'absolute',
+  top: scale(9), // Adjust as needed for safe area
+  left: 0,
+  zIndex: 1000,
+  width: 60,
+  height: 40,
+},
+backButton: {
+  width: 40,
+  height: 40,
+  backgroundColor: 'rgba(255,255,255,0)',
+  marginHorizontal: 20,
+  borderRadius: 20,
+  borderColor: 'white',
+  borderStyle: 'solid',
+  borderWidth: 1,
+  overflow: 'hidden',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 
-     borderRadius: 20,
-     borderColor: 'white',
-     borderStyle: 'solid',
-     borderWidth: 1,
-     overflow: 'hidden',
-     justifyContent: 'center',
-     alignItems: 'center',
-   },
   backButtonText: {
     fontSize: moderateScale(16),
     fontWeight: '600',
