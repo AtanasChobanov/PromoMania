@@ -298,6 +298,8 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: 'rgba(103, 218, 191, 1)',
+       borderColor:'white',
+    borderWidth:1,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
