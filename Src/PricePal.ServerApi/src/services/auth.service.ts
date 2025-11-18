@@ -1,3 +1,4 @@
+import type { LoginDto } from "../models/login.dto.js";
 import { type RegisterDto } from "../models/register.dto.js";
 import UserRepository from "../repository/user.repository.js";
 import HashHelper from "../utils/hash.helper.js";
@@ -10,19 +11,19 @@ export default class AuthService {
     this.userRepository = new UserRepository();
   }
 
-  async register(dto: RegisterDto) {
-    const existingEmail = await this.userRepository.findUserByEmail(dto.email);
+  async register(data: RegisterDto) {
+    const existingEmail = await this.userRepository.findUserByEmail(data.email);
     if (existingEmail) {
       const err: any = new Error("Email already in use");
       err.status = 409;
       throw err;
     }
 
-    const passwordHash = await HashHelper.hashPassword(dto.password);
+    const passwordHash = await HashHelper.hashPassword(data.password);
 
     const createdUser = await this.userRepository.createUser({
-      email: dto.email,
-      name: dto.name,
+      email: data.email,
+      name: data.name,
       passwordHash,
     });
     if (!createdUser) {
@@ -34,5 +35,36 @@ export default class AuthService {
       user: createdUser,
       accessToken,
     };
+  }
+
+  async login(data: LoginDto) {
+    const existingEmail = await this.userRepository.findUserByEmail(data.email);
+
+    if (!existingEmail) {
+      const err: any = new Error("Invalid email or password");
+      err.status = 401;
+      throw err;
+    }
+
+    const isValid = await HashHelper.comparePassword(
+      data.password,
+      existingEmail.passwordHash
+    );
+
+    if (!isValid) {
+      const err: any = new Error("Invalid email or password");
+      err.status = 401;
+      throw err;
+    }
+
+    const payload = {
+      publicId: existingEmail.publicId,
+      email: existingEmail.email,
+      name: existingEmail.name,
+    };
+
+    const token = JwtHelper.signAccessToken(payload);
+
+    return { user: payload, token };
   }
 }
