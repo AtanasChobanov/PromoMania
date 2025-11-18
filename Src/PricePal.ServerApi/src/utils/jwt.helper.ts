@@ -19,7 +19,7 @@ export default abstract class JwtHelper {
     });
   }
 
-  static verifyAccessToken(token: string): object | string {
+  static verifyAccessToken(token: string) {
     return jwt.verify(token, this.ACCESS_SECRET);
   }
 }
