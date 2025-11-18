@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import JwtHelper from "../utils/jwt.helper.js";
-import type { JwtPayload } from "jsonwebtoken";
+import type { AccessTokenPayload } from "../models/token-payload.model.js";
 
 export interface AuthenticatedRequest extends Request {
-  user?: string | JwtPayload;
+  user?: AccessTokenPayload;
 }
 
 export default class AuthMiddleware {
@@ -28,7 +28,7 @@ export default class AuthMiddleware {
     }
 
     try {
-      const payload = JwtHelper.verifyAccessToken(token);
+      const payload = JwtHelper.verifyAccessToken(token) as AccessTokenPayload;
       req.user = payload;
       next();
     } catch (err) {
