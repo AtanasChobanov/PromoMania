@@ -36,10 +36,7 @@ export default class AuthController {
 
     try {
       const result = await AuthController.authService.login(parsed.data);
-      return res.json({
-        user: result.user,
-        token: result.token,
-      });
+      return res.status(201).json(result);
     } catch (err: any) {
       console.error("Login error:", err);
       const status: number = err.status || 500;

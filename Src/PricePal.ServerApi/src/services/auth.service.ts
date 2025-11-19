@@ -63,8 +63,8 @@ export default class AuthService {
       name: existingEmail.name,
     };
 
-    const token = JwtHelper.signAccessToken(payload);
+    const accessToken = JwtHelper.signAccessToken(payload);
 
-    return { user: payload, token };
+    return { user: payload, accessToken };
   }
 }
