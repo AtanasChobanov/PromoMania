@@ -17,12 +17,14 @@ export default function RootLayout() {
               animation: 'slide_from_right',
             }}
           >
-            <Stack.Screen name="login/index" />
+            {/* Nested layout groups automatically pick up their _layout.tsx */}
+            <Stack.Screen name="(login)" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="(profile)" />
             <Stack.Screen name="products" />
             <Stack.Screen name="subcategories" />
             <Stack.Screen name="productsCategories" />
+            <Stack.Screen name="delivaryAndMap" />
           </Stack>
         </SettingsProvider>
       </QueryProvider>

@@ -1,3 +1,4 @@
+import { useAuth } from '@/services/useAuth'; // Adjust the path as needed
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -16,42 +17,56 @@ import Svg, { Path } from 'react-native-svg';
 
 const Register = () => {
   const router = useRouter();
+  const { register, isLoading: authLoading, validatePassword } = useAuth();
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleRegister = async () => {
+    // Validate empty fields
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Грешка', 'Моля, попълнете всички полета');
       return;
     }
 
+    // Validate password match
     if (password !== confirmPassword) {
       Alert.alert('Грешка', 'Паролите не съвпадат');
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Грешка', 'Паролата трябва да е поне 6 символа');
+    // Validate password strength
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      Alert.alert('Грешка', passwordError);
       return;
     }
 
+    // Validate terms acceptance
     if (!acceptTerms) {
       Alert.alert('Грешка', 'Моля, приемете условията за използване');
       return;
     }
 
-    setIsLoading(true);
-    // Add your registration logic here
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await register({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
       Alert.alert('Успех', 'Регистрацията беше успешна!', [
         { text: 'OK', onPress: () => router.push('/(login)/optionsRegister') }
       ]);
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert(
+        'Грешка при регистрация',
+        error.message || 'Възникна грешка при регистрацията. Моля, опитайте отново.'
+      );
+    }
   };
 
   return (
@@ -66,26 +81,26 @@ const Register = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-           <TouchableOpacity
-                      onPress={() => router.back()}
-                      style={styles.backButton}
-                    >
-                      <BlurView
-                        intensity={20} 
-                        tint={'light'}
-                        experimentalBlurMethod="dimezisBlurView"
-                        style={StyleSheet.absoluteFillObject}
-                      />
-                      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-                        <Path
-                          d="M15 18l-6-6 6-6"
-                          stroke={'#000000'}
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </Svg>
-                    </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <BlurView
+              intensity={20} 
+              tint={'light'}
+              experimentalBlurMethod="dimezisBlurView"
+              style={StyleSheet.absoluteFillObject}
+            />
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M15 18l-6-6 6-6"
+                stroke={'#000000'}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </TouchableOpacity>
           <Text style={styles.title}>Регистрация</Text>
           <Text style={styles.subtitle}>Създайте нов акаунт</Text>
         </View>
@@ -103,6 +118,7 @@ const Register = () => {
               onChangeText={setName}
               autoCapitalize="words"
               autoComplete="name"
+              editable={!authLoading}
             />
           </View>
 
@@ -118,6 +134,7 @@ const Register = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              editable={!authLoading}
             />
           </View>
 
@@ -126,14 +143,18 @@ const Register = () => {
             <Text style={styles.label}>Парола</Text>
             <TextInput
               style={styles.input}
-              placeholder="Минимум 6 символа"
+              placeholder="Минимум 8 символа"
               placeholderTextColor="#999"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoCapitalize="none"
               autoComplete="password-new"
+              editable={!authLoading}
             />
+            <Text style={styles.passwordHint}>
+              Паролата трябва да съдържа поне 8 символа, главни и малки букви, цифри и специални символи
+            </Text>
           </View>
 
           {/* Confirm Password Input */}
@@ -148,6 +169,7 @@ const Register = () => {
               secureTextEntry
               autoCapitalize="none"
               autoComplete="password-new"
+              editable={!authLoading}
             />
           </View>
 
@@ -156,6 +178,7 @@ const Register = () => {
             style={styles.checkboxContainer}
             onPress={() => setAcceptTerms(!acceptTerms)}
             activeOpacity={0.7}
+            disabled={authLoading}
           >
             <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
               {acceptTerms && <Text style={styles.checkmark}>✓</Text>}
@@ -168,13 +191,13 @@ const Register = () => {
 
           {/* Register Button */}
           <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+            style={[styles.button, authLoading && styles.buttonDisabled]}
             onPress={handleRegister}
-            disabled={isLoading}
+            disabled={authLoading}
             activeOpacity={0.8}
           >
             <Text style={styles.buttonText}>
-              {isLoading ? 'Регистриране...' : 'Регистрирай се'}
+              {authLoading ? 'Регистриране...' : 'Регистрирай се'}
             </Text>
           </TouchableOpacity>
 
@@ -188,7 +211,7 @@ const Register = () => {
           {/* Login Link */}
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Вече имате акаунт? </Text>
-            <TouchableOpacity onPress={() => router.push('/login/login')}>
+            <TouchableOpacity onPress={() => router.push('/(login)/login')}>
               <Text style={styles.loginLink}>Влезте тук</Text>
             </TouchableOpacity>
           </View>
@@ -219,7 +242,6 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderStyle: 'solid',
     borderWidth: 1,
-    
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -261,6 +283,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
+  passwordHint: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    lineHeight: 16,
+  },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -298,7 +326,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: 'rgba(103, 218, 191, 1)',
-       borderColor:'white',
+    borderColor:'white',
     borderWidth:1,
     paddingVertical: 16,
     borderRadius: 12,
