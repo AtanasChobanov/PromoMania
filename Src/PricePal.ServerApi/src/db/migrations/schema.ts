@@ -130,6 +130,7 @@ export const user = pgTable(
     publicId: uuid("public_id").defaultRandom().notNull().unique(),
     email: text().notNull().unique(),
     name: text().notNull(),
+    passwordHash: text("password_hash").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

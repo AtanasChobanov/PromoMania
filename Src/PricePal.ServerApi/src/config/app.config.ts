@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import productsRouter from "../routes/product.routes.js";
-import usersRouter from "../routes/user.routes.js";
+import shoppingCartRouter from "../routes/shopping-cart.routes.js";
+import authRouter from "../routes/auth.routes.js";
+import AuthMiddleware from "../middlewares/auth.middleware.js";
 
 const app = express();
 
@@ -11,7 +13,8 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 // routes
-app.use("/products", productsRouter);
-app.use("/users/:publicUserId", usersRouter);
+app.use("/products", AuthMiddleware.authenticate, productsRouter);
+app.use("/shopping-cart", AuthMiddleware.authenticate, shoppingCartRouter);
+app.use("/auth", authRouter);
 
 export default app;

@@ -1,25 +1,22 @@
 import type { Request, Response } from "express";
 import ShoppingCartService from "../services/shopping-cart.service.js";
 import ShoppingCartItemService from "../services/shopping-cart-item.service.js";
+import type { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
+import StoreSuggestionService from "../services/store-suggestion.service.js";
 
-export default class UserController {
+export default class ShoppingCartController {
   private static shoppingCartService: ShoppingCartService =
     new ShoppingCartService();
   private static shoppingCartItemService: ShoppingCartItemService =
     new ShoppingCartItemService();
+  private static storeSuggestionService: StoreSuggestionService =
+    new StoreSuggestionService();
 
-  static async getShoppingCart(req: Request, res: Response) {
-    const publicUserId = req.params.publicUserId;
-    if (!publicUserId) {
-      return res
-        .status(400)
-        .json({ message: "Missing publicUserId parameter." });
-    }
-
+  static async getShoppingCart(req: AuthenticatedRequest, res: Response) {
     try {
       const cart =
-        await UserController.shoppingCartService.getShoppingCartByPublicUserId(
-          publicUserId
+        await ShoppingCartController.shoppingCartService.getShoppingCartByPublicUserId(
+          req.user!.publicId
         );
       if (!cart) {
         return res
@@ -34,23 +31,21 @@ export default class UserController {
     }
   }
 
-  static async addItemToCart(req: Request, res: Response) {
-    const { publicUserId } = req.params;
+  static async addItemToCart(req: AuthenticatedRequest, res: Response) {
     const publicProductId = req.body.publicProductId as string | undefined;
     const quantity = req.body.quantity as string | undefined;
 
-    if (!publicUserId || !publicProductId) {
-      return res
-        .status(400)
-        .json({ message: "publicUserId and publicProductId are required" });
+    if (!publicProductId) {
+      return res.status(400).json({ message: "publicProductId is required" });
     }
 
     try {
-      const item = await UserController.shoppingCartItemService.addItemToCart(
-        publicUserId,
-        publicProductId,
-        quantity ? +quantity : undefined
-      );
+      const item =
+        await ShoppingCartController.shoppingCartItemService.addItemToCart(
+          req.user!.publicId,
+          publicProductId,
+          quantity ? +quantity : undefined
+        );
 
       res.status(201).json({
         message: "Item added to cart successfully",
@@ -71,12 +66,12 @@ export default class UserController {
   }
 
   static async updateCartItem(req: Request, res: Response) {
-    const { publicUserId, publicItemId } = req.params;
+    const { publicItemId } = req.params;
     const quantity = req.body.quantity as number | undefined;
 
-    if (!publicUserId || !publicItemId || quantity === undefined) {
+    if (!publicItemId || quantity === undefined) {
       return res.status(400).json({
-        message: "publicUserId, publicItemId and quantity are required",
+        message: "publicItemId and quantity are required",
       });
     }
 
@@ -87,10 +82,11 @@ export default class UserController {
     }
 
     try {
-      const updatedItem = await UserController.shoppingCartItemService.update(
-        publicItemId,
-        quantity
-      );
+      const updatedItem =
+        await ShoppingCartController.shoppingCartItemService.update(
+          publicItemId,
+          quantity
+        );
 
       res
         .status(200)
@@ -105,18 +101,19 @@ export default class UserController {
   }
 
   static async deleteCartItem(req: Request, res: Response) {
-    const { publicUserId, publicItemId } = req.params;
+    const { publicItemId } = req.params;
 
-    if (!publicUserId || !publicItemId) {
+    if (!publicItemId) {
       return res.status(400).json({
-        message: "publicUserId and publicItemId are required",
+        message: "publicItemId is required",
       });
     }
 
     try {
-      const deletedItem = await UserController.shoppingCartItemService.delete(
-        publicItemId
-      );
+      const deletedItem =
+        await ShoppingCartController.shoppingCartItemService.delete(
+          publicItemId
+        );
 
       res.status(200).json({
         message: "Cart item deleted successfully",
@@ -128,6 +125,26 @@ export default class UserController {
         return res.status(404).json({ message: error.message });
       }
       res.status(500).json({ error: "Failed to delete cart item" });
+    }
+  }
+
+  static async suggestBestStore(req: AuthenticatedRequest, res: Response) {
+    try {
+      const cartWithAllPrices =
+        await ShoppingCartController.storeSuggestionService.suggestCheapestStoreOption(
+          req.user!.publicId
+        );
+
+      if (!cartWithAllPrices) {
+        return res
+          .status(404)
+          .json({ message: "Cart not found for this user" });
+      }
+
+      return res.status(200).json(cartWithAllPrices);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 }
