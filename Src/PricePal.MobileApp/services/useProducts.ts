@@ -1,3 +1,4 @@
+import { useAuth } from "@/services/useAuth"; // Adjust the path as needed
 import {
   useInfiniteQuery,
   useQuery,
@@ -39,12 +40,22 @@ const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 const fetchProductSection = async (
   section: SectionType,
   limit: number,
-  offset: number
+  offset: number,
+  accessToken: string | null
 ): Promise<SectionResponse> => {
   const url = `${API_BASE_URL}/products?section=${section}&limit=${limit}&offset=${offset}`;
   console.log(`Loading section "${section}" from:`, url);
   
-  const { data } = await axios.get<SectionResponse>(url);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add Authorization header if token exists
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  
+  const { data } = await axios.get<SectionResponse>(url, { headers });
   console.log(`Section "${section}" loaded:`, data.products.length, 'products');
   
   return data;
@@ -67,6 +78,7 @@ export const useProductSection = (
   initialLimit: number = 4
 ): UseProductSectionReturn => {
   const queryClient = useQueryClient();
+  const { accessToken, logout } = useAuth();
 
   const {
     data,
@@ -77,9 +89,19 @@ export const useProductSection = (
     isFetchingNextPage,
     refetch
   } = useInfiniteQuery({
-    queryKey: ['products', section],
-    queryFn: ({ pageParam = 0 }) => 
-      fetchProductSection(section, initialLimit, pageParam),
+    queryKey: ['products', section, accessToken],
+    queryFn: async ({ pageParam = 0 }) => {
+      try {
+        return await fetchProductSection(section, initialLimit, pageParam, accessToken);
+      } catch (error: any) {
+        // Handle 401 Unauthorized - token expired or invalid
+        if (error.response?.status === 401) {
+          console.log('Token expired or invalid, logging out...');
+          await logout();
+        }
+        throw error;
+      }
+    },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasMore) {
         return lastPage.pagination.offset + lastPage.pagination.limit;
@@ -89,6 +111,7 @@ export const useProductSection = (
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    enabled: !!accessToken, // Only fetch if user is authenticated
   });
 
   // Flatten all pages into a single products array
@@ -136,24 +159,28 @@ export const useProductSections = (
   sections: SectionType[],
   initialLimit: number = 4
 ): UseProductSectionsReturn => {
-  // Use useQueries to fetch multiple sections in parallel
-  const queries = sections.map(section => ({
-    queryKey: ['products', section],
-    queryFn: () => fetchProductSection(section, initialLimit, 0),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  }));
+  const { accessToken, logout } = useAuth();
 
   const results = useQuery({
-    queryKey: ['products', 'multiple', sections.join(',')],
+    queryKey: ['products', 'multiple', sections.join(','), accessToken],
     queryFn: async () => {
-      const promises = sections.map(section => 
-        fetchProductSection(section, initialLimit, 0)
-      );
-      return Promise.all(promises);
+      try {
+        const promises = sections.map(section => 
+          fetchProductSection(section, initialLimit, 0, accessToken)
+        );
+        return Promise.all(promises);
+      } catch (error: any) {
+        // Handle 401 Unauthorized - token expired or invalid
+        if (error.response?.status === 401) {
+          console.log('Token expired or invalid, logging out...');
+          await logout();
+        }
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    enabled: !!accessToken, // Only fetch if user is authenticated
   });
 
   // Build sectionsData map

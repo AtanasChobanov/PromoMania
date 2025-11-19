@@ -1,11 +1,9 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
-import { deleteUserId, getUserId } from '@/components/utils/UUID';
 import { useSettings } from '@/contexts/SettingsContext';
-import { Button } from '@react-navigation/elements';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import React from 'react';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 const SettingsScreen: React.FC = () => {
   const {
@@ -16,28 +14,9 @@ const SettingsScreen: React.FC = () => {
     togglePerformanceMode,
     toggleSimpleMode,
   } = useSettings();
-const [userId, setUserId] = useState<string | null>(null);
-  useEffect(() => {
-    const loadUserId = async () => {
-      const id = await getUserId();
-      setUserId(id);
-    };
-    loadUserId();
-  }, []);
-    const handleDelete = async () => {
-    await deleteUserId();
-    setUserId(null);
-    Alert.alert('User ID deleted successfully');
-  };
 
-  if (!userId) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" />
-        <Text>Loading user ID...</Text>
-      </View>
-    );
-  }
+
+  
   const theme = isDarkMode ? darkTheme : lightTheme;
   const SettingPageNav = ({ 
     title, 
@@ -248,10 +227,8 @@ const [userId, setUserId] = useState<string | null>(null);
             pressed={() => router.navigate('/(profile)/ToS')}
           />
           <Text>Debugging:</Text>
-          <Text>{userId ?? 'Loading...'}</Text>
-         <Button onPress={handleDelete} color="red">
-  Delete User ID
-</Button>
+    
+
         <View style={{ height: hp(10) }} />
       </ScrollView>
       </ImageBackground>

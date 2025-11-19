@@ -1,3 +1,4 @@
+import { useAuth } from '@/services/useAuth'; // Adjust the path as needed
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -14,22 +15,39 @@ import {
 
 const Login = () => {
   const router = useRouter();
+  const { login, isLoading: authLoading } = useAuth();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    // Validate empty fields
     if (!email || !password) {
       Alert.alert('Грешка', 'Моля, попълнете всички полета');
       return;
     }
 
-    setIsLoading(true);
-    // Add your login logic here
-    setTimeout(() => {
-      setIsLoading(false);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Грешка', 'Моля, въведете валиден имейл адрес');
+      return;
+    }
+
+    try {
+      await login({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      // Successfully logged in, navigate to home
       router.push('/(tabs)/home');
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert(
+        'Грешка при влизане',
+        error.message || 'Невалиден имейл или парола. Моля, опитайте отново.'
+      );
+    }
   };
 
   return (
@@ -61,6 +79,7 @@ const Login = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              editable={!authLoading}
             />
           </View>
 
@@ -76,24 +95,27 @@ const Login = () => {
               secureTextEntry
               autoCapitalize="none"
               autoComplete="password"
+              editable={!authLoading}
             />
           </View>
 
           {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotPassword}>
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            disabled={authLoading}
+          >
             <Text style={styles.forgotPasswordText}>Забравена парола?</Text>
           </TouchableOpacity>
 
           {/* Login Button */}
           <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+            style={[styles.button, authLoading && styles.buttonDisabled]}
             onPress={handleLogin}
-            disabled={isLoading}
+            disabled={authLoading}
             activeOpacity={0.8}
           >
-                
             <Text style={styles.buttonText}>
-              {isLoading ? 'Влизане...' : 'Вход'}
+              {authLoading ? 'Влизане...' : 'Вход'}
             </Text>
           </TouchableOpacity>
 
@@ -107,7 +129,10 @@ const Login = () => {
           {/* Register Link */}
           <View style={styles.registerContainer}>
             <Text style={styles.registerText}>Нямате акаунт? </Text>
-            <TouchableOpacity onPress={() => router.push('/(login)/register')}>
+            <TouchableOpacity 
+              onPress={() => router.push({ pathname: "/(login)/register" })}
+              disabled={authLoading}
+            >
               <Text style={styles.registerLink}>Регистрирайте се</Text>
             </TouchableOpacity>
           </View>

@@ -1,4 +1,3 @@
-import { getUserId } from '@/components/utils/UUID';
 import {
   useMutation,
   useQuery,
@@ -73,7 +72,7 @@ export interface CartSuggestions {
 
 // API functions
 const fetchShoppingCart = async (): Promise<ShoppingCart> => {
-  const userId = await getUserId();
+  const userId = 'empty';
   const url = `${API_BASE_URL}/users/${userId}/shopping-cart`;
   
   console.log(`Fetching shopping cart for user: ${userId}`);
@@ -84,7 +83,7 @@ const fetchShoppingCart = async (): Promise<ShoppingCart> => {
 };
 
 const addToCart = async ({ publicProductId, quantity }: AddToCartRequest): Promise<CartItem> => {
-  const userId = await getUserId();
+  const userId = 'empty';
   const url = `${API_BASE_URL}/users/${userId}/shopping-cart/items`;
   
   console.log(`Adding to cart: ${publicProductId}, quantity: ${quantity}`);
@@ -104,7 +103,7 @@ const addToCart = async ({ publicProductId, quantity }: AddToCartRequest): Promi
 };
 
 const updateCartItem = async ({ publicItemId, quantity }: UpdateCartItemRequest): Promise<CartItem> => {
-  const userId = await getUserId();
+  const userId ='empty';
   const url = `${API_BASE_URL}/users/${userId}/shopping-cart/items/${publicItemId}`;
   
   console.log(`Updating cart item: ${publicItemId}, new quantity: ${quantity}`);
@@ -123,7 +122,7 @@ const updateCartItem = async ({ publicItemId, quantity }: UpdateCartItemRequest)
 };
 
 const removeFromCart = async (publicItemId: string): Promise<RemoveFromCartResponse> => {
-  const userId = await getUserId();
+  const userId = 'empty';
   const url = `${API_BASE_URL}/users/${userId}/shopping-cart/items/${publicItemId}`;
   
   console.log(`Removing item from cart: ${publicItemId}`);
@@ -135,7 +134,7 @@ const removeFromCart = async (publicItemId: string): Promise<RemoveFromCartRespo
 };
 
 const fetchCartSuggestions = async (): Promise<CartSuggestions> => {
-  const userId = await getUserId();
+  const userId = 'empty';
   const url = `${API_BASE_URL}/users/${userId}/shopping-cart/suggest`;
   
   console.log(`Fetching cart suggestions for user: ${userId}`);

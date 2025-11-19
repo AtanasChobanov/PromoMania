@@ -3,7 +3,6 @@ import { ProductSection } from '@/components/boxes/ProductSection';
 import { styles } from '@/components/styles/homeStyles';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
-import { getUserId } from '@/components/utils/UUID';
 import { useSettings } from '@/contexts/SettingsContext';
 import { SectionType, useProductSection } from '@/services/useProducts';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -48,7 +47,7 @@ const LoadingScreen = ({ theme }: { theme: typeof lightTheme }) => (
   </Animated.View>
 );
 
-const Index: React.FC = () => {
+const Home: React.FC = () => {
   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -56,13 +55,7 @@ const Index: React.FC = () => {
   // Check the loading state of the first section to determine initial load
   const { loading: topSectionLoading } = useProductSection('top', 4);
 
-  useEffect(() => {
-    const initUser = async () => {
-      const id = await getUserId();
-      console.log('User ID:', id);
-    };
-    initUser();
-  }, []);
+
 
   // Update loading state when top section finishes loading
   useEffect(() => {
@@ -252,4 +245,4 @@ const Index: React.FC = () => {
   );
 };
 
-export default React.memo(Index);
+export default React.memo(Home);
