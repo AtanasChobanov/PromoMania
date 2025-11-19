@@ -8,10 +8,13 @@ deconstruct code
 брошура и презентация
 fix dark mode
 optinal liquid glass and ios liquad glass
+login backbround color
+map top white part transparecy
+
+
 
 future features:
 search functionality
 save functionality
 edit profile page
 login implemenation
-cart- remove updating api first
