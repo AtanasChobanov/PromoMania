@@ -700,7 +700,7 @@ const Cart: React.FC = () => {
       </Text>
       <TouchableOpacity 
         style={[styles.shopButton,{backgroundColor:theme.colors.textGreen}]}
-        onPress={() => router.push('/(tabs)')}
+        onPress={() => router.push('/(tabs)/home')}
       >
         <Text style={styles.shopButtonText}>Започни пазаруване</Text>
       </TouchableOpacity>
