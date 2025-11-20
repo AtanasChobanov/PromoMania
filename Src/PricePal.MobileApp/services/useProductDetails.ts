@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useAuth } from "./useAuth";
 
-// Types
+// Types (keep all your existing types)
 export interface StoreChain {
   publicId: string;
   name: string;
@@ -32,7 +33,6 @@ export interface ProductDetails {
   prices: ProductPrice[];
 }
 
-// Interface for price pair (discounted + original)
 export interface PricePair {
   discounted: ProductPrice;
   original: ProductPrice | null;
@@ -40,15 +40,58 @@ export interface PricePair {
 
 const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 
-// Fetch function for a single product
-const fetchProductDetails = async (productId: string): Promise<ProductDetails> => {
+// Fetch function with authentication
+const fetchProductDetails = async (
+  productId: string,
+  token: string | null,
+  logout: () => Promise<void>
+): Promise<ProductDetails> => {
   const url = `${API_BASE_URL}/products/${productId}`;
-  console.log(`Loading product details for ID ${productId} from:`, url);
   
-  const { data } = await axios.get<ProductDetails>(url);
-  console.log(`Product details loaded:`, data);
+  console.log('=== fetchProductDetails called ===');
+  console.log('Product ID:', productId);
+  console.log('Token exists:', !!token);
+  console.log('Token value:', token ? `${token.substring(0, 20)}...` : 'NULL');
   
-  return data;
+  // Fail early if no token
+  if (!token) {
+    console.error('❌ No token available - cannot make authenticated request');
+    throw new Error('Authentication required. Please login.');
+  }
+  
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token.trim()}`,
+    };
+
+    console.log('Making request to:', url);
+    console.log('Authorization header:', `Bearer ${token.substring(0, 15)}...`);
+
+    const { data } = await axios.get<ProductDetails>(url, { headers });
+    
+    console.log('✅ Product details loaded successfully:', data.name);
+    return data;
+    
+  } catch (error) {
+    // Handle 401 Unauthorized - token expired or invalid
+    if (axios.isAxiosError(error)) {
+      console.error('❌ API Error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.response?.data?.message || error.message,
+        url: url,
+      });
+
+      if (error.response?.status === 401) {
+        console.log('Token expired/invalid - logging out');
+        await logout();
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+    
+    throw error;
+  }
 };
 
 interface UseProductDetailsReturn {
@@ -60,6 +103,7 @@ interface UseProductDetailsReturn {
 
 /**
  * Hook for fetching a single product with full details including prices across all store chains
+ * Automatically handles JWT authentication
  * @param productId - The publicId of the product to fetch
  * @param enabled - Whether the query should run (default: true)
  */
@@ -68,6 +112,19 @@ export const useProductDetails = (
   enabled: boolean = true
 ): UseProductDetailsReturn => {
   const queryClient = useQueryClient();
+  const { accessToken, logout, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Debug logging
+  console.log('=== useProductDetails hook ===');
+  console.log('Product ID:', productId);
+  console.log('Enabled:', enabled);
+  console.log('Auth Loading:', authLoading);
+  console.log('Is Authenticated:', isAuthenticated);
+  console.log('Access Token exists:', !!accessToken);
+  console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'NULL');
+
+  const shouldFetch = enabled && productId !== null && !authLoading && !!accessToken;
+  console.log('Should Fetch:', shouldFetch);
 
   const {
     data,
@@ -75,65 +132,63 @@ export const useProductDetails = (
     error,
     refetch: queryRefetch
   } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: () => fetchProductDetails(productId!),
-    enabled: enabled && productId !== null,
+    queryKey: ['product', productId, accessToken], // Include token in key
+    queryFn: () => {
+      console.log('Query function executing...');
+      return fetchProductDetails(productId!, accessToken, logout);
+    },
+    enabled: shouldFetch, // Only run if authenticated and token exists
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   const refetch = async () => {
+    console.log('Manual refetch triggered');
     await queryClient.invalidateQueries({ queryKey: ['product', productId] });
     await queryRefetch();
   };
 
   return {
     product: data ?? null,
-    loading: isLoading,
+    loading: isLoading || authLoading, // Include auth loading
     error: error as Error | null,
     refetch
   };
 };
 
-// Get current price with both discounted and original prices for a chain
+// Keep all your existing helper functions below
 export const getCurrentPriceWithOriginal = (
   prices: ProductPrice[],
   chainName: string
 ): PricePair | null => {
-  // Filter prices for the specific chain - database already filtered by date
   const chainPrices = prices.filter(price => price.storeChain.name === chainName);
   
   if (!chainPrices.length) return null;
   
-  // Find discounted price (has discount value)
   const discounted = chainPrices.find(p => p.discount !== null);
-  
-  // Find original price (no discount, no validTo - the base price)
   const original = chainPrices.find(p => p.discount === null && p.validTo === null);
   
-  // If there's a discounted price, return both
   if (discounted && original) {
-    return {
-      discounted,
-      original
-    };
+    return { discounted, original };
   }
   
-  // If no discount, return the regular price as "discounted" (current price)
   return {
     discounted: chainPrices[0],
     original: null
   };
 };
 
-// Get all current prices with originals grouped by chain
 export const getAllCurrentPricesWithOriginals = (
   prices: ProductPrice[]
 ): Map<string, PricePair> => {
   const priceMap = new Map<string, PricePair>();
-  
-  // Get unique chain names - database already filtered by date
   const chainNames = [...new Set(prices.map(p => p.storeChain.name))];
   
   chainNames.forEach(chainName => {
@@ -146,39 +201,32 @@ export const getAllCurrentPricesWithOriginals = (
   return priceMap;
 };
 
-// Helper function to get the best price (lowest current price) for a product
 export const getBestPrice = (prices: ProductPrice[]): ProductPrice | null => {
   if (!prices.length) return null;
-
-  // Database already filtered by date, so just find the lowest price
   return prices.reduce((best, current) => {
-
     return current.priceBgn < best.priceBgn ? current : best;
   });
 };
 
-// Get best price with original (for showing discount)
 export const getBestPriceWithOriginal = (prices: ProductPrice[]): PricePair | null => {
   const allPricesMap = getAllCurrentPricesWithOriginals(prices);
   
   if (!allPricesMap.size) return null;
   
-  // Find the chain with the lowest current price
   let bestPair: PricePair | null = null;
   let lowestPrice = Infinity;
   
-allPricesMap.forEach((pricePair) => {
-  const currentPrice = pricePair.discounted.priceBgn;
-  if (currentPrice < lowestPrice) {
-    lowestPrice = currentPrice;
-    bestPair = pricePair;
-  }
-});
+  allPricesMap.forEach((pricePair) => {
+    const currentPrice = pricePair.discounted.priceBgn;
+    if (currentPrice < lowestPrice) {
+      lowestPrice = currentPrice;
+      bestPair = pricePair;
+    }
+  });
   
   return bestPair;
 };
 
-// Helper function to get prices grouped by store chain
 export const getPricesByChain = (prices: ProductPrice[]): Map<string, ProductPrice[]> => {
   const priceMap = new Map<string, ProductPrice[]>();
   
@@ -193,18 +241,14 @@ export const getPricesByChain = (prices: ProductPrice[]): Map<string, ProductPri
   return priceMap;
 };
 
-// Helper function to get current (active) price for a specific chain
 export const getCurrentPriceForChain = (
   prices: ProductPrice[],
   chainName: string
 ): ProductPrice | null => {
-  // Database already filtered by date
   const currentPrice = prices.find(price => price.storeChain.name === chainName);
-  
   return currentPrice || null;
 };
 
-// Clear product details cache
 export const clearProductCache = (
   queryClient: ReturnType<typeof useQueryClient>,
   productId?: string

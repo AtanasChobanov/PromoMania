@@ -14,8 +14,8 @@ export interface Product {
   barcode: string | null;
   imageUrl: string;
   unit: string;
-  priceBgn: string;
-  priceEur: string;
+  priceBgn: number;
+  priceEur: number;
   discount: number;
 }
 

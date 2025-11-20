@@ -10,6 +10,8 @@ fix dark mode
 optinal liquid glass and ios liquad glass
 login backbround color
 map top white part transparecy
+log out functionality
+conditions for eveything
 
 
 

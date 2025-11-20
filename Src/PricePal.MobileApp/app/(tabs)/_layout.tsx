@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs, router, usePathname } from 'expo-router';
 import React from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
@@ -70,6 +70,18 @@ const SettingsIcon = ({ color = '#000', size = 30 }: { color?: string; size?: nu
       strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
+    />
+  </Svg>
+);
+const ProfilePicIcon = ({ color = '#000', size = 40 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {/* Head/Circle */}
+    <Circle cx="12" cy="8" r="4" fill={color} />
+    
+    {/* Shoulders/Body */}
+    <Path
+      d="M 4 20 Q 4 14 12 14 Q 20 14 20 20"
+      fill={color}
     />
   </Svg>
 );
@@ -171,12 +183,29 @@ const TopBar = React.memo(() => {
 
         style={styles.gradientBackground}
       />
-      <TouchableOpacity 
+       <TouchableOpacity 
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        onPress={() => router.push('/(profile)/profile')}
+        onPress={() => router.push('/(profile)/settings')}
         style={{ zIndex: 2 }}
       >
-        <Image className='w-[40px] h-[40px]' source={require("../../assets/icons/profile-pic.png")} />      
+        <View style={[styles.settingsButton,{borderColor:"#FFFFFF", borderWidth:1}]}>
+          <>
+            {isPerformanceMode ? (
+              <View 
+        
+                style={[styles.tabBarBlur,{backgroundColor:theme.colors.backgroundColor}]} 
+              />
+            ) : (
+              <BlurView 
+                intensity={20} 
+                tint={theme.colors.GlassColor}
+                experimentalBlurMethod="dimezisBlurView"
+                style={[StyleSheet.absoluteFillObject,]}
+              />
+            )}
+          </>   
+          <ProfilePicIcon color={theme.colors.textPrimary} size={30} />
+        </View>
       </TouchableOpacity>
       <TouchableOpacity 
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
