@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../config/drizzle-client.config.js";
-import { user } from "../db/migrations/schema.js";
+import { user, shoppingCart } from "../db/migrations/schema.js";
 
 export default class UserRepository {
   async getByPublicId(publicId: string) {
@@ -26,19 +26,38 @@ export default class UserRepository {
     name: string;
     passwordHash: string;
   }) {
-    const [inserted] = await db
-      .insert(user)
-      .values({
-        email: payload.email,
-        name: payload.name,
-        passwordHash: payload.passwordHash,
-      })
-      .returning({
-        publicId: user.publicId,
-        email: user.email,
-        name: user.name,
+    return await db.transaction(async (tx) => {
+      // Create user
+      const [insertedUser] = await tx
+        .insert(user)
+        .values({
+          email: payload.email,
+          name: payload.name,
+          passwordHash: payload.passwordHash,
+        })
+        .returning({
+          id: user.id,
+          publicId: user.publicId,
+          email: user.email,
+          name: user.name,
+        });
+
+      if (!insertedUser) {
+        throw new Error("Failed to create user");
+      }
+
+      // Create shopping cart for the user
+      await tx.insert(shoppingCart).values({
+        userId: insertedUser.id,
+        totalCostBgn: "0.00",
+        totalCostEur: "0.00",
       });
 
-    return inserted;
+      return {
+        publicId: insertedUser.publicId,
+        email: insertedUser.email,
+        name: insertedUser.name,
+      };
+    });
   }
 }
