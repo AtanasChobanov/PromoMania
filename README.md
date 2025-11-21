@@ -1,2 +1,3 @@
-# PricePal
+# PromoMania
+
 AI Groceries Shopping Assistant

@@ -1,0 +1,38 @@
+{
+  "name": "promomania.scrapingservice",
+  "version": "1.0.0",
+  "description": "Microservice for Scraping Products",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --watch src --ext ts,json --exec \"node --loader ts-node/esm src/index.ts\"",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "postinstall": "prisma generate && npx puppeteer install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^1.21.0",
+    "@prisma/client": "^6.14.0",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "p-limit": "^7.1.1",
+    "prisma": "^6.14.0",
+    "puppeteer": "^24.17.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "@types/puppeteer": "^5.4.7",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.2"
+  }
+}
