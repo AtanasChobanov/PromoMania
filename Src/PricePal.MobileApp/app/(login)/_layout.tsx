@@ -9,9 +9,7 @@ export default function LoginLayout() {
         animation: "slide_from_right",
       }}
     >
-      {/* No need to declare each screen here. 
-          The files index.tsx, login.tsx, register.tsx, optionsRegister.tsx
-          automatically become screens. */}
+
     </Stack>
   );
 }

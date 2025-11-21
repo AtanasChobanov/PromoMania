@@ -1,9 +1,12 @@
-import { useAuth } from '@/services/useAuth'; // Adjust the path as needed
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useAuth } from '@/services/useAuth';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,7 +21,8 @@ import Svg, { Path } from 'react-native-svg';
 const Register = () => {
   const router = useRouter();
   const { register, isLoading: authLoading, validatePassword } = useAuth();
-  
+    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,8 +74,12 @@ const Register = () => {
   };
 
   return (
+      <ImageBackground
+            source={theme.backgroundImage} 
+            style={styles.backgroundImage} 
+            resizeMode="cover"
+          >
     <KeyboardAvoidingView 
-      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView 
@@ -218,13 +226,15 @@ const Register = () => {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundImage: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    width: '100%',
+    height: '100%',
   },
   scrollContent: {
     flexGrow: 1,
@@ -274,7 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffff',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -306,8 +316,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: 'rgba(103, 218, 191, 1)',
-    borderColor: 'rgba(103, 218, 191, 1)',
+    backgroundColor: 'rgba(46, 170, 134, 1)',
+    borderColor: 'rgba(46, 170, 134, 1)',
   },
   checkmark: {
     color: '#ffffff',
@@ -321,11 +331,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   link: {
-    color: 'rgba(103, 218, 191, 1)',
+    color: 'rgba(46, 170, 134, 1)',
     fontWeight: '500',
   },
   button: {
-    backgroundColor: 'rgba(103, 218, 191, 1)',
+    backgroundColor: 'rgba(46, 170, 134, 1)',
     borderColor:'white',
     borderWidth:1,
     paddingVertical: 16,
@@ -374,7 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginLink: {
-    color: 'rgba(103, 218, 191, 1)',
+    color: 'rgba(46, 170, 134, 1)',
     fontSize: 14,
     fontWeight: '600',
   },

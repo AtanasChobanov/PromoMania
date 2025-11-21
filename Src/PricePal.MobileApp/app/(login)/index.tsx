@@ -1,16 +1,19 @@
-import { useAuth } from '@/services/useAuth'; // Adjust path as needed
+import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useAuth } from '@/services/useAuth';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Index = () => {
   const router = useRouter();
   const { isLoading, isAuthenticated } = useAuth();
-
+  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   // Redirect to main app if already logged in
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace('/(tabs)/home'); // Replace with your main app route
+      router.replace('/(tabs)/home');
     }
   }, [isLoading, isAuthenticated]);
 
@@ -26,7 +29,11 @@ const Index = () => {
   // Only show welcome screen if not authenticated
   if (!isAuthenticated) {
     return (
-      <View style={styles.container}>
+        <ImageBackground
+            source={theme.backgroundImage} 
+            style={styles.backgroundImage} 
+            resizeMode="cover"
+          >
         <View style={styles.content}>
           {/* Logo Container */}
           <View style={styles.logoContainer}>
@@ -55,7 +62,7 @@ const Index = () => {
             <Text style={styles.buttonText}>Започни</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ImageBackground>
     );
   }
 
@@ -67,6 +74,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
+  },
+   backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -83,10 +95,12 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginTop: 40,
+    borderRadius:15,
   },
   logo: {
     width: 300,
     height: 300,
+    borderRadius:45,
     marginBottom: 20,
   },
   companyName: {
@@ -114,7 +128,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   button: {
-    backgroundColor: 'rgba(103, 218, 191, 1)',
+    backgroundColor: 'rgba(46, 170, 134, 1)',
     paddingVertical: 20,
     paddingHorizontal: 100,
     borderRadius: 12,

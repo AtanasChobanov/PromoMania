@@ -25,10 +25,9 @@ export default function SubcategoryProductLayout() {
   const theme = isDarkMode ? darkTheme : lightTheme;
   const segments = useSegments();
 
-  // Get the current screen (last part of the path)
   const currentRoute = segments[segments.length - 1];
 
-  const showTopBar = currentRoute !== 'mapDelivery'; // hide for mapDelivery
+  const showTopBar = currentRoute !== 'mapDelivery'; 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.SafeviewColor }} edges={['top']}>
       {showTopBar && (
