@@ -5,7 +5,6 @@ improve responsivness even further
 fix scalibity mode
 add more animations
 deconstruct code
-брошура и презентация
 fix dark mode
 optinal liquid glass and ios liquad glass
 login backbround color

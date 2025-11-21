@@ -180,12 +180,12 @@ const overpassEndpoints = [
 
         if (response.ok) break;
       } catch (err) {
-        console.warn(`⚠️ Overpass endpoint failed: ${endpoint}`);
+        console.warn(` Overpass endpoint failed: ${endpoint}`);
       }
     }
 
     if (!response) {
-      console.error('❌ All Overpass endpoints failed.');
+      console.error(' All Overpass endpoints failed.');
       return null;
     }
 
@@ -193,14 +193,14 @@ const overpassEndpoints = [
 
     // Overpass may return HTML error instead of JSON
     if (text.startsWith('<')) {
-      console.error(`❌ Overpass returned HTML for ${shopName}`);
+      console.error(`Overpass returned HTML for ${shopName}`);
       return null;
     }
 
     const data = JSON.parse(text);
     const elements = data.elements || [];
 
-    console.log(`✅ Found ${elements.length} results for "${shopName}"`);
+    console.log(`Found ${elements.length} results for "${shopName}"`);
 
     if (elements.length === 0) return null;
 
@@ -236,10 +236,10 @@ const overpassEndpoints = [
       return closestElement;
     }
 
-    console.log(`🚫 No valid coordinates found for "${shopName}"`);
+    console.log(` No valid coordinates found for "${shopName}"`);
     return null;
   } catch (error) {
-    console.error(`❌ Error finding ${shopName}:`, error);
+    console.error(`Error finding ${shopName}:`, error);
     return null;
   }
 };
@@ -506,7 +506,6 @@ const overpassEndpoints = [
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'mapReady') {
         setMapLoaded(true);
-        // Immediately update the map when it's ready
         setTimeout(() => {
           updateMap();
         }, 100);

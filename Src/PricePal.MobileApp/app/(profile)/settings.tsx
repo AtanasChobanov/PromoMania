@@ -1,9 +1,11 @@
+
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useAuth } from '@/services/useAuth';
 import { router } from 'expo-router';
 import React from 'react';
-import { ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 const SettingsScreen: React.FC = () => {
   const {
@@ -14,8 +16,33 @@ const SettingsScreen: React.FC = () => {
     togglePerformanceMode,
     toggleSimpleMode,
   } = useSettings();
+  const { logout, user } = useAuth();
 
-
+const handleLogout = async () => {
+  Alert.alert(
+    'Потвърждение',
+    'Сигурни ли сте, че искате да излезете?',
+    [
+      {
+        text: 'Отказ',
+        style: 'cancel',
+      },
+      {
+        text: 'Изход',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+            // Just navigate directly - simple!
+            router.replace('/(login)/login');
+          } catch (error) {
+            Alert.alert('Грешка', 'Неуспешно излизане от профила');
+          }
+        },
+      },
+    ]
+  );
+};
   
   const theme = isDarkMode ? darkTheme : lightTheme;
   const SettingPageNav = ({ 
@@ -226,7 +253,24 @@ const SettingsScreen: React.FC = () => {
             onToggle={toggleSimpleMode}
             pressed={() => router.navigate('/(profile)/ToS')}
           />
-          <Text>Debugging:</Text>
+ <TouchableOpacity 
+  style={[
+    styles.logoutButton,
+    { 
+      backgroundColor: '#dc3545',
+      marginHorizontal: wp(5),
+      marginTop: hp(3),
+    }
+  ]}
+  onPress={handleLogout}
+>
+  <Text style={[
+    styles.logoutText,
+    { fontSize: getFontSize(isSimpleMode ? 18 : 16) }
+  ]}>
+    Изход
+  </Text>
+</TouchableOpacity>
     
 
         <View style={{ height: hp(10) }} />
@@ -293,6 +337,23 @@ const styles = StyleSheet.create({
       fontSize: moderateScale(36),
       fontWeight: '200',
     },
+   logoutButton: {
+  backgroundColor: '#dc3545',
+  paddingVertical: hp(1.8),
+  paddingHorizontal: wp(8),
+  borderRadius: 12,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+  elevation: 3,
+},
+logoutText: {
+  color: '#fff',
+  fontWeight: '600',
+},
 });
 
 export default SettingsScreen;
