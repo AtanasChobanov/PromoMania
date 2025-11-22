@@ -1,12 +1,16 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
-import { router } from 'expo-router';
+// 1. Import the Auth hook
+import { useAuth } from '@/services/useAuth';
 import React from 'react';
-import { ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 
 const OptionsRegister: React.FC = () => {
+  // 2. Get the finishOnboarding function
+  const { finishOnboarding } = useAuth();
+
   const {
     isDarkMode,
     isPerformanceMode,
@@ -17,54 +21,8 @@ const OptionsRegister: React.FC = () => {
   } = useSettings();
 
   const theme = isDarkMode ? darkTheme : lightTheme;
-  const SettingPageNav = ({ 
-    title, 
-    description, 
-    value, 
-    onToggle,
-    pressed
-  }: { 
-    title: string; 
-    description: string; 
-    value: boolean; 
-    onToggle: () => void;
-    pressed: () => void;
-  }) => (
-    <Pressable style={[
-      styles.settingRow,
-      { 
-        backgroundColor: theme.colors.cardBackground,
-        borderColor: theme.colors.border,
-      }
-      
-    ]} onPress={pressed}>
-      <View style={styles.settingText}>
-        <Text style={[
-          styles.settingTitle,
-          { 
-            fontSize: getFontSize(isSimpleMode ? 20 : 18),
-            color: theme.colors.textPrimary,
-          }
-        ]}>
-          {title}
-        </Text>
-        <Text style={[
-          styles.settingDescription,
-          { 
-            fontSize: getFontSize(isSimpleMode ? 16 : 14),
-            color: theme.colors.textSecondary,
-          }
-        ]}>
-          {description}
-        </Text>
-      </View>
-          <View style={styles.arrowContainer}>
-                <Text style={[styles.arrow, { color: theme.colors.textPrimary, opacity: 0.6 }]}>›</Text>
-              </View>
-    </Pressable>
-  );
 
-
+  // Helper component for rows
   const SettingRow = ({ 
     title, 
     description, 
@@ -114,12 +72,11 @@ const OptionsRegister: React.FC = () => {
   );
 
   return (
-
-       <ImageBackground
-              source={theme.backgroundImage} 
-              style={styles.backgroundImage} 
-              resizeMode="cover"
-            >
+    <ImageBackground
+      source={theme.backgroundImage} 
+      style={styles.backgroundImage} 
+      resizeMode="cover"
+    >
       <ScrollView 
         contentContainerStyle={{ paddingTop: hp(2) }}
         showsVerticalScrollIndicator={false}
@@ -129,12 +86,11 @@ const OptionsRegister: React.FC = () => {
           { 
             fontSize: getFontSize(isSimpleMode ? 32 : 28),
             color: theme.colors.textPrimary,
-            marginTop:hp(5)
+            marginTop: hp(5)
           }
         ]}>
           Настройки
         </Text>
-      
 
         <View style={styles.section}>
           <Text style={[
@@ -192,20 +148,21 @@ const OptionsRegister: React.FC = () => {
             onToggle={toggleSimpleMode}
           />
         </View>
-          <TouchableOpacity
-                   style={[styles.button,{backgroundColor:theme.colors.textGreen}]}
-onPress={() => router.push('/(tabs)/categories')}   
-                   activeOpacity={0.8}
-                 >
-                       
-                   <Text style={[styles.buttonText, {color:theme.colors.textPrimary}]}>
-                    Продължи
-                       </Text>
-                 </TouchableOpacity>
+
+        {/* 3. Update the Continue Button */}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: theme.colors.textGreen }]}
+          onPress={finishOnboarding} // <--- CHANGED: Calls context function instead of router.push
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>
+            Продължи
+          </Text>
+        </TouchableOpacity>
+        
         <View style={{ height: hp(10) }} />
       </ScrollView>
-      </ImageBackground>
-
+    </ImageBackground>
   );
 };
 
@@ -213,7 +170,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-    buttonText: {
+  buttonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
@@ -248,7 +205,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-    button: {
+  button: {
     backgroundColor: 'rgba(103, 218, 191, 1)',
     paddingVertical: 16,
     marginTop: hp(3),
@@ -275,18 +232,18 @@ const styles = StyleSheet.create({
   settingDescription: {
     lineHeight: 20,
   },
-   backgroundImage: {
+  backgroundImage: {
     flex: 1,
     width: "100%",
     height: "100%",
   },
-    arrowContainer: {
-      marginLeft: moderateScale(8),
-    },
-    arrow: {
-      fontSize: moderateScale(36),
-      fontWeight: '200',
-    },
+  arrowContainer: {
+    marginLeft: moderateScale(8),
+  },
+  arrow: {
+    fontSize: moderateScale(36),
+    fontWeight: '200',
+  },
 });
 
 export default OptionsRegister;

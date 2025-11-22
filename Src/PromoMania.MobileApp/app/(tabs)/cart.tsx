@@ -572,7 +572,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
       >
         <View >
       
-            <Text style={[styles.continueButtonText, {color: theme.colors.textReverse}]}>
+            <Text style={[styles.continueButtonText, {color:'#F5F5F5'}]}>
               Продължи
             </Text>
         </View>

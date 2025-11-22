@@ -1,5 +1,6 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
+// Make sure this path matches your file structure exactly
 import { useAuth } from '@/services/useAuth';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -18,6 +19,7 @@ import {
 
 const Login = () => {
   const router = useRouter();
+  // Using the hook from your Context
   const { login, isLoading: authLoading } = useAuth();
   
   const [email, setEmail] = useState('');
@@ -42,9 +44,12 @@ const Login = () => {
         email: email.trim().toLowerCase(),
         password,
       });
-
-      // Successfully logged in, navigate to home
-      router.push('/(tabs)/home');
+      
+      // --- OPTIMIZATION NOTE ---
+      // We removed router.push('/(tabs)/home') here.
+      // The useProtectedRoute in your useAuth.tsx observes the user state.
+      // Once login() succeeds, 'user' becomes active, and the app 
+      // auto-redirects to Home.
     } catch (error: any) {
       Alert.alert(
         'Грешка при влизане',
@@ -52,101 +57,104 @@ const Login = () => {
       );
     }
   };
-  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
+
+  const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
+
   return (
-      <ImageBackground
-                source={theme.backgroundImage} 
-                style={styles.backgroundImage} 
-                resizeMode="cover"
-              >
-    <KeyboardAvoidingView 
-     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ImageBackground
+      source={theme.backgroundImage} 
+      style={styles.backgroundImage} 
+      resizeMode="cover"
     >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Добре дошли</Text>
-          <Text style={styles.subtitle}>Влезте в профила си</Text>
-        </View>
-
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Имейл</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="example@email.com"
-              placeholderTextColor="#999"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              editable={!authLoading}
-            />
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Добре дошли</Text>
+            <Text style={styles.subtitle}>Влезте в профила си</Text>
           </View>
 
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Парола</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="#999"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="password"
-              editable={!authLoading}
-            />
-          </View>
+          {/* Form */}
+          <View style={styles.form}>
+            {/* Email Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Имейл</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="example@email.com"
+                placeholderTextColor="#999"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                editable={!authLoading}
+              />
+            </View>
 
-          {/* Forgot Password */}
-          <TouchableOpacity 
-            style={styles.forgotPassword}
-            disabled={authLoading}
-          >
-            <Text style={styles.forgotPasswordText}>Забравена парола?</Text>
-          </TouchableOpacity>
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Парола</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#999"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="password"
+                editable={!authLoading}
+              />
+            </View>
 
-          {/* Login Button */}
-          <TouchableOpacity
-            style={[styles.button, authLoading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={authLoading}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonText}>
-              {authLoading ? 'Влизане...' : 'Вход'}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ИЛИ</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Register Link */}
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Нямате акаунт? </Text>
+            {/* Forgot Password */}
             <TouchableOpacity 
-              onPress={() => router.push({ pathname: "/(login)/register" })}
+              style={styles.forgotPassword}
               disabled={authLoading}
             >
-              <Text style={styles.registerLink}>Регистрирайте се</Text>
+              <Text style={styles.forgotPasswordText}>Забравена парола?</Text>
             </TouchableOpacity>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              style={[styles.button, authLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={authLoading}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>
+                {authLoading ? 'Влизане...' : 'Вход'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ИЛИ</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Register Link */}
+            <View style={styles.registerContainer}>
+              <Text style={styles.registerText}>Нямате акаунт? </Text>
+              <TouchableOpacity 
+                onPress={() => router.push({ pathname: "/(login)/register" })}
+                disabled={authLoading}
+              >
+                <Text style={styles.registerLink}>Регистрирайте се</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -156,7 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-   backgroundImage: {
+  backgroundImage: {
     flex: 1,
     width: '100%',
     height: '100%',

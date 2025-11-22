@@ -1,60 +1,71 @@
-import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
+// Make sure this path matches where you saved your context file
 import { useAuth } from '@/services/useAuth';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 const Register = () => {
   const router = useRouter();
+  
+  // 1. Get logic from Auth Context
   const { register, isLoading: authLoading, validatePassword } = useAuth();
-    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
+  
+  // Settings for theming (if needed for background/colors)
+  const { isDarkMode } = useSettings();
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
 
+  // Real-time password checks for the UI
+  const passwordChecks = useMemo(() => {
+    return {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>_]/.test(password)
+    };
+  }, [password]);
+
   const handleRegister = async () => {
-    // Validate empty fields
+    // --- 1. Validation ---
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Грешка', 'Моля, попълнете всички полета');
       return;
     }
 
-    // Validate password match
     if (password !== confirmPassword) {
       Alert.alert('Грешка', 'Паролите не съвпадат');
       return;
     }
 
-    // Validate password strength
     const passwordError = validatePassword(password);
     if (passwordError) {
       Alert.alert('Грешка', passwordError);
       return;
     }
 
-    // Validate terms acceptance
     if (!acceptTerms) {
       Alert.alert('Грешка', 'Моля, приемете условията за използване');
       return;
     }
 
+    // --- 2. Registration Logic ---
     try {
       await register({
         name: name.trim(),
@@ -62,9 +73,11 @@ const Register = () => {
         password,
       });
 
-      Alert.alert('Успех', 'Регистрацията беше успешна!', [
-        { text: 'OK', onPress: () => router.push('/(login)/optionsRegister') }
-      ]);
+      // SUCCESS!
+      // We do NOT manually navigate here (e.g. router.push).
+      // The AuthContext sets 'isOnboarding' to true, which
+      // automatically redirects the user to the Options screen.
+      
     } catch (error: any) {
       Alert.alert(
         'Грешка при регистрация',
@@ -73,14 +86,19 @@ const Register = () => {
     }
   };
 
+  const CheckIcon = ({ isValid }: { isValid: boolean }) => (
+    <View style={[styles.checkIcon, isValid && styles.checkIconValid]}>
+      {isValid && (
+        <Text style={styles.checkIconText}>✓</Text>
+      )}
+    </View>
+  );
+
   return (
-      <ImageBackground
-            source={theme.backgroundImage} 
-            style={styles.backgroundImage} 
-            resizeMode="cover"
-          >
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ImageBackground
+      source={require('@/assets/images/background2.webp')} 
+      style={styles.backgroundImage} 
+      resizeMode="cover"
     >
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
@@ -92,6 +110,7 @@ const Register = () => {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
+            disabled={authLoading}
           >
             <BlurView
               intensity={20} 
@@ -160,9 +179,61 @@ const Register = () => {
               autoComplete="password-new"
               editable={!authLoading}
             />
-            <Text style={styles.passwordHint}>
-              Паролата трябва да съдържа поне 8 символа, главни и малки букви, цифри и специални символи
-            </Text>
+            
+            {/* Password Requirements Visualization */}
+            {password.length > 0 && (
+              <View style={styles.passwordRequirements}>
+                <View style={styles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.minLength} />
+                  <Text style={[
+                    styles.requirementText,
+                    passwordChecks.minLength && styles.requirementTextValid
+                  ]}>
+                    Минимум 8 символа
+                  </Text>
+                </View>
+                
+                <View style={styles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasUpperCase} />
+                  <Text style={[
+                    styles.requirementText,
+                    passwordChecks.hasUpperCase && styles.requirementTextValid
+                  ]}>
+                    Поне една главна буква
+                  </Text>
+                </View>
+                
+                <View style={styles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasLowerCase} />
+                  <Text style={[
+                    styles.requirementText,
+                    passwordChecks.hasLowerCase && styles.requirementTextValid
+                  ]}>
+                    Поне една малка буква
+                  </Text>
+                </View>
+                
+                <View style={styles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasNumber} />
+                  <Text style={[
+                    styles.requirementText,
+                    passwordChecks.hasNumber && styles.requirementTextValid
+                  ]}>
+                    Поне една цифра
+                  </Text>
+                </View>
+                
+                <View style={styles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasSpecialChar} />
+                  <Text style={[
+                    styles.requirementText,
+                    passwordChecks.hasSpecialChar && styles.requirementTextValid
+                  ]}>
+                    Поне един специален символ (!@#$%^&*)
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Confirm Password Input */}
@@ -225,7 +296,6 @@ const Register = () => {
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -255,11 +325,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
   },
   title: {
     fontSize: 32,
@@ -293,11 +358,44 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
-  passwordHint: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 4,
-    lineHeight: 16,
+  passwordRequirements: {
+    marginTop: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 12,
+    gap: 8,
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  checkIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkIconValid: {
+    backgroundColor: 'rgba(46, 170, 134, 1)',
+    borderColor: 'rgba(46, 170, 134, 1)',
+  },
+  checkIconText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  requirementText: {
+    fontSize: 13,
+    color: '#666666',
+    flex: 1,
+  },
+  requirementTextValid: {
+    color: 'rgba(46, 170, 134, 1)',
+    fontWeight: '500',
   },
   checkboxContainer: {
     flexDirection: 'row',

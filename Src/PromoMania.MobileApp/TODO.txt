@@ -6,11 +6,12 @@ fix scalibity mode
 add more animations
 deconstruct code
 fix dark mode
-optinal liquid glass and ios liquad glass
-login backbround color
 map top white part transparecy
-log out functionality
 conditions for eveything
+fix product detail style
+fix cart style
+simple mode for other pages
+think of a better way of logging you out
 
 
 
@@ -18,4 +19,3 @@ future features:
 search functionality
 save functionality
 edit profile page
-login implemenation

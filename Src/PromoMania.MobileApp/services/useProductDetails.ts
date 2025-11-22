@@ -38,6 +38,11 @@ export interface PricePair {
   original: ProductPrice | null;
 }
 
+// New interface to structure prices by store chain
+export interface PricesByChain {
+  [chainName: string]: PricePair;
+}
+
 const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 
 // Fetch function with authentication
@@ -96,6 +101,7 @@ const fetchProductDetails = async (
 
 interface UseProductDetailsReturn {
   product: ProductDetails | null;
+  pricesByChain: PricesByChain | null;
   loading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
@@ -104,6 +110,7 @@ interface UseProductDetailsReturn {
 /**
  * Hook for fetching a single product with full details including prices across all store chains
  * Automatically handles JWT authentication
+ * Extracts both original and discounted prices for each store
  * @param productId - The publicId of the product to fetch
  * @param enabled - Whether the query should run (default: true)
  */
@@ -155,12 +162,53 @@ export const useProductDetails = (
     await queryRefetch();
   };
 
+  // Extract and organize prices by chain
+  const pricesByChain = data ? extractPricesByChain(data.prices) : null;
+
   return {
     product: data ?? null,
+    pricesByChain,
     loading: isLoading || authLoading, // Include auth loading
     error: error as Error | null,
     refetch
   };
+};
+
+/**
+ * Extract prices organized by store chain with original and discounted prices
+ * For each chain: looks for a discounted price (discount !== null) and original price (discount === null)
+ */
+export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
+  const chainMap = new Map<string, ProductPrice[]>();
+
+  // Group prices by chain name
+  prices.forEach(price => {
+    const chainName = price.storeChain.name;
+    if (!chainMap.has(chainName)) {
+      chainMap.set(chainName, []);
+    }
+    chainMap.get(chainName)!.push(price);
+  });
+
+  // Extract original and discounted for each chain
+  const result: PricesByChain = {};
+
+  chainMap.forEach((chainPrices, chainName) => {
+    const discountedPrice = chainPrices.find(p => p.discount !== null);
+    const originalPrice = chainPrices.find(p => p.discount === null);
+
+    // Use discounted if available, otherwise use original
+    const currentPrice = discountedPrice || originalPrice;
+
+    if (currentPrice) {
+      result[chainName] = {
+        discounted: currentPrice,
+        original: originalPrice || null
+      };
+    }
+  });
+
+  return result;
 };
 
 // Keep all your existing helper functions below
