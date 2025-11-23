@@ -314,6 +314,10 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
         ]}
       >
         <View style={styles.productContainer}>
+          {discount != null && discount !== 0 &&   <View style={[styles.discount,{padding:1, backgroundColor:'#DC2626'}]}> 
+
+                   <Text style={[{color: 'white' }]}>-{discount}%</Text>
+          </View>}
           <TouchableOpacity
             style={styles.menuButton}
             onPress={openOptions}
@@ -322,13 +326,11 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
           >
             <Text style={[styles.menuDots, { color: theme.colors.textPrimary }]}>⋯</Text>
           </TouchableOpacity>
-
           <Image
             style={[styles.productImage, { width: scale(120) }]}
             source={imageUrl ? { uri: imageUrl } : require("../../assets/icons/icon.png")}
             resizeMode={imageUrl ? "contain" : "cover"}
           />
-
           <View style={styles.productDetails}>
             <View>
               {brand ? <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text> : null}
@@ -336,7 +338,6 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
               <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit ?? ""}</Text>
               <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
               <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
-{discount != null && discount !== 0 && <Text style={[styles.discount, { color: '#DC2626' }]}>{discount}% отстъпка</Text>}
             </View>
 
             <View style={styles.quantityRow}>
@@ -844,6 +845,7 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 15,
     position: 'relative',
+      overflow: 'hidden',
   },
   menuButton: {
     position: 'absolute',
@@ -890,10 +892,19 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(17),
     fontWeight: "bold",
   },
-  discount: {
-    fontSize: moderateScale(14),
-    fontWeight: "600",
-  },
+discount: {
+  fontSize: moderateScale(14),
+  fontWeight: "600",
+  position: 'absolute',
+  zIndex: 500,
+  transform: [{rotateZ: '-0.785398rad'}],
+  top: 15,
+  left: -50, // Move it left to extend across corner
+  minWidth: 150,
+  paddingHorizontal: 10,
+  paddingVertical: 3,
+  alignItems: 'center',
+},
   quantityRow: {
     flexDirection:'row',
         alignItems: "center",

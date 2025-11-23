@@ -11,7 +11,6 @@ conditions for eveything
 fix product detail style
 fix cart style
 simple mode for other pages
-think of a better way of logging you out
 
 
 

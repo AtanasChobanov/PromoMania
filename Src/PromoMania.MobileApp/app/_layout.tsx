@@ -1,26 +1,27 @@
-// app/_layout.tsx
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { QueryProvider } from '@/services/providers/QueryProvider';
-import { AuthGuard, AuthProvider } from '@/services/useAuth'; // Import BOTH
+import { AuthGuard, AuthProvider } from '@/services/useAuth';
 import { Stack } from "expo-router";
-import { StyleSheet, Text } from 'react-native'; // Added Text here
+import { StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView, TextInput } from 'react-native-gesture-handler';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import "../globals.css";
-
 
 (Text as any).defaultProps = (Text as any).defaultProps || {};
 (Text as any).defaultProps.allowFontScaling = false;
-
 (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
 (TextInput as any).defaultProps.allowFontScaling = false;
-export default function RootLayout() {
+
+function RootContent() {
+  const insets = useSafeAreaInsets();
+
+
+
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <QueryProvider>
         <SettingsProvider>
           <AuthProvider>
-            {/* AuthGuard sits here. It only re-renders itself on route change, 
-                not the AuthProvider or the contexts above it. */}
             <AuthGuard>
               <Stack
                 screenOptions={{
@@ -41,7 +42,17 @@ export default function RootLayout() {
           </AuthProvider>
         </SettingsProvider>
       </QueryProvider>
-    </GestureHandlerRootView>
+    </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={styles.container}>
+        <RootContent />
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 

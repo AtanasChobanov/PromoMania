@@ -172,6 +172,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff',
+
+   
     fontSize: 16,
     fontWeight: '600',
   },
@@ -208,6 +210,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'rgba(103, 218, 191, 1)',
     paddingVertical: 16,
+     borderWidth:1,
+    borderColor:'#FFF',
     marginTop: hp(3),
     borderRadius: 12,
     marginHorizontal: wp(5),

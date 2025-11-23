@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useAuth } from "./useAuth";
 
-// Types (keep all your existing types)
+// Types 
 export interface StoreChain {
   publicId: string;
   name: string;
@@ -176,7 +176,7 @@ export const useProductDetails = (
 
 /**
  * Extract prices organized by store chain with original and discounted prices
- * For each chain: looks for a discounted price (discount !== null) and original price (discount === null)
+ * For each chain: looks for a discounted price (discount !== 0) and original price (discount === 0)
  */
 export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   const chainMap = new Map<string, ProductPrice[]>();
@@ -194,8 +194,8 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   const result: PricesByChain = {};
 
   chainMap.forEach((chainPrices, chainName) => {
-    const discountedPrice = chainPrices.find(p => p.discount !== null);
-    const originalPrice = chainPrices.find(p => p.discount === null);
+    const discountedPrice = chainPrices.find(p => p.discount !== null && p.discount !== 0);
+    const originalPrice = chainPrices.find(p => p.discount === 0);
 
     // Use discounted if available, otherwise use original
     const currentPrice = discountedPrice || originalPrice;
@@ -211,7 +211,6 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   return result;
 };
 
-// Keep all your existing helper functions below
 export const getCurrentPriceWithOriginal = (
   prices: ProductPrice[],
   chainName: string
@@ -220,8 +219,8 @@ export const getCurrentPriceWithOriginal = (
   
   if (!chainPrices.length) return null;
   
-  const discounted = chainPrices.find(p => p.discount !== null);
-  const original = chainPrices.find(p => p.discount === null && p.validTo === null);
+  const discounted = chainPrices.find(p => p.discount !== null && p.discount !== 0);
+  const original = chainPrices.find(p => p.discount === 0 && p.validTo === null);
   
   if (discounted && original) {
     return { discounted, original };
@@ -231,7 +230,7 @@ export const getCurrentPriceWithOriginal = (
     discounted: chainPrices[0],
     original: null
   };
-};
+};  
 
 export const getAllCurrentPricesWithOriginals = (
   prices: ProductPrice[]

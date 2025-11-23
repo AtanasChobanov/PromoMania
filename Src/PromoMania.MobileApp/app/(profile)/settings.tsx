@@ -340,6 +340,8 @@ const styles = StyleSheet.create({
    logoutButton: {
   backgroundColor: '#dc3545',
   paddingVertical: hp(1.8),
+   borderWidth:1,
+    borderColor:'#FFF',
   paddingHorizontal: wp(8),
   borderRadius: 12,
   alignItems: 'center',
