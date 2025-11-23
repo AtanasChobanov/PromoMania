@@ -35,7 +35,7 @@ export default class ProductsController {
       const batchResults = await Promise.all(
         batch.map((productData) =>
           limit(async () => {
-            const product = await productService.getOrCreateProduct(
+            const product = await productService.updateOrCreateProduct(
               productData
             );
 
