@@ -2,6 +2,7 @@ import type { Product } from "@prisma/client";
 import prisma from "../../config/prisma-client.config.js";
 import type { ChainPrice } from "../../models/product.model.js";
 import StoreChainService from "../store-chain/store-chain.service.js";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export default class PriceService {
   private async handleRegularPrice(
@@ -69,17 +70,13 @@ export default class PriceService {
     chainId: number,
     chainPrice: ChainPrice
   ) {
-    const validFrom = new Date(chainPrice.validFrom);
-    const validTo = chainPrice.validTo ? new Date(chainPrice.validTo) : null;
-
-    // Проверяваме дали вече има същата промо цена
     const existingPromo = await prisma.price.findFirst({
       where: {
         product_id: product.id,
         chain_id: chainId,
-        price_bgn: chainPrice.priceBgn,
-        price_eur: chainPrice.priceEur,
-        valid_to: validTo,
+        price_bgn: Decimal(chainPrice.priceBgn),
+        price_eur: Decimal(chainPrice.priceEur),
+        valid_to: chainPrice.validTo,
         discount: chainPrice.discount,
       },
     });
@@ -92,8 +89,8 @@ export default class PriceService {
             chain_id: chainId,
             price_bgn: chainPrice.priceBgn,
             price_eur: chainPrice.priceEur,
-            valid_from: validFrom,
-            valid_to: validTo,
+            valid_from: chainPrice.validFrom,
+            valid_to: chainPrice.validTo,
             discount: chainPrice.discount,
           },
         });
