@@ -28,7 +28,7 @@ export default class ProductService {
           unit: product.unit,
         },
       });
-    } else if (existing.image_url !== (product.imageUrl ?? null)) {
+    } else if (product.imageUrl && existing.image_url !== product.imageUrl) {
       existing = await prisma.product.update({
         where: { id: existing.id },
         data: {
