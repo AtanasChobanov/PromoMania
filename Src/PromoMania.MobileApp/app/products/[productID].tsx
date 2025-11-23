@@ -238,7 +238,7 @@ export default function ProductPage() {
             source={
               product.imageUrl
                 ? { uri: product.imageUrl }
-                : require('../../assets/icons/icon.png')
+                : require('../../assets/icons/logo-for-boxes.png')
             }
             style={styles.productImage}
             resizeMode={product.imageUrl ? 'contain' : 'cover'}

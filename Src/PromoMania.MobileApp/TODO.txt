@@ -1,20 +1,17 @@
 generic implenetations:
 topbar transparecy clickability 
-improve responsivness even further
 виж още секция
-fix scalibity mode
-add more animations
 deconstruct code
-fix dark mode
-map top white part transparecy
 conditions for eveything
 fix product detail style
-fix cart style
 simple mode for other pages
-
-
+seeing password on login
+map condition if doesnt find
+frostflow guidlines
 
 future features:
 search functionality
+profile settings
 save functionality
 edit profile page
+categories using backend not hardcoded

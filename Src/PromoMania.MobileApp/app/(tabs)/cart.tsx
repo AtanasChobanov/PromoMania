@@ -328,7 +328,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
           </TouchableOpacity>
           <Image
             style={[styles.productImage, { width: scale(120) }]}
-            source={imageUrl ? { uri: imageUrl } : require("../../assets/icons/icon.png")}
+            source={imageUrl ? { uri: imageUrl } : require("../../assets/icons/logo-for-boxes.png")}
             resizeMode={imageUrl ? "contain" : "cover"}
           />
           <View style={styles.productDetails}>
@@ -336,8 +336,8 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
               {brand ? <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text> : null}
               <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textPrimary }]}>{name ?? ""}</Text>
               <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit ?? ""}</Text>
+                            <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
               <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
-              <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
             </View>
 
             <View style={styles.quantityRow}>

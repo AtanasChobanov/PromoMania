@@ -1,14 +1,12 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
-// 1. Import the Auth hook
 import { useAuth } from '@/services/useAuth';
 import React from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 
 const OptionsRegister: React.FC = () => {
-  // 2. Get the finishOnboarding function
   const { finishOnboarding } = useAuth();
 
   const {
@@ -151,11 +149,11 @@ const OptionsRegister: React.FC = () => {
 
         {/* 3. Update the Continue Button */}
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.colors.textGreen }]}
-          onPress={finishOnboarding} // <--- CHANGED: Calls context function instead of router.push
+          style={[styles.button, { backgroundColor:'rgba(46,170,134,1)' }]}
+          onPress={finishOnboarding} // 
           activeOpacity={0.8}
         >
-          <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>
+          <Text style={[styles.buttonText, { color: 'white' }]}>
             Продължи
           </Text>
         </TouchableOpacity>

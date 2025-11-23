@@ -1,12 +1,11 @@
-import { darkTheme, lightTheme } from '@/components/styles/theme';
-import { useSettings } from '@/contexts/SettingsContext';
-// Make sure this path matches your file structure exactly
-import { useAuth } from '@/services/useAuth';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   ImageBackground,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,23 +15,29 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+
+ 
+import { useAuth } from '@/services/useAuth';
 
 const Login = () => {
   const router = useRouter();
-  // Using the hook from your Context
   const { login, isLoading: authLoading } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const passwordInputRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
-    // Validate empty fields
+    Keyboard.dismiss();
+    
     if (!email || !password) {
       Alert.alert('Грешка', 'Моля, попълнете всички полета');
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('Грешка', 'Моля, въведете валиден имейл адрес');
@@ -44,117 +49,128 @@ const Login = () => {
         email: email.trim().toLowerCase(),
         password,
       });
-      
-      // --- OPTIMIZATION NOTE ---
-      // We removed router.push('/(tabs)/home') here.
-      // The useProtectedRoute in your useAuth.tsx observes the user state.
-      // Once login() succeeds, 'user' becomes active, and the app 
-      // auto-redirects to Home.
+      // Auto-redirect happens in Context via protected route
     } catch (error: any) {
       Alert.alert(
         'Грешка при влизане',
-        error.message || 'Невалиден имейл или парола. Моля, опитайте отново.'
+        error.message || 'Невалиден имейл или парола.'
       );
     }
   };
 
-  const { isDarkMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
-
   return (
-    <ImageBackground
-      source={theme.backgroundImage} 
-      style={styles.backgroundImage} 
-      resizeMode="cover"
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <ImageBackground source={require('@/assets/images/background2.webp')} style={styles.container}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Добре дошли</Text>
-            <Text style={styles.subtitle}>Влезте в профила си</Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Имейл</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="example@email.com"
-                placeholderTextColor="#999"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                editable={!authLoading}
-              />
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Добре дошли</Text>
+              <Text style={styles.subtitle}>Влезте в профила си</Text>
             </View>
 
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Парола</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor="#999"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="password"
-                editable={!authLoading}
-              />
-            </View>
+            {/* Form */}
+            <View style={styles.form}>
+              {/* Email Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Имейл</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="example@email.com"
+                  placeholderTextColor="#999999"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  editable={!authLoading}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordInputRef.current?.focus()}
+                  blurOnSubmit={false}
+                />
+              </View>
 
-            {/* Forgot Password */}
-            <TouchableOpacity 
-              style={styles.forgotPassword}
-              disabled={authLoading}
-            >
-              <Text style={styles.forgotPasswordText}>Забравена парола?</Text>
-            </TouchableOpacity>
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Парола</Text>
+                <View style={styles.passwordWrapper}>
+                  <TextInput
+                    ref={passwordInputRef}
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="••••••••"
+                    placeholderTextColor="#999999"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoComplete="password"
+                    editable={!authLoading}
+                    returnKeyType="done"
+                    onSubmitEditing={handleLogin}
+                  />
+                  <TouchableOpacity 
+                    style={styles.eyeIcon}
+                    onPress={() => setShowPassword(!showPassword)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons 
+                      name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                      size={moderateScale(20)} 
+                      color="#666666" 
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.button, authLoading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={authLoading}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.buttonText}>
-                {authLoading ? 'Влизане...' : 'Вход'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>ИЛИ</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Register Link */}
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Нямате акаунт? </Text>
+              {/* Forgot Password */}
               <TouchableOpacity 
-                onPress={() => router.push({ pathname: "/(login)/register" })}
+                style={styles.forgotPassword}
                 disabled={authLoading}
               >
-                <Text style={styles.registerLink}>Регистрирайте се</Text>
+                <Text style={styles.forgotPasswordText}>Забравена парола?</Text>
               </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[styles.button, authLoading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                disabled={authLoading}
+                activeOpacity={0.8}
+              >
+                {authLoading ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.buttonText}>Вход</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>ИЛИ</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              {/* Register Link */}
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerText}>Нямате акаунт? </Text>
+                <TouchableOpacity 
+                  onPress={() => router.push({ pathname: "/(login)/register" })}
+                  disabled={authLoading}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.registerLink}>Регистрирайте се</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -164,75 +180,92 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  backgroundImage: {
+  safeArea: {
     flex: 1,
-    width: '100%',
-    height: '100%',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(40), 
+    paddingBottom: verticalScale(40),
+    justifyContent: 'center',
   },
   header: {
-    marginBottom: 40,
+    marginBottom: verticalScale(32),
+    justifyContent:'center',
+    alignItems:'center'
   },
   title: {
-    fontSize: 32,
+    fontSize: moderateScale(32),
     fontWeight: 'bold',
     color: '#1a1a1a',
-    marginBottom: 8,
+    marginBottom: verticalScale(8),
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     color: '#666666',
   },
   form: {
     width: '100%',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: verticalScale(20),
   },
   label: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
     fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 8,
+    marginBottom: verticalScale(8),
   },
   input: {
-    backgroundColor: '#FFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: moderateScale(12),
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(12),
+    fontSize: moderateScale(16),
     color: '#1a1a1a',
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    height: verticalScale(48),
+  },
+  passwordWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    paddingRight: scale(45),
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: scale(12),
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: verticalScale(24),
   },
   forgotPasswordText: {
     color: 'rgba(46, 170, 134, 1)',
-    fontSize: 14,
+    fontSize: moderateScale(14),
     fontWeight: '500',
   },
   button: {
     backgroundColor: 'rgba(46, 170, 134, 1)',
-    borderColor:'white',
-    borderWidth:1,
-    paddingVertical: 16,
-    borderRadius: 12,
+    borderColor: 'white',
+    borderWidth: 1,
+    height: verticalScale(50),
+    borderRadius: moderateScale(12),
+    justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: verticalScale(2),
     },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: moderateScale(4),
     elevation: 3,
   },
   buttonDisabled: {
@@ -240,13 +273,13 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: '600',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 32,
+    marginVertical: verticalScale(32),
   },
   dividerLine: {
     flex: 1,
@@ -254,9 +287,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   dividerText: {
-    marginHorizontal: 16,
+    marginHorizontal: scale(16),
     color: '#999999',
-    fontSize: 14,
+    fontSize: moderateScale(14),
     fontWeight: '500',
   },
   registerContainer: {
@@ -266,11 +299,11 @@ const styles = StyleSheet.create({
   },
   registerText: {
     color: '#666666',
-    fontSize: 14,
+    fontSize: moderateScale(14),
   },
   registerLink: {
     color: 'rgba(46, 170, 134, 1)',
-    fontSize: 14,
+    fontSize: moderateScale(14),
     fontWeight: '600',
   },
 });

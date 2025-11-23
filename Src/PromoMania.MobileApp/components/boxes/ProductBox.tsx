@@ -175,7 +175,7 @@ export const ProductBox: React.FC<{
               {/* Image Section */}
               <View style={styles.imageContainer}>
                 <Image
-                  source={photo ? { uri: photo } : require("../../assets/icons/icon.png")}
+                  source={photo ? { uri: photo } : require("../../assets/icons/logo-for-boxes.png")}
                   style={[
                     styles.productImage, 
                     { 
