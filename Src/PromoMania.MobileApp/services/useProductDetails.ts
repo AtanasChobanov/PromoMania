@@ -38,14 +38,13 @@ export interface PricePair {
   original: ProductPrice | null;
 }
 
-// New interface to structure prices by store chain
 export interface PricesByChain {
   [chainName: string]: PricePair;
 }
 
 const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 
-// Fetch function with authentication
+// Fetch function
 const fetchProductDetails = async (
   productId: string,
   token: string | null,
@@ -53,14 +52,7 @@ const fetchProductDetails = async (
 ): Promise<ProductDetails> => {
   const url = `${API_BASE_URL}/products/${productId}`;
   
-  console.log('=== fetchProductDetails called ===');
-  console.log('Product ID:', productId);
-  console.log('Token exists:', !!token);
-  console.log('Token value:', token ? `${token.substring(0, 20)}...` : 'NULL');
-  
-  // Fail early if no token
   if (!token) {
-    console.error('❌ No token available - cannot make authenticated request');
     throw new Error('Authentication required. Please login.');
   }
   
@@ -70,31 +62,14 @@ const fetchProductDetails = async (
       'Authorization': `Bearer ${token.trim()}`,
     };
 
-    console.log('Making request to:', url);
-    console.log('Authorization header:', `Bearer ${token.substring(0, 15)}...`);
-
     const { data } = await axios.get<ProductDetails>(url, { headers });
-    
-    console.log('✅ Product details loaded successfully:', data.name);
     return data;
     
   } catch (error) {
-    // Handle 401 Unauthorized - token expired or invalid
-    if (axios.isAxiosError(error)) {
-      console.error('❌ API Error:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        message: error.response?.data?.message || error.message,
-        url: url,
-      });
-
-      if (error.response?.status === 401) {
-        console.log('Token expired/invalid - logging out');
-        await logout();
-        throw new Error('Session expired. Please login again.');
-      }
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      await logout();
+      throw new Error('Session expired. Please login again.');
     }
-    
     throw error;
   }
 };
@@ -107,13 +82,6 @@ interface UseProductDetailsReturn {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook for fetching a single product with full details including prices across all store chains
- * Automatically handles JWT authentication
- * Extracts both original and discounted prices for each store
- * @param productId - The publicId of the product to fetch
- * @param enabled - Whether the query should run (default: true)
- */
 export const useProductDetails = (
   productId: string | null,
   enabled: boolean = true
@@ -121,17 +89,7 @@ export const useProductDetails = (
   const queryClient = useQueryClient();
   const { accessToken, logout, isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Debug logging
-  console.log('=== useProductDetails hook ===');
-  console.log('Product ID:', productId);
-  console.log('Enabled:', enabled);
-  console.log('Auth Loading:', authLoading);
-  console.log('Is Authenticated:', isAuthenticated);
-  console.log('Access Token exists:', !!accessToken);
-  console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'NULL');
-
   const shouldFetch = enabled && productId !== null && !authLoading && !!accessToken;
-  console.log('Should Fetch:', shouldFetch);
 
   const {
     data,
@@ -139,16 +97,12 @@ export const useProductDetails = (
     error,
     refetch: queryRefetch
   } = useQuery({
-    queryKey: ['product', productId, accessToken], // Include token in key
-    queryFn: () => {
-      console.log('Query function executing...');
-      return fetchProductDetails(productId!, accessToken, logout);
-    },
-    enabled: shouldFetch, // Only run if authenticated and token exists
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    queryKey: ['product', productId, accessToken],
+    queryFn: () => fetchProductDetails(productId!, accessToken, logout),
+    enabled: shouldFetch,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: (failureCount, error) => {
-      // Don't retry on 401 errors
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         return false;
       }
@@ -157,7 +111,6 @@ export const useProductDetails = (
   });
 
   const refetch = async () => {
-    console.log('Manual refetch triggered');
     await queryClient.invalidateQueries({ queryKey: ['product', productId] });
     await queryRefetch();
   };
@@ -168,20 +121,19 @@ export const useProductDetails = (
   return {
     product: data ?? null,
     pricesByChain,
-    loading: isLoading || authLoading, // Include auth loading
+    loading: isLoading || authLoading,
     error: error as Error | null,
     refetch
   };
 };
 
 /**
- * Extract prices organized by store chain with original and discounted prices
- * For each chain: looks for a discounted price (discount !== 0) and original price (discount === 0)
+ * Extract prices organized by store chain, sorted by lowest price first.
  */
 export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   const chainMap = new Map<string, ProductPrice[]>();
 
-  // Group prices by chain name
+  // 1. Group prices by chain name
   prices.forEach(price => {
     const chainName = price.storeChain.name;
     if (!chainMap.has(chainName)) {
@@ -190,38 +142,46 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
     chainMap.get(chainName)!.push(price);
   });
 
-  // Extract original and discounted for each chain
-  const result: PricesByChain = {};
+  // 2. Create a temporary array to hold the pairs so we can sort them
+  const calculatedPairs: { chainName: string; pair: PricePair }[] = [];
 
   chainMap.forEach((chainPrices, chainName) => {
-    // Find discounted price (discount > 0, not just !== 0)
+    // Find discounted price (discount > 0)
     const discountedPrice = chainPrices.find(p => p.discount !== null && p.discount > 0);
     // Find original price (discount === 0)
     const originalPrice = chainPrices.find(p => p.discount === 0);
 
+    let pair: PricePair | null = null;
+
     if (discountedPrice && originalPrice) {
-      // Case 1: Both discounted and original exist - show both
-      result[chainName] = {
-        discounted: discountedPrice,
-        original: originalPrice
-      };
+      pair = { discounted: discountedPrice, original: originalPrice };
     } else if (originalPrice) {
-      // Case 2: Only original price exists - show as discounted, no original
-      result[chainName] = {
-        discounted: originalPrice,
-        original: null
-      };
+      pair = { discounted: originalPrice, original: null };
     } else if (discountedPrice) {
-      // Case 3: Only discounted exists (edge case) - show as discounted
-      result[chainName] = {
-        discounted: discountedPrice,
-        original: null
-      };
+      pair = { discounted: discountedPrice, original: null };
     }
+
+    if (pair) {
+      calculatedPairs.push({ chainName, pair });
+    }
+  });
+
+  // 3. Sort the array by price (Lowest to Highest)
+  calculatedPairs.sort((a, b) => a.pair.discounted.priceBgn - b.pair.discounted.priceBgn);
+
+  // 4. Construct the result object in sorted order
+  // Modern JS engines respect insertion order for string keys
+  const result: PricesByChain = {};
+  
+  calculatedPairs.forEach((item) => {
+    result[item.chainName] = item.pair;
   });
 
   return result;
 };
+
+//  Utility funcs
+
 export const getCurrentPriceWithOriginal = (
   prices: ProductPrice[],
   chainName: string
@@ -246,16 +206,23 @@ export const getCurrentPriceWithOriginal = (
 export const getAllCurrentPricesWithOriginals = (
   prices: ProductPrice[]
 ): Map<string, PricePair> => {
-  const priceMap = new Map<string, PricePair>();
+  //return a Map sorted by price
+  const tempArray: { chain: string; pair: PricePair }[] = [];
   const chainNames = [...new Set(prices.map(p => p.storeChain.name))];
   
   chainNames.forEach(chainName => {
     const pricePair = getCurrentPriceWithOriginal(prices, chainName);
     if (pricePair) {
-      priceMap.set(chainName, pricePair);
+      tempArray.push({ chain: chainName, pair: pricePair });
     }
   });
+
+  // Sort by lowest price
+  tempArray.sort((a, b) => a.pair.discounted.priceBgn - b.pair.discounted.priceBgn);
   
+  const priceMap = new Map<string, PricePair>();
+  tempArray.forEach(item => priceMap.set(item.chain, item.pair));
+
   return priceMap;
 };
 

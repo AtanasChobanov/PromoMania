@@ -1,6 +1,5 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useRef } from 'react';
 import { Dimensions, FlatList, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -451,13 +450,10 @@ const ContainerView = isPerformanceMode ? View : Animated.View;
     onPressOut={handlePressOut}
     style={styles.button}
   >
-    <LinearGradient
-      colors={theme.colors.blueTeal}
-      start={{ x: 0, y: 1 }}
-      style={styles.categories}
+    <View style={[styles.categories,{backgroundColor:theme.colors.textGreen}]}
     >
       <Text style={[styles.categoryText,{color:theme.colors.textPrimary}]}>{item.text}</Text>
-    </LinearGradient>
+    </View>
   </Pressable>
 </ContainerView>
   );
@@ -572,7 +568,7 @@ const styles = StyleSheet.create({
   categories: {
     padding: 15,
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 15,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -581,6 +577,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    borderColor:'white',
+    borderWidth:1,
   },
   categoryText: {
     fontSize: getFontSize(16),

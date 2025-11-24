@@ -326,11 +326,15 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
           >
             <Text style={[styles.menuDots, { color: theme.colors.textPrimary }]}>⋯</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={onViewDetails}>
+
+        
           <Image
             style={[styles.productImage, { width: scale(120) }]}
             source={imageUrl ? { uri: imageUrl } : require("../../assets/icons/logo-for-boxes.png")}
             resizeMode={imageUrl ? "contain" : "cover"}
           />
+            </TouchableOpacity>
           <View style={styles.productDetails}>
             <View>
               {brand ? <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text> : null}

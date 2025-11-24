@@ -123,18 +123,19 @@ const ChoiceDelivery = () => {
         <View style={styles.optionsWrapper}>
           <TouchableOpacity 
             style={[styles.optionContainer, {  
-              backgroundColor: theme.colors.cardBackground,
+                  backgroundColor:'rgba(240,240,240,1)',
+
               borderColor: theme.colors.textPrimary,
             }]}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, { backgroundColor: '#fff3cd' , borderColor:theme.colors.textTertiary }]}>
-              <TruckIcon height={48} width={48} color="#ffcd1b"/>
+            <View style={[styles.iconContainer, { backgroundColor: '#rgba(255, 243, 205, 0.2)' , borderColor:theme.colors.textTertiary }]}>
+              <TruckIcon height={48} width={48} color="#rgba(255, 205, 27, 0.3)"/>
             </View>
             <View style={styles.textContainer}>
               <Text style={[styles.optionTitle, {
                 fontSize: moderateScale(18), 
-                color: theme.colors.textPrimary
+                color: "rgba(0,0,0,0.5)"
               }]}>
                 Glovo доставка
               </Text>

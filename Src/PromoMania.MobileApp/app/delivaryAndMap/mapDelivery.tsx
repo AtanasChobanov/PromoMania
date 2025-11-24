@@ -661,10 +661,10 @@ const renderShopCard = (
               </Text>
             </View>
             
-            {/* EUR Price (Restored) */}
+            {/* EUR Price */}
             <View style={[styles.dataBadge, { borderColor: isDisabled ? '#ccc' : colors.primary }]}>
               <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
-                {shopData.price_eur.toFixed(2)}€
+                {shopData.price_eur.toFixed(2)} €
               </Text>
             </View>
           </View>

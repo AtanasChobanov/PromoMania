@@ -46,7 +46,7 @@ export const styles = StyleSheet.create({
   },
   productName: {
     fontWeight: "500",
-    textAlign: "center",
+    textAlign: "left",
   },
   priceLabel: {
     color: "#1F2937",
@@ -102,18 +102,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingBottom: hp(1),
     elevation: 5,
+      minHeight: moderateScale(140),  // adjust to taste
    
     
   },
-  productContent: {
-    width: "100%",
-    
-  },
+ productContent: {
+  width: "100%",
+  flex: 1,
+  justifyContent: "space-between",  
+},
   productNameContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: hp(3.6) * 2.4,
-  
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
   },
   priceContainer: {
     alignItems: "flex-start",

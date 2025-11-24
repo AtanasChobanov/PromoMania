@@ -172,7 +172,7 @@ const Index = () => {
                   style={styles.buttonGradient}
                 >
                   <Text style={styles.buttonText}>Започни сега</Text>
-                  <Text style={styles.buttonArrow}>→</Text>
+                  <Text style={styles.buttonText}>-></Text>
                 </LinearGradient>
               </TouchableOpacity>
             </Animated.View>

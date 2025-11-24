@@ -164,7 +164,9 @@ export const ProductBox: React.FC<{
   return (
     <View style={{ width: cardWidth }}>
       <Animated.View 
-        entering={isPerformanceMode ? undefined : FadeInDown.delay(index * 100).duration(600).springify()}
+        entering={isPerformanceMode ? undefined : FadeInDown.delay((index % 4) * 50) 
+                .duration(300) 
+                .springify()}
       >
         <Animated.View style={isPerformanceMode ? undefined : scaleStyle}>
           <Pressable 
@@ -444,6 +446,7 @@ const ProductContent = ({
           style={[
             styles.productName, 
             { 
+              
               fontSize: isSimpleMode ? getFontSize(18) : getFontSize(16), 
               color: theme.colors.textOnGradient,
               fontWeight: isSimpleMode ? '700' : '600',
@@ -455,7 +458,9 @@ const ProductContent = ({
         >
           {productName}
         </Text>
-        {unit && (
+     
+      </View>
+         {unit && (
           <View style={[
             styles.unitContainerAccent, 
             { 
@@ -477,8 +482,6 @@ const ProductContent = ({
             </Text>
           </View>
         )}
-      </View>
-      
       <View style={styles.priceCartContainer}>
         <View style={styles.priceContainer}>
           <Text style={[
