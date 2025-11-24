@@ -2,11 +2,9 @@ generic implenetations:
 topbar transparecy clickability 
 виж още секция
 deconstruct code
-conditions for eveything
+conditions for register
 fix product detail style
 simple mode for other pages
-seeing password on login
-map condition if doesnt find
 frostflow guidlines
 
 future features:

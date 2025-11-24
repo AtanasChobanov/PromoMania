@@ -194,23 +194,34 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   const result: PricesByChain = {};
 
   chainMap.forEach((chainPrices, chainName) => {
-    const discountedPrice = chainPrices.find(p => p.discount !== null && p.discount !== 0);
+    // Find discounted price (discount > 0, not just !== 0)
+    const discountedPrice = chainPrices.find(p => p.discount !== null && p.discount > 0);
+    // Find original price (discount === 0)
     const originalPrice = chainPrices.find(p => p.discount === 0);
 
-    // Use discounted if available, otherwise use original
-    const currentPrice = discountedPrice || originalPrice;
-
-    if (currentPrice) {
+    if (discountedPrice && originalPrice) {
+      // Case 1: Both discounted and original exist - show both
       result[chainName] = {
-        discounted: currentPrice,
-        original: originalPrice || null
+        discounted: discountedPrice,
+        original: originalPrice
+      };
+    } else if (originalPrice) {
+      // Case 2: Only original price exists - show as discounted, no original
+      result[chainName] = {
+        discounted: originalPrice,
+        original: null
+      };
+    } else if (discountedPrice) {
+      // Case 3: Only discounted exists (edge case) - show as discounted
+      result[chainName] = {
+        discounted: discountedPrice,
+        original: null
       };
     }
   });
 
   return result;
 };
-
 export const getCurrentPriceWithOriginal = (
   prices: ProductPrice[],
   chainName: string

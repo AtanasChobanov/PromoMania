@@ -30,6 +30,8 @@ interface ShopData {
   price_eur: number;
   location: LocationCoords;
   route?: RouteInfo;
+    isLocationFound: boolean;
+
 }
 
 const MapDelivery = () => {
@@ -244,49 +246,67 @@ const overpassEndpoints = [
   }
 };
 
-  const calculateShopRoutes = async (userLoc: LocationCoords, offers: any[]) => {
+const calculateShopRoutes = async (userLoc: LocationCoords, offers: any[]) => {
     if (offers.length === 0) return;
 
     setCalculatingRoutes(true);
-    const updatedShops: ShopData[] = [];
 
-    for (const offer of offers) {
+    // Process all offers in PARALLEL instead of one by one
+    const shopPromises = offers.map(async (offer) => {
       const shopName = offer.storeChain;
       
-      const shopLocation = await findShopLocation(shopName, userLoc);
-      
-      if (shopLocation) {
-        const routeInfo = await getDirectionsOSRM(userLoc, shopLocation);
+      try {
+        // Attempt to find location
+        const shopLocation = await findShopLocation(shopName, userLoc);
         
-        updatedShops.push({
-          name: shopName,
-          price_bgn: offer.totalPriceBgn,
-          price_eur: offer.totalPriceEur,
-          location: shopLocation,
-          route: routeInfo || undefined,
-        });
-      } else {
-        console.log(`Could not find location for ${shopName}`);
-        updatedShops.push({
-          name: shopName,
-          price_bgn: offer.totalPriceBgn,
-          price_eur: offer.totalPriceEur,
-          location: userLoc,
-          route: undefined,
-        });
+        if (shopLocation) {
+          const routeInfo = await getDirectionsOSRM(userLoc, shopLocation);
+          
+          return {
+            name: shopName,
+            price_bgn: offer.totalPriceBgn,
+            price_eur: offer.totalPriceEur,
+            location: shopLocation,
+            route: routeInfo || undefined,
+            isLocationFound: true, 
+          };
+        }
+      } catch (error) {
+        console.warn(`Error processing ${shopName}, skipping location...`, error);
       }
-    }
 
-    updatedShops.sort((a, b) => {
+      // Fallback: If location not found or error occurred, return this object
+      // so the shop still appears in the list (but marked as not found)
+      return {
+        name: shopName,
+        price_bgn: offer.totalPriceBgn,
+        price_eur: offer.totalPriceEur,
+        location: userLoc, // Dummy location (won't be plotted)
+        route: undefined,
+        isLocationFound: false,
+      };
+    });
+
+    // Wait for ALL shops to finish processing
+    const results = await Promise.all(shopPromises);
+
+    // Sort: Best offer -> Closest -> Not Found
+    const sortedShops = results.sort((a, b) => {
+      // 1. Put "Not Found" shops at the bottom
+      if (a.isLocationFound && !b.isLocationFound) return -1;
+      if (!a.isLocationFound && b.isLocationFound) return 1;
+
+      // 2. Put Best Offer at the top
       if (bestOffer && a.name === bestOffer.storeChain) return -1;
       if (bestOffer && b.name === bestOffer.storeChain) return 1;
       
+      // 3. Sort by distance
       const distA = a.route?.distance ?? Infinity;
       const distB = b.route?.distance ?? Infinity;
       return distA - distB;
     });
 
-    setShopsData(updatedShops);
+    setShopsData(sortedShops);
     setCalculatingRoutes(false);
   };
 
@@ -347,12 +367,15 @@ const overpassEndpoints = [
     }
   }, [shopsData, selectedShop, mapLoaded, isFullscreen, userLocation]);
 
-  const updateMap = () => {
+ const updateMap = () => {
     if (!webViewRef.current || !userLocation) return;
+
+    // Only map shops where we actually found the coordinates
+    const validShops = shopsData.filter(shop => shop.isLocationFound);
 
     const mapData = {
       userLocation,
-      shops: shopsData.map(shop => ({
+      shops: validShops.map(shop => ({ // Use validShops here
         name: shop.name,
         location: shop.location,
         route: shop.route,
@@ -515,7 +538,25 @@ const overpassEndpoints = [
     }
   };
 // Icon Components
-
+const AlertIcon = ({ size = 16, color = "#000" }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 8V12"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle cx="12" cy="16" r="1" fill={color} />
+  </Svg>
+);
 const CarIcon = ({ size = 24, color = '#000' }) => (
   <Svg
     width={size}
@@ -577,6 +618,9 @@ const renderShopCard = (
     const isSelected = selectedShop === shopData.name;
     const colors = shopColors[shopData.name as keyof typeof shopColors];
     const shopImage = shopImages[shopData.name as keyof typeof shopImages];
+    
+    // Disable interaction if not found
+    const isDisabled = !shopData.isLocationFound;
 
     return (
       <Pressable  
@@ -588,32 +632,37 @@ const renderShopCard = (
             borderColor: isSelected ? colors.primary : theme.colors.border,
             borderWidth: isSelected ? 2 : 1,
             transform: [{ scale: isSelected ? 1.02 : 1 }],
+            opacity: isDisabled ? 0.7 : 1, 
           }
         ]}
-        onPress={() => handleShopClick(shopData.name)}
+        onPress={() => !isDisabled && handleShopClick(shopData.name)}
       >
-        <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
+        <View style={[styles.iconContainer, { backgroundColor: isDisabled ? '#f0f0f0' : colors.secondary }]}>
           <Image 
-            style={{ width: 28, height: 28 }} 
+            style={{ width: 28, height: 28, opacity: isDisabled ? 0.5 : 1 }} 
             source={shopImage}
             resizeMode="contain"
           />
-          <Text style={[styles.chainName, { color: colors.primary }]}>
+          <Text style={[styles.chainName, { color: isDisabled ? '#666' : colors.primary }]}>
             {shopData.name}
           </Text>
         </View>
 
+        {/* --- PRICE SECTION --- */}
         <View style={styles.infoSection}>
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
             Цена
           </Text>
           <View style={styles.dataGroup}>
-            <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, backgroundColor:theme.colors.cardBackground }]}>
+            {/* BGN Price */}
+            <View style={[styles.dataBadge, { borderColor: isDisabled ? '#ccc' : colors.primary, backgroundColor:theme.colors.cardBackground }]}>
               <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                 {shopData.price_bgn.toFixed(2)} лв
               </Text>
             </View>
-            <View style={[styles.dataBadge, { borderColor: `${colors.primary}` }]}>
+            
+            {/* EUR Price (Restored) */}
+            <View style={[styles.dataBadge, { borderColor: isDisabled ? '#ccc' : colors.primary }]}>
               <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                 {shopData.price_eur.toFixed(2)}€
               </Text>
@@ -621,19 +670,30 @@ const renderShopCard = (
           </View>
         </View>
 
+        {/* --- DISTANCE SECTION --- */}
         <View style={styles.infoSection}>
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
             Разстояние
           </Text>
-          {shopData.route ? (
+          
+          {!shopData.isLocationFound ? (
+             <View style={styles.dataGroup}>
+               <View style={[styles.dataBadge, { borderColor: theme.colors.error || '#FF4444', flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                 <AlertIcon size={14} color={theme.colors.error || '#FF4444'} />
+                 <Text style={[styles.dataText, { color: theme.colors.error || '#FF4444', fontSize: moderateScale(11) }]}>
+                   Няма локация
+                 </Text>
+               </View>
+             </View>
+          ) : shopData.route ? (
             <View style={styles.dataGroup}>
-              <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+              <View style={[styles.dataBadge, { borderColor: colors.primary, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
                 <CarIcon size={15} color={theme.colors.textPrimary} />
                 <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                   {shopData.route.distanceText}
                 </Text>
               </View>
-              <View style={[styles.dataBadge, { borderColor: `${colors.primary}`, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+              <View style={[styles.dataBadge, { borderColor: colors.primary, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
                 <ClockIcon size={14} color={theme.colors.textPrimary} />
                 <Text style={[styles.dataText, { color: theme.colors.textPrimary }]}>
                   {shopData.route.durationText}
@@ -651,7 +711,9 @@ const renderShopCard = (
         </View>
 
         <View style={styles.arrowContainer}>
-          <Text style={[styles.arrow, { color: colors.primary, opacity: 0.6 }]}>›</Text>
+          {!isDisabled && (
+             <Text style={[styles.arrow, { color: colors.primary, opacity: 0.6 }]}>›</Text>
+          )}
         </View>
 
         {isBestOffer && (
@@ -661,17 +723,10 @@ const renderShopCard = (
           </View>
         )}
         
-        {isClosest && !isBestOffer && (
+        {isClosest && !isBestOffer && shopData.isLocationFound && (
           <View style={[styles.closestBadge, { backgroundColor: colors.primary, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
             <LocationIcon size={14} color="#fff" />
             <Text style={styles.closestText}>Най-близък магазин</Text>
-          </View>
-        )}
-
-          {isClosest && isBestOffer && (
-          <View style={[styles.closestBadge, { backgroundColor: colors.primary, flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
-            <LocationIcon size={14} color="#fff" />
-            <Text style={styles.closestText}>Най-близък и евтин магазин</Text>
           </View>
         )}
       </Pressable>
@@ -934,7 +989,8 @@ const styles = StyleSheet.create({
      height: 40,
      top:scale(6),
     marginHorizontal: 20,
-
+position: 'absolute', // <--- Remove from layout flow
+    zIndex: 100,          // <--- Ensure it sits on top of everything    left: moderateScale(20),
      borderRadius: 20,
      borderColor: 'white',
      borderStyle: 'solid',
