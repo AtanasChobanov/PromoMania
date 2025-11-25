@@ -239,11 +239,11 @@ const handleLogout = async () => {
             <Text style={[
             styles.sectionTitle,
             { 
-              fontSize: getFontSize(isSimpleMode ? 12 : 16),
+              fontSize: getFontSize(isSimpleMode ? 18 : 16),
               color: theme.colors.textSecondary,
             }
           ]}>
-            Правна информация
+            ПРАВНА ИНФОРМАЦИЯ
           </Text>
 
           <SettingPageNav

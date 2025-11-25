@@ -2,7 +2,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useAuth } from "./useAuth";
 
-// Types 
+// --- Types ---
+
 export interface StoreChain {
   publicId: string;
   name: string;
@@ -16,8 +17,8 @@ export interface Category {
 export interface ProductPrice {
   priceBgn: number;
   priceEur: number;
-  validFrom: string;
-  validTo: string | null;
+  validFrom: string;        // e.g., "2025-11-17 00:00:00"
+  validTo: string | null;   // e.g., "2025-11-23 23:59:59.999"
   discount: number | null;
   storeChain: StoreChain;
 }
@@ -44,7 +45,8 @@ export interface PricesByChain {
 
 const API_BASE_URL = "https://pricepal-9scz.onrender.com";
 
-// Fetch function
+// --- Fetch Function ---
+
 const fetchProductDetails = async (
   productId: string,
   token: string | null,
@@ -73,6 +75,8 @@ const fetchProductDetails = async (
     throw error;
   }
 };
+
+// --- Hook ---
 
 interface UseProductDetailsReturn {
   product: ProductDetails | null;
@@ -127,8 +131,19 @@ export const useProductDetails = (
   };
 };
 
+// --- Utility Helpers ---
+
+const isPriceActive = (price: ProductPrice): boolean => {
+  const now = new Date();
+  const validFrom = new Date(price.validFrom);
+  const validTo = price.validTo ? new Date(price.validTo) : null;
+
+  return validFrom <= now && (!validTo || validTo >= now);
+};
+
 /**
  * Extract prices organized by store chain, sorted by lowest price first.
+ * Prioritizes currently active prices.
  */
 export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   const chainMap = new Map<string, ProductPrice[]>();
@@ -146,16 +161,30 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   const calculatedPairs: { chainName: string; pair: PricePair }[] = [];
 
   chainMap.forEach((chainPrices, chainName) => {
-    // Find discounted price (discount > 0)
-    const discountedPrice = chainPrices.find(p => p.discount !== null && p.discount > 0);
-    // Find original price (discount === 0)
-    const originalPrice = chainPrices.find(p => p.discount === 0);
+    // Separate discounted and original prices
+    const discounts = chainPrices.filter(p => p.discount !== null && p.discount > 0);
+    const originals = chainPrices.filter(p => p.discount === 0 || p.discount === null);
+
+    // Helper to find the best relevant price (Active > Future > Past)
+    const findBestPrice = (list: ProductPrice[]) => {
+      const active = list.find(isPriceActive);
+      if (active) return active;
+      // If no active price, take the most recently added (or future one)
+      // Sort by validFrom descending
+      return list.sort((a, b) => new Date(b.validFrom).getTime() - new Date(a.validFrom).getTime())[0];
+    };
+
+    const discountedPrice = findBestPrice(discounts);
+    const originalPrice = findBestPrice(originals);
 
     let pair: PricePair | null = null;
 
     if (discountedPrice && originalPrice) {
       pair = { discounted: discountedPrice, original: originalPrice };
     } else if (originalPrice) {
+      // If only original exists, treat it as the "discounted" (current) price for display logic
+      // but keep original as null or itself depending on UI requirements.
+      // Standard pattern: discounted field holds the current price to pay.
       pair = { discounted: originalPrice, original: null };
     } else if (discountedPrice) {
       pair = { discounted: discountedPrice, original: null };
@@ -170,7 +199,6 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   calculatedPairs.sort((a, b) => a.pair.discounted.priceBgn - b.pair.discounted.priceBgn);
 
   // 4. Construct the result object in sorted order
-  // Modern JS engines respect insertion order for string keys
   const result: PricesByChain = {};
   
   calculatedPairs.forEach((item) => {
@@ -180,7 +208,7 @@ export const extractPricesByChain = (prices: ProductPrice[]): PricesByChain => {
   return result;
 };
 
-//  Utility funcs
+// --- Additional Utilities ---
 
 export const getCurrentPriceWithOriginal = (
   prices: ProductPrice[],
@@ -190,15 +218,30 @@ export const getCurrentPriceWithOriginal = (
   
   if (!chainPrices.length) return null;
   
-  const discounted = chainPrices.find(p => p.discount !== null && p.discount !== 0);
-  const original = chainPrices.find(p => p.discount === 0 && p.validTo === null);
+  // Try to find currently active prices first
+  const activePrices = chainPrices.filter(isPriceActive);
+  const pool = activePrices.length > 0 ? activePrices : chainPrices;
+
+  const discounted = pool.find(p => p.discount !== null && p.discount > 0);
+  const original = pool.find(p => p.discount === 0);
   
   if (discounted && original) {
     return { discounted, original };
   }
   
+  // If we have a discounted price but no explicit original
+  if (discounted) {
+    return { discounted, original: null };
+  }
+
+  // If we only have normal prices
+  if (original) {
+    return { discounted: original, original: null };
+  }
+  
+  // Fallback to first available
   return {
-    discounted: chainPrices[0],
+    discounted: pool[0],
     original: null
   };
 };  
@@ -206,7 +249,6 @@ export const getCurrentPriceWithOriginal = (
 export const getAllCurrentPricesWithOriginals = (
   prices: ProductPrice[]
 ): Map<string, PricePair> => {
-  //return a Map sorted by price
   const tempArray: { chain: string; pair: PricePair }[] = [];
   const chainNames = [...new Set(prices.map(p => p.storeChain.name))];
   
@@ -228,7 +270,11 @@ export const getAllCurrentPricesWithOriginals = (
 
 export const getBestPrice = (prices: ProductPrice[]): ProductPrice | null => {
   if (!prices.length) return null;
-  return prices.reduce((best, current) => {
+  // Filter for active prices if possible, otherwise use all
+  const activePrices = prices.filter(isPriceActive);
+  const pool = activePrices.length > 0 ? activePrices : prices;
+
+  return pool.reduce((best, current) => {
     return current.priceBgn < best.priceBgn ? current : best;
   });
 };
@@ -250,28 +296,6 @@ export const getBestPriceWithOriginal = (prices: ProductPrice[]): PricePair | nu
   });
   
   return bestPair;
-};
-
-export const getPricesByChain = (prices: ProductPrice[]): Map<string, ProductPrice[]> => {
-  const priceMap = new Map<string, ProductPrice[]>();
-  
-  prices.forEach(price => {
-    const chainName = price.storeChain.name;
-    if (!priceMap.has(chainName)) {
-      priceMap.set(chainName, []);
-    }
-    priceMap.get(chainName)!.push(price);
-  });
-  
-  return priceMap;
-};
-
-export const getCurrentPriceForChain = (
-  prices: ProductPrice[],
-  chainName: string
-): ProductPrice | null => {
-  const currentPrice = prices.find(price => price.storeChain.name === chainName);
-  return currentPrice || null;
 };
 
 export const clearProductCache = (

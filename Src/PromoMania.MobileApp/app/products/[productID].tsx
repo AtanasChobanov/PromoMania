@@ -68,7 +68,67 @@ const productPriceHistory = [
   { value: 9, label: 'Май' },
   { value: 10, label: 'Юни' },
 ];
+  
+const formatTimeLeft = (validTo: string | null) => {
+  if (!validTo) return null;
 
+  // Fix date format for iOS (replace space with T)
+  const targetDate = new Date(validTo.replace(" ", "T")).getTime();
+  const now = new Date().getTime();
+  const difference = targetDate - now;
+
+  if (difference <= 0) return "Изтекла оферта";
+
+  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (days > 0) {
+    return `${days}д ${hours}ч остават`;
+  }
+  return `${hours}ч ${minutes}мин остават`;
+};
+
+// --- Timer Component ---
+
+const DealTimer = ({ validTo, theme }: { validTo: string | null, theme: any }) => {
+  const [timeLeft, setTimeLeft] = useState(formatTimeLeft(validTo));
+
+  useEffect(() => {
+    if (!validTo) return;
+    
+    // Update immediately
+    setTimeLeft(formatTimeLeft(validTo));
+
+    const timer = setInterval(() => {
+      const remaining = formatTimeLeft(validTo);
+      setTimeLeft(remaining);
+      // Stop timer if expired
+      if (remaining === "Изтекла оферта") clearInterval(timer);
+    }, 60000); // Update every minute is enough for "Days/Hours"
+
+    return () => clearInterval(timer);
+  }, [validTo]);
+
+  if (!timeLeft || !validTo) return null;
+
+  const isUrgent = !timeLeft.includes("д") && !timeLeft.includes("Изтекла"); // Less than 24h
+  
+  return (
+    <View style={[styles.timerContainer, isUrgent ? { backgroundColor: 'rgba(255, 99, 71, 0.1)' } : null]}>
+      <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={isUrgent ? "#FF6347" : theme.colors.textSecondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+        <Path d="M12 6v6l4 2" />
+      </Svg>
+      <Text style={[
+        styles.timerText, 
+        { color: isUrgent ? "#FF6347" : theme.colors.textSecondary }
+      ]}>
+        {timeLeft}
+      </Text>
+    </View>
+  );
+};
 export default function ProductPage() {
   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -395,37 +455,45 @@ export default function ProductPage() {
       const isBestPrice = bestPrice && pricePair.discounted.priceBgn === bestPrice.priceBgn;
 
       //  Best Price
-      if (isBestPrice) {
-        return (
-          <AnimatedContainer
-            key={chainName}
-            entering={isPerformanceMode ? undefined : FadeIn.delay(350 + index * 50).duration(500)}
-            style={[
-              styles.bestDealBox,
-              {
-                backgroundColor: 'rgba(143, 228, 201, 0.1)',
-                borderColor: theme.colors.textGreen,
-              }
-            ]}
-          >
-            <View style={styles.bestDealHeader}>
-              <View style={styles.bestDealLabelRow}>
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill={theme.colors.textGreen}>
-                  <Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </Svg>
-                <Text style={[styles.bestDealLabel, { color: theme.colors.textGreen }]}>
-                  НАЙ-ДОБРА ЦЕНА
-                </Text>
-              </View>
-              
-              {pricePair.discounted.discount && (
-                <View style={styles.bestDealDiscountPill}>
-                  <Text style={[styles.bestDealDiscountText, { color: theme.colors.textPrimary }]}>
-                    -{pricePair.discounted.discount}%
-                  </Text>
-                </View>
-              )}
-            </View>
+  if (isBestPrice) {
+  return (
+    <AnimatedContainer
+      key={chainName}
+      entering={isPerformanceMode ? undefined : FadeIn.delay(350 + index * 50).duration(500)}
+      style={[
+        styles.bestDealBox,
+        {
+          backgroundColor: 'rgba(143, 228, 201, 0.1)',
+          borderColor: theme.colors.textGreen,
+        }
+      ]}
+    >
+      <View style={styles.bestDealHeader}>
+        <View style={styles.bestDealLabelColumn}> 
+          <View style={styles.bestDealLabelRow}>
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill={theme.colors.textGreen}>
+              <Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </Svg>
+            <Text style={[styles.bestDealLabel, { color: theme.colors.textGreen }]}>
+              НАЙ-ДОБРА ЦЕНА
+            </Text>
+          </View>
+          
+          {/* --- INSERT TIMER HERE --- */}
+          {pricePair.discounted.validTo && (
+            <DealTimer validTo={pricePair.discounted.validTo} theme={theme} />
+          )}
+        </View>
+        
+        {pricePair.discounted.discount && (
+          <View style={styles.bestDealDiscountPill}>
+            <Text style={[styles.bestDealDiscountText, { color: theme.colors.textPrimary }]}>
+              -{pricePair.discounted.discount}%
+            </Text>
+          </View>
+        )}
+      </View>
+
 
             <View style={styles.bestDealContent}>
               <View style={styles.bestDealChainInfo}>
@@ -976,5 +1044,23 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: -2,
     marginBottom: 2,
+  },
+   bestDealLabelColumn: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  timerText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

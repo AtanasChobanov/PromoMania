@@ -2,7 +2,7 @@ import { SettingsProvider } from '@/contexts/SettingsContext';
 import { QueryProvider } from '@/services/providers/QueryProvider';
 import { AuthGuard, AuthProvider } from '@/services/useAuth';
 import { Stack } from "expo-router";
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import "../globals.css";
@@ -18,7 +18,7 @@ function RootContent() {
 
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.container,         { paddingBottom: Platform.OS === 'android' ? insets.bottom : 0 }]}>
       <QueryProvider>
         <SettingsProvider>
           <AuthProvider>
