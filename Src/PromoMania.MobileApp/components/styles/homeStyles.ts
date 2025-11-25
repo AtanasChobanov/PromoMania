@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingBottom: hp(1),
     elevation: 5,
-      minHeight: moderateScale(140),  // adjust to taste
+      minHeight: moderateScale(145), 
    
     
   },
