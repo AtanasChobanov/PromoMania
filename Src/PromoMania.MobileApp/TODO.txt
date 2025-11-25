@@ -18,6 +18,7 @@ kato otide dolu da se razshiri
 pravna informacia tekst
 map dark mode make it lighter
 hardcoded solution for map for location
+site update
 
 
 
