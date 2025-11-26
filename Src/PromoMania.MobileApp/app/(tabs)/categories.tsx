@@ -1,8 +1,10 @@
+import { categoriesStyles } from '@/components/pages/categories/categoriesStyles';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { hp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useRef } from 'react';
-import { Dimensions, FlatList, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, ImageBackground, Pressable, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -12,20 +14,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
 
-const hp = (percentage: number): number => {
-  return (percentage * screenHeight) / 100;
-};
 
-// Font functions
-const getFontSize = (size: number): number => {
-  if (screenWidth < 350) return size * 0.85; 
-  if (screenWidth > 400) return size * 1.1;  
-  return size;
-};
 
 export interface Subcategory {
   id: string;
@@ -371,16 +363,8 @@ export const categoriesArray: CategoriesProps[] = [
   },
 ];
 
-// Memoize color mapping to avoid recalculation
-
-
-
-
-
-// Fixed 2 columns
 const numColumns = 2;
 
-// Memoized category item component with Reanimated
 const CategoryItem = React.memo(({ 
   item, 
   onPress,
@@ -401,7 +385,6 @@ const ContainerView = isPerformanceMode ? View : Animated.View;
   const scale = useSharedValue(0);
   const pressScale = useSharedValue(1);
   
-  // Combined entrance and reset animation with Reanimated
   React.useEffect(() => {
     if (isScreenFocused) {
       scale.value = 0;
@@ -443,16 +426,16 @@ const ContainerView = isPerformanceMode ? View : Animated.View;
 
   return (
     
-   <ContainerView style={[styles.itemContainer, !isPerformanceMode && animatedStyle]}>
+   <ContainerView style={[categoriesStyles.itemContainer, !isPerformanceMode && animatedStyle]}>
   <Pressable 
     onPress={handlePress}
     onPressIn={handlePressIn}
     onPressOut={handlePressOut}
-    style={styles.button}
+    style={categoriesStyles.button}
   >
-    <View style={[styles.categories,{backgroundColor:theme.colors.textGreen}]}
+    <View style={[categoriesStyles.categories,{backgroundColor:theme.colors.textGreen}]}
     >
-      <Text style={[styles.categoryText,{color:theme.colors.textOnGradient}]}>{item.text}</Text>
+      <Text style={[categoriesStyles.categoryText,{color:theme.colors.textOnGradient}]}>{item.text}</Text>
     </View>
   </Pressable>
 </ContainerView>
@@ -510,7 +493,7 @@ const Categories = () => {
   return (
     <ImageBackground
       source={theme.backgroundImage}
-      style={styles.backgroundImage}
+      style={categoriesStyles.backgroundImage}
     >
       <FlatList
         ref={flatListRef}
@@ -519,8 +502,8 @@ const Categories = () => {
         keyExtractor={keyExtractor}
         numColumns={numColumns}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.flatListContainer}
-        columnWrapperStyle={styles.row}
+        contentContainerStyle={categoriesStyles.flatListContainer}
+        columnWrapperStyle={categoriesStyles.row}
         removeClippedSubviews={true}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
@@ -528,65 +511,13 @@ const Categories = () => {
         updateCellsBatchingPeriod={50}
         getItemLayout={getItemLayout}
         ListHeaderComponent={
-          <View style={styles.titleContainer}>
-            <Text style={[styles.title,{color:theme.colors.textPrimary}]}>Избери си категория</Text>
+          <View style={categoriesStyles.titleContainer}>
+            <Text style={[categoriesStyles.title,{color:theme.colors.textPrimary}]}>Избери си категория</Text>
           </View>
         }
       />
     </ImageBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    paddingTop: 75,
-  },
-  title: {
-    fontSize: getFontSize(32),
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingTop: 12,
-    paddingBottom: 2,
-  },
-  flatListContainer: {
-    paddingHorizontal: 2,
-    paddingBottom: hp(14),
-  },
-  row: {
-    flexWrap: 'wrap',
-  },
-  itemContainer: {
-    margin: 8,
-  },
-  categories: {
-    padding: 15,
-    alignItems: 'center',
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    borderColor:'white',
-    borderWidth:1,
-  },
-  categoryText: {
-    fontSize: getFontSize(16),
-    fontWeight: '600',
-  },
-  button: {
-    alignItems: 'center',
-  },
-});
 
 export default React.memo(Categories);

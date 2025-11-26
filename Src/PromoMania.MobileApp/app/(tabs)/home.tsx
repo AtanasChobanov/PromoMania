@@ -1,6 +1,6 @@
-import { CategoryButton } from '@/components/boxes/CategoryButton';
-import { ProductSection } from '@/components/boxes/ProductSection';
-import { styles } from '@/components/styles/homeStyles';
+import { CategoryButton } from '@/components/pages/home/CategoryButton';
+import { styles } from '@/components/pages/home/homeStyles';
+import { ProductSection } from '@/components/pages/home/ProductSection';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -8,7 +8,6 @@ import { SectionType, useProductSection } from '@/services/useProducts';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, ImageBackground, Text, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-
 type SectionItem = {
   type: 'header' | 'categories' | 'product-section' | 'loading' | 'spacer';
   sectionType?: SectionType;

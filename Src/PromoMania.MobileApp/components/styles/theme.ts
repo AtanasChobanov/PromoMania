@@ -78,7 +78,7 @@ export const darkTheme = {
     borderColor:'#C8C8C8',
     textOnGradient: '#F8F8FF',
     textOnGradientReverse:'#1F2937', 
-    textOnGradientAlt: '#F9FAFB', // Slightly off-white for subtle depth
+    textOnGradientAlt: '#F9FAFB',
     // Borders
     border: 'rgba(255, 255, 255, 0.1)',
     borderLight: 'rgba(255, 255, 255, 0.05)',
@@ -102,9 +102,9 @@ export const darkTheme = {
     backgroundColor:  'rgba(46, 170, 134, 1)',
     secondaryBackgroundColor:'rgba(45, 153, 211, 1)',
     cancelColor:'rgba(239, 30, 63, 1)',
-//Unit
-unitColor: "rgba(229, 231, 235, 0.1)",
-unitBorderColor: "rgba(229, 231, 235, 0.2)",
+    //Unit
+    unitColor: "rgba(229, 231, 235, 0.1)",
+    unitBorderColor: "rgba(229, 231, 235, 0.2)",
 
             
 GlassColor:'light'as BlurTint,

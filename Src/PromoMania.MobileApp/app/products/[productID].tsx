@@ -1,5 +1,8 @@
-import { HeartIcon } from '@/components/boxes/HeartIcon';
+import { HeartIcon } from '@/components/pages/home/HeartIcon';
+import { DealTimer, chainLogos, productPriceHistory } from '@/components/pages/product/productConsts';
+import { createStyles } from '@/components/pages/product/productStyles';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
 import {
   extractPricesByChain,
@@ -13,11 +16,9 @@ import { useLocalSearchParams } from 'expo-router';
 import { ComponentType, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Dimensions,
   Image,
   ImageBackground,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View
@@ -35,104 +36,11 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 import { enableScreens } from 'react-native-screens';
-import { moderateScale } from 'react-native-size-matters';
 import Svg, { Path } from 'react-native-svg';
 
 enableScreens();
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Utility functions
-const wp = (percentage: number): number => (percentage * screenWidth) / 100;
-const hp = (percentage: number): number => (percentage * screenHeight) / 100;
-
-const getFontSize = (size: number): number => {
-  if (screenWidth < 350) return size * 0.85;
-  if (screenWidth > 400) return size * 1.1;
-  return size;
-};
-
-// Constants
-const chainLogos: Record<string, any> = {
-  Lidl: require('../../assets/icons/Lidl-logo.png'),
-  Kaufland: require('../../assets/icons/kaufland-logo.png'),
-  Billa: require('../../assets/icons/billa-logo.jpg'),
-  TMarket: require('../../assets/icons/tmarket-logo.png'),
-};
-
-const productPriceHistory = [
-  { value: 10, label: 'Янр' },
-  { value: 15, label: 'Фев' },
-  { value: 12, label: 'Мар' },
-  { value: 15, label: 'Апр' },
-  { value: 9, label: 'Май' },
-  { value: 10, label: 'Юни' },
-];
-  
-const formatTimeLeft = (validTo: string | null) => {
-  if (!validTo) return null;
-
-  // Fix date format for iOS (replace space with T)
-  const targetDate = new Date(validTo.replace(" ", "T")).getTime();
-  const now = new Date().getTime();
-  const difference = targetDate - now;
-
-  if (difference <= 0) return "Изтекла оферта";
-
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (days > 0) {
-    return `${days}д ${hours}ч остават`;
-  }
-  return `${hours}ч ${minutes}мин остават`;
-};
-
-// --- Timer Component ---
-
-const DealTimer = ({ validTo, theme }: { validTo: string | null, theme: any }) => {
-  const [timeLeft, setTimeLeft] = useState(formatTimeLeft(validTo));
-  const { isSimpleMode } = useSettings();
-  const styles = useMemo(
-    () => createStyles({ isSimpleMode }),
-    [ isSimpleMode]
-  );
-  useEffect(() => {
-    if (!validTo) return;
-    
-    // Update immediately
-    setTimeLeft(formatTimeLeft(validTo));
-
-    const timer = setInterval(() => {
-      const remaining = formatTimeLeft(validTo);
-      setTimeLeft(remaining);
-      // Stop timer if expired
-      if (remaining === "Изтекла оферта") clearInterval(timer);
-    }, 60000); // Update every minute is enough for "Days/Hours"
-
-    return () => clearInterval(timer);
-  }, [validTo]);
-
-  if (!timeLeft || !validTo) return null;
-
-  const isUrgent = !timeLeft.includes("д") && !timeLeft.includes("Изтекла"); // Less than 24h
-  
-  return (
-    <View style={[styles.timerContainer, isUrgent ? { backgroundColor: 'rgba(255, 99, 71, 0.1)' } : null]}>
-      <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={isUrgent ? "#FF6347" : theme.colors.textSecondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <Path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-        <Path d="M12 6v6l4 2" />
-      </Svg>
-      <Text style={[
-        styles.timerText, 
-        { color: isUrgent ? "#FF6347" : theme.colors.textSecondary }
-      ]}>
-        {timeLeft}
-      </Text>
-    </View>
-  );
-};
 export default function ProductPage() {
   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -190,21 +98,19 @@ export default function ProductPage() {
     }
 
     try {
-      // Add item to cart using the API
+
       await addItem(productId, quantity);
       
-      // Show success alert
       Alert.alert(
         "Добавено към количката",
         `${quantity} x ${product?.name || 'Продукт'} ${quantity === 1 ? 'беше добавен' : 'бяха добавени'} към количката`,
         [{ text: "Продължи" }],
         { cancelable: true }
       );
-      
-      // Reset quantity to 1 after successful add
+
       setQuantity(1);
     } catch (error) {
-      // Show error alert
+
       Alert.alert(
         "Грешка",
         "Не успяхме да добавим продукта към количката. Моля, опитайте отново.",
@@ -217,7 +123,6 @@ export default function ProductPage() {
 
   const LoadingContainer = isPerformanceMode ? View : Animated.View;
 
-  // Loading state
   if (loading) {
     return (
       <LoadingContainer style={{ flex: 1 }} entering={isPerformanceMode ? undefined : SlideInRight.duration(200)}>
@@ -237,7 +142,6 @@ export default function ProductPage() {
 
   const ErrorContainer = isPerformanceMode ? View : Animated.View;
 
-  // Error or not found state
   if (error || !product) {
     return (
       <ErrorContainer style={{ flex: 1 }} entering={isPerformanceMode ? undefined : SlideInRight.duration(200)}>
@@ -260,13 +164,11 @@ export default function ProductPage() {
     );
   }
 
-  // Get best price across all chains
+
   const bestPrice = getBestPrice(product.prices);
 
-  // Extract prices organized by store chain with original and discounted prices
   const pricesByChain = extractPricesByChain(product.prices);
 
-  // Helper function to safely extract numeric price
  const getNumericPrice = (price: string | number | undefined): string => {
   if (price == null) return "0.00";
 
@@ -278,7 +180,6 @@ export default function ProductPage() {
     numericPrice = parseFloat(price.replace("лв.", "").replace(",", "."));
   }
   
-  // Return formatted price with exactly 2 decimal places
   return numericPrice.toFixed(2);
 };
 
@@ -286,7 +187,6 @@ export default function ProductPage() {
   const ProductContainer = isPerformanceMode ? View : Animated.View;
   const CategoryContainer = isPerformanceMode ? View : Animated.View;
   const RatingContainer = isPerformanceMode ? View : Animated.View;
-  const BestPriceContainer = isPerformanceMode ? View : Animated.View;
   const UnitContainer = isPerformanceMode ? View : Animated.View;
   const QuanitityContainer = isPerformanceMode ? View : Animated.View;
   const RetailStoresContainer = isPerformanceMode ? View : Animated.View;
@@ -488,7 +388,6 @@ export default function ProductPage() {
             </Text>
           </View>
           
-          {/* --- INSERT TIMER HERE --- */}
           {pricePair.discounted.validTo && (
             <DealTimer validTo={pricePair.discounted.validTo} theme={theme} />
           )}
@@ -547,7 +446,7 @@ export default function ProductPage() {
         );
       }
 
-      // ---Other options---
+      // Other Options
       return (
         <AnimatedContainer
           key={chainName}
@@ -756,329 +655,3 @@ export default function ProductPage() {
   );
 }
 
-const createStyles = ({
-
-  isSimpleMode,
-}: {
-  isSimpleMode: boolean;
-}) =>
-    StyleSheet.create({
-    container: { flex: 1 },
-
-  backgroundImage: { flex: 1, width: '100%', height: '100%' },
-  scrollContent: { paddingBottom: 100 },
-  imageContainer: {
-    backgroundColor: 'white',
-    marginTop: wp(15),
-    alignItems: 'center',
-    paddingVertical: 0,
-    marginBottom: hp(2),
-    alignSelf: 'center',
-    height: hp(40),
-    width: wp(94),
-    position: 'relative',
-    shadowColor: '#000',
-    overflow: 'hidden',
-    borderRadius: wp(4),
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderWidth: isSimpleMode ? 3 : 1,
-    borderColor: isSimpleMode? "#000000" : '#666666',
-  },
-  productImage: { height: '100%', width: '100%', resizeMode: 'contain' },
-  detailsContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    width: wp(95),
-    alignSelf: 'center',
-    borderRadius: wp(4),
-    padding: 20,
-    marginBottom: hp(2),
-        borderWidth: isSimpleMode ? 3 : 1,
-    borderColor: isSimpleMode? "#000000" : '#666666',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  productName: { fontSize: isSimpleMode ? moderateScale(30) : moderateScale(26), fontWeight: 'bold', color: '#333', marginBottom: 5 },
-  brandText: { fontSize: 16, color: '#666', marginBottom: 8 },
-  categoryContainer: { marginBottom: 12 },
-  categoryText: { fontSize: 14, color: '#666' },
-  ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(1) },
-  starsContainer: { flexDirection: 'row', marginRight: 10 },
-  star: { marginRight: 2 },
-  ratingText: { fontSize: 16, color: '#1F2937' },
-  priceContainer: { marginBottom: hp(1) },
-  priceLabel: { fontSize: 14, color: '#666', marginBottom: 4 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  unitContainer: { flexDirection: 'column', alignItems: 'flex-start', marginBottom: hp(2) },
-  price: { fontSize: 32, fontWeight: 'bold', color: '#006D77' },
-  discountBadge: {
-    backgroundColor: 'rgba(143,228,201,1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 8,
-    alignSelf: 'flex-start',
-  },
-  discountBadgeText: { fontSize: 12, fontWeight: 'bold', color: '#1F2937' },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 10 },
-  quantitySection: { marginBottom: 25 },
-  quantityContainer: { flexDirection: 'row', alignItems: 'center' },
-  quantityButton: {
-    backgroundColor: 'rgba(143,228,201,1)',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quantityButtonText: { fontSize: 20, fontWeight: 'bold', color: '#1F2937' },
-  quantityText: { fontSize: 20, fontWeight: 'bold', marginHorizontal: 20, color: '#333' },
-  chartContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: wp(4),
-    width: wp(95),
-    alignSelf: 'center',
-    padding: 20,
-    marginBottom: hp(2),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  chartTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-  chartSubtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
-  pointerLabel: {
-    backgroundColor: 'rgba(143, 228, 201, 0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 40,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  pointerLabelText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  pointerLabelMonth: { color: 'white', fontSize: 12, opacity: 0.9 },
-  trendIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  trendText: { color: '#4CAF50', fontSize: 14, fontWeight: '600', marginLeft: 6 },
-  retailsContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: wp(4),
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: wp(95),
-    alignSelf: 'center',
-    padding: 15,
-    paddingTop:20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  leftSection: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  storeInfo: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-  rightSection: { alignItems: 'flex-end', paddingHorizontal: 5, textAlign: 'center', justifyContent: 'center' },
-  retailImages: { width: wp(10), height: wp(10) },
-  retailText: {
-    paddingLeft: wp(2),
-    fontWeight: 'bold',
-    fontSize: getFontSize(16),
-    color: '#1F2937',
-  },
-  discountText: { color: '#1F2937', fontWeight: 'bold', fontSize: 12 },
-  retailPrice: {
-    fontSize: getFontSize(20),
-    fontWeight: 'bold',
-    color: '#006D77',
-    marginBottom: 2,
-  },
-  originalPrice: {
-    fontSize: getFontSize(18),
-    color: '#999',
-    textDecorationLine: 'line-through',
-  },
-  discountContainer: {
-    backgroundColor: 'rgba(143,228,201,1)',
-    padding: 5,
-    borderRadius: 5,
-    alignSelf: 'center',
-  },
-  OneRetailBox: {
-    minHeight:moderateScale(70),
-    paddingVertical: hp(1),
-    paddingHorizontal:hp(1),
-    marginBottom:10,
-    borderTopColor:'black',
-    borderTopWidth:1,
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderRadius:15,
-  },
-  retailTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-    alignSelf: 'flex-start',
-  },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { fontSize: getFontSize(18), fontWeight: '500', color: '#333' },
-  notFoundContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  notFoundText: {
-    fontSize: getFontSize(20),
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  retryButton: { marginTop: 16, padding: 12 },
-  retryButtonText: { fontSize: 16, fontWeight: '600' },
-  blurContainer: {
-    position: 'absolute',
-    bottom: wp(7),
-    width: wp(95),
-    alignSelf: 'center',
-    borderRadius: 15,
-    padding: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 1)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  cartButton: { justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
-  cartButtonText: { fontWeight: '600', fontSize: 20, marginLeft: 8 },
-  heartOverlay: {
-    position: 'absolute',
-    top: hp(1),
-    right: wp(2),
-    zIndex: 10,
-  },
-  bestDealBox: {
-    borderRadius: 16,
-    padding: 16,
-    paddingHorizontal:10,
-    marginVertical: hp(1),
-    borderWidth: 2,
-    width: '100%',
-
-  },
-  bestDealHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-    paddingBottom: 8,
-  },
-  bestDealLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  bestDealLabel: {
-    fontSize: getFontSize(12),
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  bestDealDiscountPill: {
-    backgroundColor: 'rgba(143,228,201,1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 5,
-  },
-  bestDealDiscountText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  bestDealContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  bestDealChainInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    flex: 1,
-  },
-  bestDealLogo: {
-    width: wp(10), 
-    height: wp(10),
-    borderRadius: 8,
-  },
-  bestDealChainName: {
-    fontSize: getFontSize(22), 
-    fontWeight: 'bold',
-  },
-  bestDealPriceStack: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    flexDirection:'row',
-    gap:10
-  },
-  priceWrapper: {
-    alignItems: 'flex-end',
-  },
-  bestDealPriceMain: {
-    fontSize: getFontSize(20),
-    fontWeight: '900',
-    
-    
-    lineHeight: 30,
-  },
-  bestDealPriceSub: {
-    fontSize: getFontSize(14),
-    fontWeight: '600',
-    opacity: 0.8,
-    marginTop: 2,
-  },
-  originalPriceSmall: {
-    fontSize: getFontSize(13),
-    textDecorationLine: 'line-through',
-    opacity: 0.6,
-    marginTop: -2,
-    marginBottom: 2,
-  },
-   bestDealLabelColumn: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 4,
-  },
-  timerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0,0,0,0.03)',
-  },
-  timerText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-});

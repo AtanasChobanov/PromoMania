@@ -1,4 +1,6 @@
-import { useSettings } from '@/contexts/SettingsContext';
+import { BackButton } from '@/components/common/BackButton';
+import { CheckIcon } from '@/components/icons/CheckIcon';
+import { registerStyles } from '@/components/pages/register/registerStyles';
 import { useAuth } from '@/services/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -7,23 +9,16 @@ import {
   Alert,
   ImageBackground,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
-import Svg, { Path } from 'react-native-svg';
-
+import { moderateScale } from 'react-native-size-matters';
 const Register = () => {
   const router = useRouter();
   
-  // 1. Get logic from Auth Context
   const { register, isLoading: authLoading, validatePassword } = useAuth();
-  
-  // Settings for theming (if needed for background/colors)
-  const { isDarkMode } = useSettings();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -45,7 +40,7 @@ const Register = () => {
   }, [password]);
 
   const handleRegister = async () => {
-    // --- 1. Validation ---
+    //Validation
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Грешка', 'Моля, попълнете всички полета');
       return;
@@ -67,7 +62,7 @@ const Register = () => {
       return;
     }
 
-    // --- 2. Registration Logic ---
+    //Registration Logic
     try {
       await register({
         name: name.trim(),
@@ -83,66 +78,37 @@ const Register = () => {
     }
   };
 
-  const CheckIcon = ({ isValid }: { isValid: boolean }) => (
-    <View style={[styles.checkIcon, isValid && styles.checkIconValid]}>
-      {isValid && (
-        <Text style={styles.checkIconText}>✓</Text>
-      )}
-    </View>
-  );
-  const BackButton = () => (
-     <TouchableOpacity
-               onPress={() => router.back()}
-               style={styles.backButton}
-             >
-            
-              <View 
-        
-                style={[styles.tabBarBlur,{backgroundColor:'rgba(46,170,134,1)'}]} 
-              />
-          
-            
-               <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-                 <Path
-                   d="M15 18l-6-6 6-6"
-                   stroke={'white'}
-                   strokeWidth={2}
-                   strokeLinecap="round"
-                   strokeLinejoin="round"
-                 />
-               </Svg>
-             </TouchableOpacity>
-  );
+
   return (
     <ImageBackground
       source={require('@/assets/images/background2.webp')} 
-      style={styles.backgroundImage} 
+      style={registerStyles.backgroundImage} 
       resizeMode="cover"
     >
       
-         <BackButton/>
+         <BackButton />
       <ScrollView 
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={registerStyles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         
         {/* Header */}
-        <View style={styles.header}>
+        <View style={registerStyles.header}>
          
         
      
-          <Text style={styles.title}>Регистрация</Text>
-          <Text style={styles.subtitle}>Създайте нов акаунт</Text>
+          <Text style={registerStyles.title}>Регистрация</Text>
+          <Text style={registerStyles.subtitle}>Създайте нов акаунт</Text>
         </View>
 
         {/* Form */}
-        <View style={styles.form}>
+        <View style={registerStyles.form}>
           {/* Name Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Име</Text>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Име</Text>
             <TextInput
-              style={styles.input}
+              style={registerStyles.input}
               placeholder="Вашето име"
               placeholderTextColor="#999"
               value={name}
@@ -154,10 +120,10 @@ const Register = () => {
           </View>
 
           {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Имейл</Text>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Имейл</Text>
             <TextInput
-              style={styles.input}
+              style={registerStyles.input}
               placeholder="example@email.com"
               placeholderTextColor="#999"
               value={email}
@@ -170,11 +136,11 @@ const Register = () => {
           </View>
 
           {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Парола</Text>
-            <View style={styles.passwordWrapper}>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Парола</Text>
+            <View style={registerStyles.passwordWrapper}>
               <TextInput
-                style={[styles.input, styles.passwordInput]}
+                style={[registerStyles.input, registerStyles.passwordInput]}
                 placeholder="Минимум 8 символа"
                 placeholderTextColor="#999"
                 value={password}
@@ -185,7 +151,7 @@ const Register = () => {
                 editable={!authLoading}
               />
               <TouchableOpacity
-                style={styles.eyeIcon}
+                style={registerStyles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}
                 disabled={authLoading}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -200,52 +166,52 @@ const Register = () => {
             
             {/* Password Requirements Visualization */}
             {password.length > 0 && (
-              <View style={styles.passwordRequirements}>
-                <View style={styles.requirementRow}>
+              <View style={registerStyles.passwordRequirements}>
+                <View style={registerStyles.requirementRow}>
                   <CheckIcon isValid={passwordChecks.minLength} />
                   <Text style={[
-                    styles.requirementText,
-                    passwordChecks.minLength && styles.requirementTextValid
+                    registerStyles.requirementText,
+                    passwordChecks.minLength && registerStyles.requirementTextValid
                   ]}>
                     Минимум 8 символа
                   </Text>
                 </View>
                 
-                <View style={styles.requirementRow}>
+                <View style={registerStyles.requirementRow}>
                   <CheckIcon isValid={passwordChecks.hasUpperCase} />
                   <Text style={[
-                    styles.requirementText,
-                    passwordChecks.hasUpperCase && styles.requirementTextValid
+                    registerStyles.requirementText,
+                    passwordChecks.hasUpperCase && registerStyles.requirementTextValid
                   ]}>
                     Поне една главна буква
                   </Text>
                 </View>
                 
-                <View style={styles.requirementRow}>
+                <View style={registerStyles.requirementRow}>
                   <CheckIcon isValid={passwordChecks.hasLowerCase} />
                   <Text style={[
-                    styles.requirementText,
-                    passwordChecks.hasLowerCase && styles.requirementTextValid
+                    registerStyles.requirementText,
+                    passwordChecks.hasLowerCase && registerStyles.requirementTextValid
                   ]}>
                     Поне една малка буква
                   </Text>
                 </View>
                 
-                <View style={styles.requirementRow}>
+                <View style={registerStyles.requirementRow}>
                   <CheckIcon isValid={passwordChecks.hasNumber} />
                   <Text style={[
-                    styles.requirementText,
-                    passwordChecks.hasNumber && styles.requirementTextValid
+                    registerStyles.requirementText,
+                    passwordChecks.hasNumber && registerStyles.requirementTextValid
                   ]}>
                     Поне една цифра
                   </Text>
                 </View>
                 
-                <View style={styles.requirementRow}>
+                <View style={registerStyles.requirementRow}>
                   <CheckIcon isValid={passwordChecks.hasSpecialChar} />
                   <Text style={[
-                    styles.requirementText,
-                    passwordChecks.hasSpecialChar && styles.requirementTextValid
+                    registerStyles.requirementText,
+                    passwordChecks.hasSpecialChar && registerStyles.requirementTextValid
                   ]}>
                     Поне един специален символ (!@#$%^&*)
                   </Text>
@@ -255,11 +221,11 @@ const Register = () => {
           </View>
 
           {/* Confirm Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Потвърди парола</Text>
-            <View style={styles.passwordWrapper}>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Потвърди парола</Text>
+            <View style={registerStyles.passwordWrapper}>
               <TextInput
-                style={[styles.input, styles.passwordInput]}
+                style={[registerStyles.input, registerStyles.passwordInput]}
                 placeholder="Въведете паролата отново"
                 placeholderTextColor="#999"
                 value={confirmPassword}
@@ -270,7 +236,7 @@ const Register = () => {
                 editable={!authLoading}
               />
               <TouchableOpacity
-                style={styles.eyeIcon}
+                style={registerStyles.eyeIcon}
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={authLoading}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -285,41 +251,40 @@ const Register = () => {
           </View>
 
           <TouchableOpacity 
-            style={styles.checkboxContainer}
+            style={registerStyles.checkboxContainer}
             onPress={() => setAcceptTerms(!acceptTerms)}
             activeOpacity={0.7}
-            disabled={authLoading}
-          >
-            <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
-              {acceptTerms && <Text style={styles.checkmark}>✓</Text>}
+            disabled={authLoading}>
+            <View style={[registerStyles.checkbox, acceptTerms && registerStyles.checkboxChecked]}>
+              {acceptTerms && <Text style={registerStyles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxText}>
-              Приемам <Text style={styles.link}>условията за използване</Text> и{' '}
-              <Text style={styles.link}>политиката за поверителност</Text>
+            <Text style={registerStyles.checkboxText}>
+              Приемам <Text style={registerStyles.link}>условията за използване</Text> и{' '}
+              <Text style={registerStyles.link}>политиката за поверителност</Text>
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, authLoading && styles.buttonDisabled]}
+            style={[registerStyles.button, authLoading && registerStyles.buttonDisabled]}
             onPress={handleRegister}
             disabled={authLoading}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>
+            <Text style={registerStyles.buttonText}>
               {authLoading ? 'Регистриране...' : 'Регистрирай се'}
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ИЛИ</Text>
-            <View style={styles.dividerLine} />
+          <View style={registerStyles.divider}>
+            <View style={registerStyles.dividerLine} />
+            <Text style={registerStyles.dividerText}>ИЛИ</Text>
+            <View style={registerStyles.dividerLine} />
           </View>
 
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Вече имате акаунт? </Text>
+          <View style={registerStyles.loginContainer}>
+            <Text style={registerStyles.loginText}>Вече имате акаунт? </Text>
             <TouchableOpacity onPress={() => router.push('/(login)/login')}>
-              <Text style={styles.loginLink}>Влезте тук</Text>
+              <Text style={registerStyles.loginLink}>Влезте тук</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -328,225 +293,6 @@ const Register = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: scale(24),
-    paddingTop: verticalScale(100),
-    paddingBottom: verticalScale(40),
-  },
-  header: {
-    marginBottom: verticalScale(32),
 
-  },
-  backButton: {
-     width: 40,
-     height: 40,
-     top:scale(55),
-    marginHorizontal: 20,
-    position: 'absolute',
-    zIndex: 100,   
-     borderRadius: 20,
-     borderColor: 'white',
-     borderStyle: 'solid',
-     borderWidth: 1,
-     overflow: 'hidden',
-     justifyContent: 'center',
-     alignItems: 'center',
-   },
-    backButtonText: {
-    fontSize: moderateScale(16),
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: moderateScale(32),
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: verticalScale(8),
-    alignSelf:'center'
-  },
-  subtitle: {
-    fontSize: moderateScale(16),
-    color: '#666666',
-        alignSelf:'center'
-
-  },
-
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: verticalScale(20),
-  },
-  label: {
-    fontSize: moderateScale(14),
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: verticalScale(8),
-  },
-  input: {
-    backgroundColor: '#ffff',
-    borderRadius: moderateScale(12),
-    paddingHorizontal: scale(16),
-    paddingVertical: verticalScale(12),
-    fontSize: moderateScale(16),
-    color: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    height: verticalScale(48),
-  },
-  passwordWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
-  },
-  passwordInput: {
-    paddingRight: scale(45),
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: scale(12),
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  passwordRequirements: {
-    marginTop: verticalScale(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: moderateScale(8),
-    padding: moderateScale(12),
-    gap: verticalScale(8),
-  },
-  requirementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(10),
-  },
-  checkIcon: {
-    width: moderateScale(18),
-    height: moderateScale(18),
-    borderRadius: moderateScale(9),
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkIconValid: {
-    backgroundColor: 'rgba(46, 170, 134, 1)',
-    borderColor: 'rgba(46, 170, 134, 1)',
-  },
-  checkIconText: {
-    color: '#ffffff',
-    fontSize: moderateScale(10),
-    fontWeight: 'bold',
-  },
-  requirementText: {
-    fontSize: moderateScale(13),
-    color: '#666666',
-    flex: 1,
-  },
-  requirementTextValid: {
-    color: 'rgba(46, 170, 134, 1)',
-    fontWeight: '500',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: verticalScale(24),
-  },
-  checkbox: {
-    width: moderateScale(22),
-    height: moderateScale(22),
-    borderRadius: moderateScale(6),
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    backgroundColor:'#FFFF',
-    marginRight: scale(12),
-    marginTop: verticalScale(2),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: 'rgba(46, 170, 134, 1)',
-    borderColor: 'rgba(255, 255, 255, 1)',
-  },
-  checkmark: {
-    color: '#ffffff',
-    fontSize: moderateScale(14),
-    fontWeight: 'bold',
-  },
-  checkboxText: {
-    flex: 1,
-    fontSize: moderateScale(14),
-    color: '#666666',
-    lineHeight: moderateScale(20),
-  },
-  link: {
-    color: 'rgba(46, 170, 134, 1)',
-    fontWeight: '500',
-  },
-  button: {
-    backgroundColor: 'rgba(46, 170, 134, 1)',
-    borderColor:'white',
-    borderWidth:1,
-    height: verticalScale(50),
-    borderRadius: moderateScale(12),
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: verticalScale(6),
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: moderateScale(4),
-    elevation: 3,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: moderateScale(16),
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: verticalScale(32),
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e0e0e0',
-  },
-  dividerText: {
-    marginHorizontal: scale(16),
-    color: '#999999',
-    fontSize: moderateScale(14),
-    fontWeight: '500',
-  },
-  loginContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginText: {
-    color: '#666666',
-    fontSize: moderateScale(14),
-  },
-  loginLink: {
-    color: 'rgba(46, 170, 134, 1)',
-    fontSize: moderateScale(14),
-    fontWeight: '600',
-  },
-      tabBarBlur: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});
 
 export default Register;

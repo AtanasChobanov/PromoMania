@@ -1,598 +1,31 @@
+import { cartStyles } from '@/components/pages/cart/cartStyles';
+import { OverviewPrice } from "@/components/pages/cart/OverviewPrice";
+import { ProductBox } from "@/components/pages/cart/ProductBox";
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useCartSuggestions, useShoppingCart } from '@/services/useShoppingCart';
-import { BlurView } from 'expo-blur';
-import { router, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Animated,
   FlatList,
-  Image,
   ImageBackground,
-  Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  StyleSheet,
   Text,
-  TouchableHighlight,
   TouchableOpacity,
   View
 } from 'react-native';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
-import Svg, { Circle, Path } from 'react-native-svg';
-
-
-interface ProductBoxProps {
-  publicId: string;
-  name: string;
-  brand: string | null;
-  price: number;
-  priceEur: number;
-  unit: string;
-  imageUrl: string;
-  quantity: number;
-  discount: number | null;
-  onDelete?: () => void;
-  onViewDetails?: () => void;
-  onSaveForLater?: () => void;
-}
+import { moderateScale, scale } from 'react-native-size-matters';
 
 
 
-interface OverviewPriceProps {
-  priceBgn: number;
-  priceEur: number;
-  isExpanded: boolean;
-  basePrice: number;
-  basePriceEur: number;
-  saves: number;
-  savesEur:number;
-  bestOfferStore?: string;
-  onToggle: () => void;
-}
-
-interface OptionsMenuProps {
-  visible: boolean;
-  onClose: () => void;
-  onViewDetails: () => void;
-  onDelete: () => void;
-  onSaveForLater: () => void;
-}
-
-const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
-  visible,
-  onClose,
-  onViewDetails,
-  onDelete,
-  onSaveForLater,
-}) => {
-  const { isPerformanceMode, isDarkMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
-  const slideAnim = useRef(new Animated.Value(300)).current;
-  const MoreOptionsContainer = isPerformanceMode ? View : Animated.View;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 65,
-        friction: 9,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: 300,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible, slideAnim]);
-
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <MoreOptionsContainer
-          style={[
-            styles.bottomSheet,
-            ...(isPerformanceMode ? [] : [{ transform: [{ translateY: slideAnim }] }]),
-          ]}
-        >
-          <BlurView
-            intensity={30}
-            tint="light"
-            experimentalBlurMethod="dimezisBlurView"
-            style={styles.blurContainer}
-          >
-            <View style={styles.handleBar} />
-
-            <Text style={styles.optionsTitle}>Опции за продукта</Text>
-
-            <TouchableOpacity style={styles.optionItem} onPress={onViewDetails}>
-              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M12 5C7 5 2.73 8.11 1 12.5 2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
-                  fill="#333"
-                />
-                <Circle cx="12" cy="12.5" r="2.5" fill="#333" />
-              </Svg>
-              <Text style={styles.optionText}>Преглед на детайли</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.optionItem} onPress={onSaveForLater}>
-              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                  fill="#FF6B6B"
-                />
-              </Svg>
-              <Text style={styles.optionText}>Запази за по-късно</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.optionItem} onPress={onDelete}>
-              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                  fill="#FF3B30"
-                />
-              </Svg>
-              <Text style={[styles.optionText, styles.deleteText]}>Премахни от количката</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelText}>Отказ</Text>
-            </TouchableOpacity>
-          </BlurView>
-
-        </MoreOptionsContainer>
-      </TouchableOpacity>
-    </Modal>
-  );
-});
-OptionsMenu.displayName = "OptionsMenu";
-
-const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
-  publicId,
-  name,
-  brand,
-  price,
-  priceEur,
-  unit,
-  imageUrl,
-  quantity,
-  discount,
-  onDelete,
-  onViewDetails,
-  onSaveForLater,
-  index,
-}) => {
-  const { isDarkMode, isPerformanceMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
-
-  const [optionsVisible, setOptionsVisible] = useState(false);
-  const [localQuantity, setLocalQuantity] = useState(quantity);
-  const updateTimeoutRef = useRef<number | null>(null);
-  const { updateItemQuantity } = useShoppingCart();
-
-  // Animation refs
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const quantityScaleAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        delay: index * 100,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        delay: index * 100,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, index, slideAnim]);
-
-  useEffect(() => {
-    setLocalQuantity(quantity);
-  }, [quantity]);
-
-  const animateQuantityChange = useCallback(() => {
-    Animated.sequence([
-      Animated.timing(quantityScaleAnim, {
-        toValue: 1.3,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.spring(quantityScaleAnim, {
-        toValue: 1,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [quantityScaleAnim]);
-
-  const handleViewDetails = useCallback(() => {
-    setOptionsVisible(false);
-    onViewDetails?.();
-  }, [onViewDetails]);
-
-  const handleDelete = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: -50,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setOptionsVisible(false);
-      onDelete?.();
-    });
-  }, [onDelete, fadeAnim, slideAnim]);
-
-  const handleSaveForLater = useCallback(() => {
-    setOptionsVisible(false);
-    onSaveForLater?.();
-  }, [onSaveForLater]);
-
-  const openOptions = useCallback(() => setOptionsVisible(true), []);
-  const closeOptions = useCallback(() => setOptionsVisible(false), []);
-
-  const debouncedUpdate = useCallback((newQuantity: number) => {
-    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
-
-    updateTimeoutRef.current = setTimeout(async () => {
-      try {
-        await updateItemQuantity(publicId, newQuantity);
-      } catch (error) {
-        console.error('Failed to update quantity:', error);
-        setLocalQuantity(quantity);
-      }
-    }, 500) as unknown as number;
-  }, [publicId, updateItemQuantity, quantity]);
-
-  const handleDecreaseQuantity = useCallback(() => {
-    const newQuantity = localQuantity - 1;
-    if (newQuantity <= 0) {
-      onDelete?.();
-      return;
-    }
-    setLocalQuantity(newQuantity);
-    animateQuantityChange();
-    debouncedUpdate(newQuantity);
-  }, [localQuantity, animateQuantityChange, debouncedUpdate, onDelete]);
-
-  const handleIncreaseQuantity = useCallback(() => {
-    const newQuantity = localQuantity + 1;
-    setLocalQuantity(newQuantity);
-    animateQuantityChange();
-    debouncedUpdate(newQuantity);
-  }, [localQuantity, animateQuantityChange, debouncedUpdate]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start();
-  }, [scaleAnim]);
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, { toValue: 1, tension: 300, friction: 10, useNativeDriver: true }).start();
-  }, [scaleAnim]);
-
-  useEffect(() => {
-    return () => {
-      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
-    };
-  }, []);
-
-  const ProductContainer = isPerformanceMode ? View : Animated.View;
-  const QuantityText = isPerformanceMode ? Text : Animated.Text;
-
-  return (
-    <>
-      <ProductContainer
-        style={[
-          styles.products,
-          {
-            backgroundColor: theme.colors.backgroundColor,
-            borderColor: '#FFFFFF',
-            borderWidth: 1,
-            ...(isPerformanceMode ? {} : { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }),
-          },
-        ]}
-      >
-        <View style={styles.productContainer}>
-          {discount != null && discount !== 0 && <View style={[styles.discount, { padding: 1, backgroundColor: '#DC2626' }]}>
-            <Text style={[{ color: 'white' }]}>-{discount}%</Text>
-          </View>}
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={openOptions}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-          >
-            <Text style={[styles.menuDots, { color: theme.colors.textOnGradient }]}>⋯</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onViewDetails}>
-            <Image
-              style={[styles.productImage, { width: scale(120) }]}
-              source={imageUrl ? { uri: imageUrl } : require("../../assets/icons/logo-for-boxes.png")}
-              resizeMode={imageUrl ? "contain" : "cover"}
-            />
-          </TouchableOpacity>
-          <View style={styles.productDetails}>
-            <View>
-              {brand ? <Text style={[styles.brand, { color: theme.colors.textOnGradient }]}>{brand}</Text> : null}
-              <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textOnGradient }]}>{name ?? ""}</Text>
-              <Text style={[styles.unit, { color: theme.colors.textOnGradient }]}>{unit ?? ""}</Text>
-              <Text style={[styles.price, { color: theme.colors.textOnGradient }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
-              <Text style={[styles.price, { color: theme.colors.textOnGradient }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
-            </View>
-
-            <View style={styles.quantityRow}>
-              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={styles.blurButton}>
-                <TouchableHighlight underlayColor="transparent" style={styles.buttonTouchable} onPress={handleDecreaseQuantity}>
-                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
-                </TouchableHighlight>
-              </BlurView>
-
-              <QuantityText style={[styles.quantityText, { color: theme.colors.textPrimary, ...(isPerformanceMode ? {} : { transform: [{ scale: quantityScaleAnim }] }) }]}>
-                {localQuantity}
-              </QuantityText>
-
-              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={styles.blurButton}>
-                <TouchableHighlight underlayColor="transparent" style={styles.buttonTouchable} onPress={handleIncreaseQuantity}>
-                  <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
-                </TouchableHighlight>
-              </BlurView>
-            </View>
-          </View>
-        </View>
-      </ProductContainer>
-
-      <OptionsMenu
-        visible={optionsVisible}
-        onClose={closeOptions}
-        onViewDetails={handleViewDetails}
-        onDelete={handleDelete}
-        onSaveForLater={handleSaveForLater}
-      />
-    </>
-  );
-}, (prevProps, nextProps) => (
-  prevProps.publicId === nextProps.publicId &&
-  prevProps.quantity === nextProps.quantity &&
-  prevProps.price === nextProps.price &&
-  prevProps.index === nextProps.index
-));
-ProductBox.displayName = "ProductBox";
-const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
-  priceBgn,
-  priceEur,
-  isExpanded,
-  basePrice,
-  basePriceEur,
-  saves,
-  savesEur,
-  bestOfferStore,
-  onToggle
-}) => {
-  const { isDarkMode, isPerformanceMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
-  const { isLoading } = useCartSuggestions();
-  
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const heightAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-
-  const blurViewProps = {
-    intensity: 50,
-    tint: theme.colors.TabBarColors as 'dark' | 'light',
-    experimentalBlurMethod: 'dimezisBlurView' as const,
-  };
-
-  const ContainerView = (isPerformanceMode ? View : BlurView) as React.ComponentType<any>;
-  const router = useRouter();
-
-  // Pulse animation
-  useEffect(() => {
-    if (isPerformanceMode) return;
-    
-    Animated.sequence([
-      Animated.timing(pulseAnim, {
-        toValue: 1.05,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(pulseAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [priceBgn, priceEur, pulseAnim, isPerformanceMode]);
-
-  // Expansion Animation
-  useEffect(() => {
-    if (isPerformanceMode) {
-      heightAnim.setValue(isExpanded ? 1 : 0);
-      opacityAnim.setValue(isExpanded ? 1 : 0);
-      return;
-    }
-
-    Animated.parallel([
-      Animated.timing(heightAnim, {
-        toValue: isExpanded ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: isExpanded ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [isExpanded, heightAnim, opacityAnim, isPerformanceMode]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-    }).start();
-  }, [scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 300,
-      friction: 10,
-      useNativeDriver: true,
-    }).start();
-  }, [scaleAnim]);
-
-  const OverviewPriceContainer = isPerformanceMode ? View : Animated.View;
-  const ExpandedContent = isPerformanceMode ? View : Animated.View;
-
-  const expandedHeight = heightAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, moderateScale(120)],
-  });
-
-  return (
-    <ContainerView
-      style={[
-        styles.totalPriceContainer,
-        { bottom: moderateScale(105) },
-        isPerformanceMode && { backgroundColor: theme.colors.textGreen },
-      ]}
-      {...(!isPerformanceMode
-        ? blurViewProps
-        : {
-          colors: theme.colors.blueTeal,
-          start: { x: 0, y: 1 },
-          end: { x: 1, y: 0 },
-        })}
-    >
-      <TouchableOpacity activeOpacity={0.9} onPress={onToggle}>
-        <OverviewPriceContainer
-          style={[
-            styles.totalPriceRow,
-            ...(isPerformanceMode ? [] : [{ transform: [{ scale: pulseAnim }] }]),
-          ]}
-        >
-          <View>
-            <Text style={[styles.totalPriceLabel, { color: theme.colors.textPrimary }]}>
-              Обща цена
-            </Text>
-          </View>
-          <View style={styles.pricesConclusion}>
-            <Text style={[styles.totalPriceValue, { color: theme.colors.textPrimary }]}>
-              {isLoading ? '...' : `${priceBgn.toFixed(2)} лв`}
-            </Text>
-            <Text style={[styles.totalPriceValue, { color: theme.colors.textPrimary }]}>
-              {isLoading ? '...' : `${priceEur.toFixed(2)} €`}
-            </Text>
-          </View>
-        </OverviewPriceContainer>
-      </TouchableOpacity>
-
-      <ExpandedContent
-        style={[
-          styles.expandedContent,
-          isPerformanceMode
-            ? { height: isExpanded ? moderateScale(120) : 0, opacity: isExpanded ? 1 : 0 }
-            : { height: expandedHeight, opacity: opacityAnim }
-        ]}
-      >
-        <View style={styles.expandedInner}>
-          <View style={styles.divider} />
-
-          {bestOfferStore && (
-            <Text style={[styles.bestOfferText, { color: theme.colors.textPrimary }]}>
-              Най-добра оферта от {bestOfferStore}
-            </Text>
-          )}
-
-          <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { color: theme.colors.textPrimary }]}>
-              Оригинална цена:
-            </Text>
-            <View style={styles.pricesConclusion}>
-              <Text style={[styles.priceValue, { color: theme.colors.textPrimary }]}>
-                {basePrice.toFixed(2)} лв
-              </Text>
-              <Text style={[styles.priceValue, { color: theme.colors.textPrimary }]}>
-                {basePriceEur.toFixed(2)} €
-              </Text>
-            </View>
-          </View>
-
-         {saves > 0 && (
-  <View style={styles.savingsRow}>
-    <Text style={[styles.savingsLabel, { color: '#DC2626' }]}>
-      Спестяваш:
-    </Text>
-    <View style={styles.pricesConclusion}>
-      <Text style={[styles.savingsValue, { color: '#DC2626' }]}>
-        {saves.toFixed(2)} лв
-      </Text>
-      <Text style={[styles.savingsValue, { color: '#DC2626' }]}>
-        {savesEur.toFixed(2)} €
-      </Text>
-    </View>
-  </View>
-)}
-        </View>
-      </ExpandedContent>
-
-      <TouchableHighlight
-        style={styles.continueButtonContainer}
-        underlayColor="transparent"
-        onPress={() => router.navigate('/delivaryAndMap/choiceDelivary')}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <BlurView
-          intensity={75}
-          tint='systemUltraThinMaterialDark'
-          experimentalBlurMethod="dimezisBlurView"
-          style={styles.continueButton}
-        >
-          <View>
-            <Text style={[styles.continueButtonText, { color: '#F5F5F5' }]}>
-              Продължи
-            </Text>
-          </View>
-        </BlurView>
-      </TouchableHighlight>
-    </ContainerView>
-  );
-});
-OverviewPrice.displayName = "OverviewPrice";
 const Cart: React.FC = () => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const [isPriceExpanded, setIsPriceExpanded] = useState(false);
   
-  // NEW: Add state for tracking content and layout dimensions
+  //Add state for tracking content and layout dimensions
   const [contentHeight, setContentHeight] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
   
@@ -645,17 +78,17 @@ const Cart: React.FC = () => {
     }));
   }, [items]);
 
-  // NEW: Callback to handle content size changes
+  //Callback to handle content size changes
   const handleContentSizeChange = useCallback((width: number, height: number) => {
     setContentHeight(height);
   }, []);
 
-  // NEW: Callback to handle layout changes
+  //Callback to handle layout changes
   const handleLayout = useCallback((event: any) => {
     setLayoutHeight(event.nativeEvent.layout.height);
   }, []);
 
-  // NEW: Auto-expand when content is not scrollable
+  //Auto-expand when content is not scrollable
   useEffect(() => {
     if (contentHeight > 0 && layoutHeight > 0) {
       const isScrollable = contentHeight > layoutHeight;
@@ -704,12 +137,12 @@ const Cart: React.FC = () => {
   const keyExtractor = useCallback((item: typeof products[0]) => item.publicId, []);
 
   const ListHeaderComponent = useMemo(() => (
-    <View style={styles.titleContainer}>
-      <Text style={[styles.mainTitle, { fontSize: moderateScale(30), color: theme.colors.textPrimary }]}>
+    <View style={cartStyles.titleContainer}>
+      <Text style={[cartStyles.mainTitle, { fontSize: moderateScale(30), color: theme.colors.textPrimary }]}>
         Количка
       </Text>
       {itemCount > 0 && (
-        <Text style={[styles.itemCount, { color: theme.colors.textPrimary }]}>
+        <Text style={[cartStyles.itemCount, { color: theme.colors.textPrimary }]}>
           {itemCount} {itemCount === 1 ? 'артикул' : 'артикула'}
         </Text>
       )}
@@ -724,15 +157,15 @@ const Cart: React.FC = () => {
   ), []);
 
   const ListEmptyComponent = useMemo(() => (
-    <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: theme.colors.textPrimary }]}>
+    <View style={cartStyles.emptyContainer}>
+      <Text style={[cartStyles.emptyText, { color: theme.colors.textPrimary }]}>
         Количката ви е празна
       </Text>
       <TouchableOpacity
-        style={[styles.shopButton, { backgroundColor: theme.colors.textGreen }]}
+        style={[cartStyles.shopButton, { backgroundColor: theme.colors.textGreen }]}
         onPress={() => router.push('/(tabs)/home')}
       >
-        <Text style={styles.shopButtonText}>Започни пазаруване</Text>
+        <Text style={cartStyles.shopButtonText}>Започни пазаруване</Text>
       </TouchableOpacity>
     </View>
   ), [theme.colors.textPrimary, theme.colors.textGreen]);
@@ -743,7 +176,7 @@ const Cart: React.FC = () => {
     index,
   }), []);
 
-  // UPDATED: Scroll Handling with scrollability check
+  //Scroll Handling with scrollability check
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const contentHeight = event.nativeEvent.contentSize.height;
@@ -760,7 +193,6 @@ const Cart: React.FC = () => {
       return; // Don't process scroll-based logic
     }
 
-    // Normal scroll-based expansion logic
     // Threshold: 80 pixels from the bottom
     const isCloseToBottom = layoutHeight + offsetY >= contentHeight - 80;
 
@@ -777,7 +209,7 @@ const Cart: React.FC = () => {
 
   if (isLoading) {
     return (
-      <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
+      <ImageBackground source={theme.backgroundImage} style={cartStyles.backgroundImage}>
         <View
           style={{
             flex: 1,
@@ -802,13 +234,13 @@ const Cart: React.FC = () => {
 
   if (error) {
     return (
-      <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
-        <View style={[styles.container, styles.centerContent]}>
-          <Text style={[styles.errorText, { color: '#DC2626' }]}>
+      <ImageBackground source={theme.backgroundImage} style={cartStyles.backgroundImage}>
+        <View style={[cartStyles.container, cartStyles.centerContent]}>
+          <Text style={[cartStyles.errorText, { color: '#DC2626' }]}>
             Грешка при зареждане на количката
           </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={refresh}>
-            <Text style={styles.retryButtonText}>Опитай отново</Text>
+          <TouchableOpacity style={cartStyles.retryButton} onPress={refresh}>
+            <Text style={cartStyles.retryButtonText}>Опитай отново</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -816,28 +248,28 @@ const Cart: React.FC = () => {
   }
 
   return (
-    <ImageBackground source={theme.backgroundImage} style={styles.backgroundImage}>
-      <View style={styles.container}>
+    <ImageBackground source={theme.backgroundImage} style={cartStyles.backgroundImage}>
+      <View style={cartStyles.container}>
        <FlatList
-  data={products}
-  renderItem={renderProduct}
-  keyExtractor={keyExtractor}
-  ListHeaderComponent={ListHeaderComponent}
-  ListFooterComponent={ListFooterComponent}
-  ListEmptyComponent={ListEmptyComponent}
-  contentContainerStyle={styles.flatListContent}
-  showsVerticalScrollIndicator={false}
-  showsHorizontalScrollIndicator={false}
-  removeClippedSubviews={false}
-  maxToRenderPerBatch={3}
-  windowSize={5}
-  initialNumToRender={3}
-  getItemLayout={getItemLayout}
-  onScroll={handleScroll}
-  scrollEventThrottle={16}
-  onContentSizeChange={handleContentSizeChange} 
-  onLayout={handleLayout}  
-/>
+          data={products}
+          renderItem={renderProduct}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={ListHeaderComponent}
+          ListFooterComponent={ListFooterComponent}
+          ListEmptyComponent={ListEmptyComponent}
+          contentContainerStyle={cartStyles.flatListContent}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          removeClippedSubviews={false}
+          maxToRenderPerBatch={3}
+          windowSize={5}
+          initialNumToRender={3}
+          getItemLayout={getItemLayout}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          onContentSizeChange={handleContentSizeChange} 
+          onLayout={handleLayout}  
+      />
 
         {products.length > 0 && (
       <OverviewPrice
@@ -857,396 +289,6 @@ const Cart: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  container: {
-    flex: 1,
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  flatListContent: {
-    paddingTop: moderateScale(20),
-    paddingBottom: moderateScale(20),
-    alignItems: 'center',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    marginTop: moderateScale(40),
-    marginBottom: moderateScale(10),
-  },
-  mainTitle: {
-    fontWeight: 'bold',
-    textAlign: 'center',
-    paddingBottom: moderateScale(10),
-  },
-  itemCount: {
-    fontSize: moderateScale(16),
-    opacity: 0.7,
-  },
-  products: {
-    width: scale(325),
-    height: moderateScale(170),
-    borderRadius: 15,
-    marginBottom: 16,
-    position: 'relative',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  overviewContainer: {
-    width: scale(325),
-    height: moderateScale(245),
-    borderRadius: 15,
-    elevation: 5,
-    borderWidth: 1,
-  },
-  productContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    height: "100%",
-    borderRadius: 15,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  menuButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 16,
-  },
-  menuDots: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  productImage: {
-    backgroundColor: 'white',
-    height: "100%",
-    borderRadius: 15,
-  },
-  productDetails: {
-    marginLeft: 16,
-    marginRight: scale(30),
-    flex: 1,
-    justifyContent: "space-between",
-    height: "100%",
-    paddingVertical: 8,
-  },
-  brand: {
-    fontSize: moderateScale(15),
-    fontWeight: "600",
-  },
-  name: {
-    fontSize: moderateScale(17),
-    fontWeight: "500",
-  },
-  unit: {
-    fontSize: moderateScale(14),
-    opacity: 0.7,
-  },
-  price: {
-    fontSize: moderateScale(17),
-    fontWeight: "bold",
-  },
-  discount: {
-    fontSize: moderateScale(14),
-    fontWeight: "600",
-    position: 'absolute',
-    zIndex: 500,
-    transform: [{ rotateZ: '-0.785398rad' }],
-    top: 15,
-    left: -50,
-    minWidth: 150,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    alignItems: 'center',
-  },
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: "center",
-    marginTop: 8,
-  },
-  storeLabel: {
-    fontSize: 12,
-    opacity: 0.7,
-    marginTop: 2,
-  },
-  quantityText: {
-    fontSize: moderateScale(16),
-    marginHorizontal: 16,
-    fontWeight: "600",
-  },
-  summaryContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
 
-  },
-  summaryHeader: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  summaryTitle: {
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  savingsText: {
-    fontWeight: '600',
-    color: '#DC2626',
-  },
-  priceBreakdown: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.5)',
-    paddingTop: 12,
-  },
-  totalPriceText: {
-    fontWeight: 'bold',
-    marginTop: 4,
-
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  bottomSheet: {
-    maxHeight: verticalScale(500),
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    overflow: 'hidden',
-  },
-  blurContainer: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  optionsTitle: {
-    fontSize: moderateScale(20),
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#333',
-  },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderWidth: 1,
-    borderColor: 'rgba(185, 185, 185, 1)',
-  },
-  optionIcon: {
-    fontSize: 20,
-    marginRight: 15,
-  },
-  optionText: {
-    fontSize: moderateScale(18),
-    color: '#333',
-    marginLeft: moderateScale(5),
-    fontWeight: '500',
-  },
-  deleteText: {
-    color: '#FF3B30',
-  },
-  cancelButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    paddingVertical: 15,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 10,
-    borderColor: 'gray',
-    borderWidth: 1,
-  },
-  cancelText: {
-    fontSize: moderateScale(20),
-    color: '#333',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  totalPriceContainer: {
-    position: 'absolute',
-    width: scale(325),
-    alignSelf: 'center',
-    padding: 20,
-    borderRadius: 15,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'white',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  totalPriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  totalPriceLabel: {
-    fontSize: moderateScale(18),
-    fontWeight: 'bold',
-  },
-  totalPriceValue: {
-    fontSize: moderateScale(18),
-    fontWeight: '600',
-  },
-  continueButtonContainer: {
-    height: 50,
-    borderRadius: 10,
-    margin: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    borderWidth: 0.5,
-    borderColor: 'white',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  continueButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-  },
-  continueButtonText: {
-    fontWeight: 'bold',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-  },
-  emptyText: {
-    fontSize: moderateScale(20),
-    fontWeight: '600',
-    marginBottom: moderateScale(20),
-  },
-  shopButton: {
-    paddingHorizontal: moderateScale(30),
-    paddingVertical: moderateScale(15),
-    borderRadius: 12,
-    elevation: 10,
-
-  },
-  shopButtonText: {
-    color: 'white',
-    fontSize: moderateScale(18),
-    fontWeight: 'bold',
-  },
-  loadingText: {
-    marginTop: moderateScale(20),
-    fontSize: moderateScale(12),
-  },
-  errorText: {
-    fontSize: moderateScale(18),
-    fontWeight: '600',
-    marginBottom: moderateScale(20),
-  },
-  retryButton: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: moderateScale(30),
-    paddingVertical: moderateScale(15),
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: 'white',
-    fontSize: moderateScale(18),
-    fontWeight: 'bold',
-  },
-  blurButton: {
-    borderRadius: 9999,
-    width: moderateScale(30),
-    height: moderateScale(30),
-    overflow: "hidden",
-  },
-  buttonTouchable: {
-    width: moderateScale(30),
-    height: moderateScale(28),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    fontSize: moderateScale(18),
-    fontWeight: "bold",
-  },
-  pricesConclusion: {
-    flexDirection: 'row',
-    gap: moderateScale(10),
-  },
-  expandedContent: {
-    overflow: 'hidden',
-  },
-  expandedInner: {
-    paddingTop: moderateScale(12),
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'gray',
-    marginBottom: moderateScale(12),
-  },
-  bestOfferText: {
-    fontSize: moderateScale(15),
-    marginBottom: moderateScale(8),
-    opacity: 0.8,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: moderateScale(6),
-  },
-  priceLabel: {
-    fontSize: moderateScale(18),
-  },
-  priceValue: {
-    fontSize: moderateScale(18),
-    fontWeight: '600',
-  },
-  savingsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: moderateScale(8),
-    paddingTop: moderateScale(8),
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(220, 38, 38, 0.3)',
-  },
-  savingsLabel: {
-    fontSize: moderateScale(18),
-    fontWeight: '600',
-  },
-  savingsValue: {
-    fontSize: moderateScale(18),
-    fontWeight: 'bold',
-  },
-
-});
 
 export default React.memo(Cart);

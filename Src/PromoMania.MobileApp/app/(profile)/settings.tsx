@@ -1,12 +1,15 @@
 
+import { SettingRow } from '@/components/common/SettingRow';
+import { settingStyles } from '@/components/pages/settings/settingsStyle';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/services/useAuth';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, ImageBackground, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ImageBackground, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
+
 const SettingsScreen: React.FC = () => {
   const {
     isDarkMode,
@@ -16,7 +19,7 @@ const SettingsScreen: React.FC = () => {
     togglePerformanceMode,
     toggleSimpleMode,
   } = useSettings();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
 
 const handleLogout = async () => {
   Alert.alert(
@@ -59,16 +62,16 @@ const handleLogout = async () => {
     pressed: () => void;
   }) => (
     <Pressable style={[
-      styles.settingRow,
+      settingStyles.settingRow,
       { 
         backgroundColor: theme.colors.cardBackground,
         borderColor: theme.colors.border,
       }
       
     ]} onPress={pressed}>
-      <View style={styles.settingText}>
+      <View style={settingStyles.settingText}>
         <Text style={[
-          styles.settingTitle,
+          settingStyles.settingTitle,
           { 
             fontSize: getFontSize(isSimpleMode ? 20 : 18),
             color: theme.colors.textPrimary,
@@ -77,7 +80,7 @@ const handleLogout = async () => {
           {title}
         </Text>
         <Text style={[
-          styles.settingDescription,
+          settingStyles.settingDescription,
           { 
             fontSize: getFontSize(isSimpleMode ? 16 : 14),
             color: theme.colors.textSecondary,
@@ -86,66 +89,20 @@ const handleLogout = async () => {
           {description}
         </Text>
       </View>
-          <View style={styles.arrowContainer}>
-                <Text style={[styles.arrow, { color: theme.colors.textPrimary, opacity: 0.6 }]}>›</Text>
+          <View style={settingStyles.arrowContainer}>
+                <Text style={[settingStyles.arrow, { color: theme.colors.textPrimary, opacity: 0.6 }]}>›</Text>
               </View>
     </Pressable>
   );
 
 
-  const SettingRow = ({ 
-    title, 
-    description, 
-    value, 
-    onToggle 
-  }: { 
-    title: string; 
-    description: string; 
-    value: boolean; 
-    onToggle: () => void;
-  }) => (
-    <View style={[
-      styles.settingRow,
-      { 
-        backgroundColor: theme.colors.cardBackground,
-        borderColor: theme.colors.border,
-      }
-    ]}>
-      <View style={styles.settingText}>
-        <Text style={[
-          styles.settingTitle,
-          { 
-            fontSize: getFontSize(isSimpleMode ? 20 : 18),
-            color: theme.colors.textPrimary,
-          }
-        ]}>
-          {title}
-        </Text>
-        <Text style={[
-          styles.settingDescription,
-          { 
-            fontSize: getFontSize(isSimpleMode ? 16 : 14),
-            color: theme.colors.textSecondary,
-          }
-        ]}>
-          {description}
-        </Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{ false: '#767577', true: 'rgba(46, 170, 134, 1)' }}
-        thumbColor={value ? 'rgba(103, 218, 191, 1)' : '#f4f3f4'}
-        ios_backgroundColor="#767577"
-      />
-    </View>
-  );
+
 
   return (
 
        <ImageBackground
               source={theme.backgroundImage} 
-              style={styles.backgroundImage} 
+              style={settingStyles.backgroundImage} 
               resizeMode="cover"
             >
       <ScrollView 
@@ -153,7 +110,7 @@ const handleLogout = async () => {
         showsVerticalScrollIndicator={false}
       >
         <Text style={[
-          styles.header,
+          settingStyles.header,
           { 
             fontSize: getFontSize(isSimpleMode ? 32 : 28),
             color: theme.colors.textPrimary,
@@ -163,7 +120,7 @@ const handleLogout = async () => {
           Настройки
         </Text>
           <Text style={[
-            styles.sectionTitle,
+            settingStyles.sectionTitle,
             { 
               fontSize: getFontSize(isSimpleMode ? 12 : 16),
               color: theme.colors.textSecondary,
@@ -180,9 +137,9 @@ const handleLogout = async () => {
             pressed={() => router.navigate('/(profile)/userSettings')}
 
           />
-        <View style={styles.section}>
+        <View style={settingStyles.section}>
           <Text style={[
-            styles.sectionTitle,
+            settingStyles.sectionTitle,
             { 
               fontSize: getFontSize(isSimpleMode ? 18 : 16),
               color: theme.colors.textSecondary,
@@ -199,9 +156,9 @@ const handleLogout = async () => {
           />
         </View>
 
-        <View style={styles.section}>
+        <View style={settingStyles.section}>
           <Text style={[
-            styles.sectionTitle,
+            settingStyles.sectionTitle,
             { 
               fontSize: getFontSize(isSimpleMode ? 18 : 16),
               color: theme.colors.textSecondary,
@@ -218,9 +175,9 @@ const handleLogout = async () => {
           />
         </View>
 
-        <View style={styles.section}>
+        <View style={settingStyles.section}>
           <Text style={[
-            styles.sectionTitle,
+            settingStyles.sectionTitle,
             { 
               fontSize: getFontSize(isSimpleMode ? 18 : 16),
               color: theme.colors.textSecondary,
@@ -237,7 +194,7 @@ const handleLogout = async () => {
           />
         </View>
             <Text style={[
-            styles.sectionTitle,
+            settingStyles.sectionTitle,
             { 
               fontSize: getFontSize(isSimpleMode ? 18 : 16),
               color: theme.colors.textSecondary,
@@ -253,109 +210,33 @@ const handleLogout = async () => {
             onToggle={toggleSimpleMode}
             pressed={() => router.navigate('/(profile)/ToS')}
           />
- <TouchableOpacity 
-  style={[
-    styles.logoutButton,
-    { 
-      backgroundColor: '#dc3545',
-      marginHorizontal: wp(5),
-      marginTop: hp(3),
-    }
-  ]}
-  onPress={handleLogout}
->
-  <Text style={[
-    styles.logoutText,
-    { fontSize: getFontSize(isSimpleMode ? 18 : 16) }
-  ]}>
-    Изход
-  </Text>
-</TouchableOpacity>
-    
+          <TouchableOpacity 
+            style={[
+              settingStyles.logoutButton,
+              { 
+                backgroundColor: '#dc3545',
+                marginHorizontal: wp(5),
+                marginTop: hp(3),
+              }
+            ]}
+            onPress={handleLogout}
+          >
+            <Text style={[
+              settingStyles.logoutText,
+              { fontSize: getFontSize(isSimpleMode ? 18 : 16) }
+            ]}>
+              Изход
+            </Text>
+          </TouchableOpacity>
+              
 
-        <View style={{ height: hp(10) }} />
-      </ScrollView>
-      </ImageBackground>
+                  <View style={{ height: hp(10) }} />
+                </ScrollView>
+                </ImageBackground>
 
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    fontWeight: 'bold',
-    marginHorizontal: wp(5),
-    marginBottom: hp(2),
-    marginTop: hp(1),
-  },
-  section: {
-    marginTop: hp(2),
-  },
-  sectionTitle: {
-    fontWeight: '600',
-    marginHorizontal: wp(5),
-    marginBottom: hp(1),
-    letterSpacing: 0.5,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: wp(5),
-    marginBottom: hp(1.5),
-    padding: wp(4),
-    borderRadius: 12,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  settingText: {
-    flex: 1,
-    marginRight: wp(3),
-  },
-  settingTitle: {
-    fontWeight: '600',
-    marginBottom: hp(0.5),
-  },
-  settingDescription: {
-    lineHeight: 20,
-  },
-   backgroundImage: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-    arrowContainer: {
-      marginLeft: moderateScale(8),
-    },
-    arrow: {
-      fontSize: moderateScale(36),
-      fontWeight: '200',
-    },
-   logoutButton: {
-  backgroundColor: '#dc3545',
-  paddingVertical: hp(1.8),
-   borderWidth:1,
-    borderColor:'#FFF',
-  paddingHorizontal: wp(8),
-  borderRadius: 12,
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.2,
-  shadowRadius: 4,
-  elevation: 3,
-},
-logoutText: {
-  color: '#fff',
-  fontWeight: '600',
-},
-});
+
 
 export default SettingsScreen;
