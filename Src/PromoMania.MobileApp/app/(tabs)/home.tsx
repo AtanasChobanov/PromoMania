@@ -53,14 +53,26 @@ const Home: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Check the loading state of the first section to determine initial load
+
   const { loading: topSectionLoading } = useProductSection('top', 4);
+  const { loading: ourChoiceLoading } = useProductSection('our-choice', 4);
+  const { loading: kauflandLoading } = useProductSection('kaufland', 4);
 
-
+  // Update loading state when at least the first few sections finish loading
+  useEffect(() => {
+    const allInitialSectionsLoaded = !topSectionLoading && !ourChoiceLoading && !kauflandLoading;
+    
+    if (allInitialSectionsLoaded && isInitialLoading) {
+      const timer = setTimeout(() => {
+        setIsInitialLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [topSectionLoading, ourChoiceLoading, kauflandLoading, isInitialLoading]);
 
   // Update loading state when top section finishes loading
   useEffect(() => {
     if (!topSectionLoading && isInitialLoading) {
-      // Add a small delay for smoother transition
       const timer = setTimeout(() => {
         setIsInitialLoading(false);
       }, 300);
@@ -83,13 +95,14 @@ const Home: React.FC = () => {
   }[] = useMemo(() => {
     const baseSections = [
       { 
-        sectionType: 'top' as SectionType, 
-        gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
-      },
-      { 
         sectionType: 'our-choice' as SectionType, 
         gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
       },
+      { 
+        sectionType: 'top' as SectionType, 
+        gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
+      },
+      
          { 
           sectionType: 'kaufland' as SectionType, 
           gradientColors: theme.colors.blueTeal as [string, string, ...string[]]

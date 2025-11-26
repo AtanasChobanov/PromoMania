@@ -103,7 +103,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Login failed');
+        throw new Error(errorData.message || 'Паролата или имейла са грешни');
       }
 
       const authData: AuthResponse = await response.json();

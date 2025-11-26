@@ -5,9 +5,7 @@ topbar transparecy clickability
 
 frostflow guidlines
 
-loading for main page
 hardcoded solution for map for location vs gradove
-site fix
 fix photos
 simple mode for other pages
 deconstruct code

@@ -10,7 +10,7 @@ import { useShoppingCart } from '@/services/useShoppingCart';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
-import { ComponentType, useCallback, useEffect, useState } from 'react';
+import { ComponentType, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -93,7 +93,11 @@ const formatTimeLeft = (validTo: string | null) => {
 
 const DealTimer = ({ validTo, theme }: { validTo: string | null, theme: any }) => {
   const [timeLeft, setTimeLeft] = useState(formatTimeLeft(validTo));
-
+  const { isSimpleMode } = useSettings();
+  const styles = useMemo(
+    () => createStyles({ isSimpleMode }),
+    [ isSimpleMode]
+  );
   useEffect(() => {
     if (!validTo) return;
     
@@ -132,6 +136,11 @@ const DealTimer = ({ validTo, theme }: { validTo: string | null, theme: any }) =
 export default function ProductPage() {
   const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
+   const styles = useMemo(
+    () => createStyles({ isSimpleMode }),
+    [ isSimpleMode]
+  );
+
 
   const [quantity, setQuantity] = useState(1);
 
@@ -747,8 +756,15 @@ export default function ProductPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const createStyles = ({
+
+  isSimpleMode,
+}: {
+  isSimpleMode: boolean;
+}) =>
+    StyleSheet.create({
+    container: { flex: 1 },
+
   backgroundImage: { flex: 1, width: '100%', height: '100%' },
   scrollContent: { paddingBottom: 100 },
   imageContainer: {
@@ -768,8 +784,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-    borderWidth: 1,
-    borderColor: '#666666',
+    borderWidth: isSimpleMode ? 3 : 1,
+    borderColor: isSimpleMode? "#000000" : '#666666',
   },
   productImage: { height: '100%', width: '100%', resizeMode: 'contain' },
   detailsContainer: {
@@ -779,13 +795,15 @@ const styles = StyleSheet.create({
     borderRadius: wp(4),
     padding: 20,
     marginBottom: hp(2),
+        borderWidth: isSimpleMode ? 3 : 1,
+    borderColor: isSimpleMode? "#000000" : '#666666',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
-  productName: { fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 5 },
+  productName: { fontSize: isSimpleMode ? moderateScale(30) : moderateScale(26), fontWeight: 'bold', color: '#333', marginBottom: 5 },
   brandText: { fontSize: 16, color: '#666', marginBottom: 8 },
   categoryContainer: { marginBottom: 12 },
   categoryText: { fontSize: 14, color: '#666' },
