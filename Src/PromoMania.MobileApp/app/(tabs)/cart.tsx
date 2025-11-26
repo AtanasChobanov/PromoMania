@@ -328,7 +328,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
           >
-            <Text style={[styles.menuDots, { color: theme.colors.textPrimary }]}>⋯</Text>
+            <Text style={[styles.menuDots, { color: theme.colors.textOnGradient }]}>⋯</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onViewDetails}>
             <Image
@@ -339,11 +339,11 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
           </TouchableOpacity>
           <View style={styles.productDetails}>
             <View>
-              {brand ? <Text style={[styles.brand, { color: theme.colors.textPrimary }]}>{brand}</Text> : null}
-              <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textPrimary }]}>{name ?? ""}</Text>
-              <Text style={[styles.unit, { color: theme.colors.textPrimary }]}>{unit ?? ""}</Text>
-              <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
-              <Text style={[styles.price, { color: theme.colors.textPrimary }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
+              {brand ? <Text style={[styles.brand, { color: theme.colors.textOnGradient }]}>{brand}</Text> : null}
+              <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.colors.textOnGradient }]}>{name ?? ""}</Text>
+              <Text style={[styles.unit, { color: theme.colors.textOnGradient }]}>{unit ?? ""}</Text>
+              <Text style={[styles.price, { color: theme.colors.textOnGradient }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
+              <Text style={[styles.price, { color: theme.colors.textOnGradient }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
             </View>
 
             <View style={styles.quantityRow}>
@@ -1208,7 +1208,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'gray',
     marginBottom: moderateScale(12),
   },
   bestOfferText: {

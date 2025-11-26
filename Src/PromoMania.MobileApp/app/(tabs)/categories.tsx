@@ -452,7 +452,7 @@ const ContainerView = isPerformanceMode ? View : Animated.View;
   >
     <View style={[styles.categories,{backgroundColor:theme.colors.textGreen}]}
     >
-      <Text style={[styles.categoryText,{color:theme.colors.textPrimary}]}>{item.text}</Text>
+      <Text style={[styles.categoryText,{color:theme.colors.textOnGradient}]}>{item.text}</Text>
     </View>
   </Pressable>
 </ContainerView>

@@ -1,19 +1,17 @@
 generic implenetations:
 topbar transparecy clickability 
 виж още секция
-deconstruct code
-conditions for register - 2 to 100 name, email trqbva da e email (@)
-fix product detail style
-simple mode for other pages
+
+
 frostflow guidlines
 
-font color for all pages
-backbutton register float
 loading for main page
-map dark mode make it lighter
 hardcoded solution for map for location vs gradove
-редактирай профила tekst
 site fix
+fix photos
+simple mode for other pages
+deconstruct code
+conditions for register - 2 to 100 name, email trqbva da e email (@)
 
 
 future features:

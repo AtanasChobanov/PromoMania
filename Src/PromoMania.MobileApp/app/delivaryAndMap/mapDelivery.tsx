@@ -927,8 +927,8 @@ const renderShopCard = (
           )}
         </View>
 
-        <View style={styles.infoFooter}>
-          <Text style={[styles.footerText, { color: theme.colors.textSecondary || theme.colors.textPrimary }]}>
+        <View style={[styles.infoFooter,{    backgroundColor:theme.colors.cardBackgroundAlt2}]}>
+          <Text style={[styles.footerText, { color:  theme.colors.textPrimary }]}>
             💡 Съвет: Изберете магазин за да видите маршрута на картата
           </Text>
         </View>
@@ -1226,9 +1226,13 @@ position: 'absolute', // <--- Remove from layout flow
   infoFooter: {
     marginTop: moderateScale(24),
     padding: moderateScale(16),
-    backgroundColor: 'rgba(0, 102, 204, 0.08)',
     borderRadius: 14,
     alignItems: 'center',
+      shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
   footerText: {
     fontSize: moderateScale(13),

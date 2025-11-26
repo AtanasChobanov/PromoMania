@@ -70,7 +70,7 @@ export const CategoryButton: React.FC<{ title: string; index: number }> = React.
               { 
                 width: buttonWidth, 
                 backgroundColor: theme.colors.backgroundColor, 
-                borderColor: isSimpleMode ? theme.colors.textPrimary : "#FFFFFF", // Higher contrast border
+                borderColor: isSimpleMode ? theme.colors.textOnGradient : "#FFFFFF", // Higher contrast border
                 borderWidth: isSimpleMode ? 2 : 1,
               },
               simpleModeStyles
@@ -81,7 +81,7 @@ export const CategoryButton: React.FC<{ title: string; index: number }> = React.
                 styles.categoryText, 
                 { 
                   fontSize: textSize, 
-                  color: theme.colors.textPrimary,
+                  color: theme.colors.textOnGradient,
                   fontWeight: textWeight,
                   letterSpacing: isSimpleMode ? 0.5 : 0, // Better letter spacing for readability
                 }
