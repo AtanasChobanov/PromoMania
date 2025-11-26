@@ -35,7 +35,6 @@ export const cartStyles = StyleSheet.create({
   },
   products: {
     width: scale(325),
-    height: moderateScale(170),
     borderRadius: 15,
     marginBottom: 16,
     position: 'relative',
@@ -93,7 +92,6 @@ export const cartStyles = StyleSheet.create({
     fontWeight: "500",
   },
   unit: {
-    fontSize: moderateScale(14),
     opacity: 0.7,
   },
   price: {
@@ -287,8 +285,7 @@ export const cartStyles = StyleSheet.create({
     overflow: "hidden",
   },
   buttonTouchable: {
-    width: moderateScale(30),
-    height: moderateScale(28),
+ 
     alignItems: "center",
     justifyContent: "center",
   },

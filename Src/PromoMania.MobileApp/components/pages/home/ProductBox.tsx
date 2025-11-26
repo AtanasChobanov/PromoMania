@@ -181,6 +181,8 @@ export const ProductBox: React.FC<{
                   style={[
                     styles.productImage, 
                     { 
+                         borderColor:'black',
+    borderWidth:isSimpleMode? 3:0,
                       width: cardWidth, 
                       height: isSimpleMode ? cardWidth * 1.1 : cardWidth, // Slightly taller in simple mode
                       backgroundColor: 'white' 

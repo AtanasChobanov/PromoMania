@@ -97,7 +97,7 @@ export const createStyles = ({
     shadowRadius: 8,
     elevation: 5,
   },
-  chartTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 4 },
+  chartTitle: { fontSize: isSimpleMode? 25 : 20, fontWeight: 'bold', color: '#333', marginBottom: 4 },
   chartSubtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
   pointerLabel: {
     backgroundColor: 'rgba(143, 228, 201, 0.9)',
@@ -147,12 +147,12 @@ export const createStyles = ({
   retailText: {
     paddingLeft: wp(2),
     fontWeight: 'bold',
-    fontSize: getFontSize(16),
+    fontSize: isSimpleMode ?getFontSize(20) : getFontSize(16),
     color: '#1F2937',
   },
   discountText: { color: '#1F2937', fontWeight: 'bold', fontSize: 12 },
   retailPrice: {
-    fontSize: getFontSize(20),
+    fontSize:  isSimpleMode ?getFontSize(22) : getFontSize(20),
     fontWeight: 'bold',
     color: '#006D77',
     marginBottom: 2,
@@ -174,13 +174,13 @@ export const createStyles = ({
     paddingHorizontal:hp(1),
     marginBottom:10,
     borderTopColor:'black',
-    borderTopWidth:1,
+    borderTopWidth: isSimpleMode ? 3 : 1,
     flexDirection: 'row',
-    borderWidth: 1,
+    borderWidth: isSimpleMode ? 3 : 1,
     borderRadius:15,
   },
   retailTitle: {
-    fontSize: 20,
+    fontSize: isSimpleMode? 24 : 20,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
@@ -226,7 +226,7 @@ export const createStyles = ({
     padding: 16,
     paddingHorizontal:10,
     marginVertical: hp(1),
-    borderWidth: 2,
+    borderWidth: isSimpleMode ? 5 :2,
     width: '100%',
 
   },
@@ -245,19 +245,19 @@ export const createStyles = ({
     gap: 6,
   },
   bestDealLabel: {
-    fontSize: getFontSize(12),
+    fontSize: isSimpleMode?getFontSize(16) : getFontSize(12),
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   bestDealDiscountPill: {
     backgroundColor: 'rgba(143,228,201,1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: isSimpleMode? 12: 8,
+    paddingVertical:  isSimpleMode? 5: 2,
     borderRadius: 5,
   },
   bestDealDiscountText: {
-    fontSize: 12,
+    fontSize: isSimpleMode ? moderateScale(14): moderateScale(10) ,
     fontWeight: 'bold',
   },
   bestDealContent: {
@@ -290,7 +290,7 @@ export const createStyles = ({
     alignItems: 'flex-end',
   },
   bestDealPriceMain: {
-    fontSize: getFontSize(20),
+    fontSize: isSimpleMode?getFontSize(22) : getFontSize(20),
     fontWeight: '900',
     
     
@@ -324,7 +324,7 @@ export const createStyles = ({
     backgroundColor: 'rgba(0,0,0,0.03)',
   },
   timerText: {
-    fontSize: 11,
+    fontSize: isSimpleMode? moderateScale(12) :moderateScale(9),
     fontWeight: '600',
   },
 });

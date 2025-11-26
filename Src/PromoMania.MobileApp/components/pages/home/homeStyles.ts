@@ -85,10 +85,13 @@ export const styles = StyleSheet.create({
   //Product Card
   imageContainer: {
     position: "relative",
+    
   },
   productImage: {
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
+    borderColor:'black',
+    borderWidth:20
   },
   heartOverlay: {
     position: "absolute",

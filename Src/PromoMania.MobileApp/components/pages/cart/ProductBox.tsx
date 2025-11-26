@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { scale } from 'react-native-size-matters';
+import { moderateScale, scale } from 'react-native-size-matters';
 
 type Props = ProductBoxProps & { index: number };
 
@@ -33,7 +33,7 @@ export const ProductBox: React.FC<Props> = React.memo(({
   onSaveForLater,
   index,
 }) => {
-  const { isDarkMode, isPerformanceMode } = useSettings();
+  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   const [optionsVisible, setOptionsVisible] = useState(false);
@@ -169,16 +169,17 @@ export const ProductBox: React.FC<Props> = React.memo(({
         style={[
           cartStyles.products,
           {
+            height: isSimpleMode? moderateScale(200):  moderateScale(170),
             backgroundColor: theme.colors.backgroundColor,
-            borderColor: '#FFFFFF',
-            borderWidth: 1,
+            borderColor: isSimpleMode? theme.colors.textPrimary : '#FFFFFF',
+            borderWidth: isSimpleMode? 5 : 1,
             ...(isPerformanceMode ? {} : { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }),
           },
         ]}
       >
         <View style={cartStyles.productContainer}>
           {discount != null && discount !== 0 && <View style={[cartStyles.discount, { padding: 1, backgroundColor: '#DC2626' }]}>
-            <Text style={[{ color: 'white' }]}>-{discount}%</Text>
+            <Text style={[{ color: 'white', fontSize: isSimpleMode? 20: 14 }]}>-{discount}%</Text>
           </View>}
           <TouchableOpacity
             style={cartStyles.menuButton}
@@ -191,7 +192,6 @@ export const ProductBox: React.FC<Props> = React.memo(({
           <TouchableOpacity onPress={onViewDetails}>
             <Image
               style={[cartStyles.productImage, { width: scale(120) }]}
-              // Ensure this path is correct relative to the new file location
               source={imageUrl ? { uri: imageUrl } : require("../../../assets/icons/logo-for-boxes.png")}
               resizeMode={imageUrl ? "contain" : "cover"}
             />
@@ -199,16 +199,16 @@ export const ProductBox: React.FC<Props> = React.memo(({
           <View style={cartStyles.productDetails}>
             <View>
               {brand ? <Text style={[cartStyles.brand, { color: theme.colors.textOnGradient }]}>{brand}</Text> : null}
-              <Text numberOfLines={1} ellipsizeMode="tail" style={[cartStyles.name, { color: theme.colors.textOnGradient }]}>{name ?? ""}</Text>
-              <Text style={[cartStyles.unit, { color: theme.colors.textOnGradient }]}>{unit ?? ""}</Text>
-              <Text style={[cartStyles.price, { color: theme.colors.textOnGradient }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
-              <Text style={[cartStyles.price, { color: theme.colors.textOnGradient }]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
+              <Text numberOfLines={isSimpleMode?2:1} ellipsizeMode="tail" style={[cartStyles.name, { color: theme.colors.textOnGradient, fontSize: isSimpleMode? moderateScale(18) :moderateScale(17), }]}>{name ?? ""}</Text>
+              <Text style={[cartStyles.unit, { color: theme.colors.textOnGradient, fontSize: isSimpleMode? moderateScale(18): moderateScale(14)  }]}>{unit ?? ""}</Text>
+              <Text style={[cartStyles.price, { color: theme.colors.textOnGradient,    fontSize: isSimpleMode? moderateScale(22): moderateScale(17), }]}>{price != null ? price.toFixed(2) : "0.00"} лв.</Text>
+              <Text style={[cartStyles.price, { color: theme.colors.textOnGradient,fontSize: isSimpleMode? moderateScale(22): moderateScale(17),}]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
             </View>
 
             <View style={cartStyles.quantityRow}>
-              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={cartStyles.blurButton}>
-                <TouchableHighlight underlayColor="transparent" style={cartStyles.buttonTouchable} onPress={handleDecreaseQuantity}>
-                  <Text style={[cartStyles.buttonText, { color: theme.colors.textPrimary }]}>-</Text>
+              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={[cartStyles.blurButton,{borderWidth:isSimpleMode? 2: 0}]}>
+                <TouchableHighlight underlayColor="transparent" style={[cartStyles.buttonTouchable,{   width:isSimpleMode? moderateScale(28): moderateScale(30), height: isSimpleMode?moderateScale(20) : moderateScale(28),}]} onPress={handleDecreaseQuantity}>
+                  <Text style={[cartStyles.buttonText, { color: theme.colors.textPrimary,    fontSize: isSimpleMode?  moderateScale(22): moderateScale(18), }]}>-</Text>
                 </TouchableHighlight>
               </BlurView>
 
@@ -216,9 +216,9 @@ export const ProductBox: React.FC<Props> = React.memo(({
                 {localQuantity}
               </QuantityText>
 
-              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={cartStyles.blurButton}>
+              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={[cartStyles.blurButton,{borderWidth:isSimpleMode? 2: 0}]}>
                 <TouchableHighlight underlayColor="transparent" style={cartStyles.buttonTouchable} onPress={handleIncreaseQuantity}>
-                  <Text style={[cartStyles.buttonText, { color: theme.colors.textPrimary }]}>+</Text>
+                  <Text style={[cartStyles.buttonText, { color: theme.colors.textPrimary,fontSize: isSimpleMode?  moderateScale(22): moderateScale(18) }]}>+</Text>
                 </TouchableHighlight>
               </BlurView>
             </View>

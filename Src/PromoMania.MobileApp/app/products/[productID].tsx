@@ -209,7 +209,7 @@ export default function ProductPage() {
         {/* Product Image */}
         <ImageContainer
           entering={isPerformanceMode ? undefined : FadeInDown.delay(100).duration(600).springify()}
-          style={[styles.imageContainer, { borderColor: theme.colors.borderColor }]}
+          style={[styles.imageContainer, { borderColor: isSimpleMode ? theme.colors.textPrimary : theme.colors.borderColor }]}
         >
           <Image
             source={
@@ -232,8 +232,8 @@ export default function ProductPage() {
             styles.detailsContainer,
             {
               backgroundColor: theme.colors.cardBackground,
-              borderColor: theme.colors.borderColor,
-              borderWidth: 1,
+              borderColor: isSimpleMode ? theme.colors.textPrimary : theme.colors.borderColor,
+              borderWidth:  isSimpleMode ? 3 : 1,
             },
           ]}
         >
@@ -305,7 +305,7 @@ export default function ProductPage() {
             entering={isPerformanceMode ? undefined : FadeIn.delay(500).duration(500)}
             style={styles.unitContainer}
           >
-            <Text style={{ color: theme.colors.textPrimary }}>{product.unit}</Text>
+            <Text style={{ color: theme.colors.textPrimary, fontSize:isSimpleMode ? 20 :15 }}>{product.unit}</Text>
           </UnitContainer>
 
           {/* Quantity */}
@@ -320,19 +320,19 @@ export default function ProductPage() {
               <TouchableOpacity
                 style={[
                   styles.quantityButton,
-                  { backgroundColor: theme.colors.textGreen },
+                  { backgroundColor: theme.colors.textGreen, borderColor: isSimpleMode ? theme.colors.textPrimary : undefined, borderWidth: isSimpleMode ? 2 : 0 },
                 ]}
                 onPress={() => setQuantity(Math.max(1, quantity - 1))}
               >
                 <Text style={styles.quantityButtonText}>-</Text>
               </TouchableOpacity>
-              <Text style={[styles.quantityText, { color: theme.colors.textPrimary }]}>
+              <Text style={[styles.quantityText, { color: theme.colors.textPrimary}]}>
                 {quantity}
               </Text>
               <TouchableOpacity
                 style={[
                   styles.quantityButton,
-                  { backgroundColor: theme.colors.textGreen },
+                  { backgroundColor: theme.colors.textGreen, borderColor: isSimpleMode ? theme.colors.textPrimary : undefined, borderWidth: isSimpleMode ? 2 : 0 },
                 ]}
                 onPress={() => setQuantity(quantity + 1)}
               >
@@ -350,8 +350,7 @@ export default function ProductPage() {
       styles.retailsContainer,
       {
         backgroundColor: theme.colors.cardBackground,
-        borderColor: theme.colors.borderColor,
-        borderWidth: 1,
+         borderColor: isSimpleMode ? theme.colors.textPrimary : theme.colors.borderColor, borderWidth: isSimpleMode ? 3 : 1
       },
     ]}
   >
@@ -451,7 +450,7 @@ export default function ProductPage() {
         <AnimatedContainer
           key={chainName}
           entering={isPerformanceMode ? undefined : FadeIn.delay(350 + index * 50).duration(500)}
-          style={[styles.OneRetailBox,{borderColor:theme.colors.textTertiary, borderTopColor:theme.colors.textTertiary}]}
+          style={[styles.OneRetailBox,{borderColor:isSimpleMode? theme.colors.textPrimary :theme.colors.textTertiary, borderTopColor:isSimpleMode? theme.colors.textPrimary :theme.colors.textTertiary}]}
         >
           <View style={styles.leftSection}>
             <View style={styles.storeInfo}>
@@ -520,8 +519,8 @@ export default function ProductPage() {
               backgroundColor: theme.colors.cardBackground,
               paddingHorizontal: 16,
               overflow: 'hidden',
-              borderColor: theme.colors.borderColor,
-              borderWidth: 1,
+              borderColor:isSimpleMode? theme.colors.textPrimary :theme.colors.borderColor,
+              borderWidth: isSimpleMode?3:1,
             },
           ]}
         >
