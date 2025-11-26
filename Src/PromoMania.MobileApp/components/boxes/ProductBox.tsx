@@ -452,6 +452,7 @@ const ProductContent = ({
               fontWeight: isSimpleMode ? '700' : '600',
               letterSpacing: isSimpleMode ? 0.3 : 0,
               lineHeight: isSimpleMode ? getFontSize(22) : getFontSize(18),
+              height: isSimpleMode ? getFontSize(22)*2 : getFontSize(18)*2,
             }
           ]} 
           numberOfLines={2}
@@ -460,28 +461,29 @@ const ProductContent = ({
         </Text>
      
       </View>
-         {unit && (
-          <View style={[
-            styles.unitContainerAccent, 
-            { 
-              backgroundColor: theme.colors.unitColor, 
-              borderColor: theme.colors.unitBorderColor,
-              borderWidth: isSimpleMode ? 2 : 1,
-          
-            }
-          ]}>
-            <Text style={[
-              styles.unitTextAccent, 
-              { 
-                color: theme.colors.textOnGradient,
-                fontSize: isSimpleMode ? getFontSize(13) : getFontSize(11),
-                fontWeight: isSimpleMode ? '700' : '600',
-              }
-            ]}>
-              {unit}
-            </Text>
-          </View>
-        )}
+         {unit ? (
+  <View style={[
+    styles.unitContainerAccent, 
+    { 
+      backgroundColor: theme.colors.unitColor, 
+      borderColor: theme.colors.unitBorderColor,
+      borderWidth: isSimpleMode ? 2 : 1,
+    }
+  ]}>
+    <Text style={[
+      styles.unitTextAccent, 
+      { 
+        color: theme.colors.textOnGradient,
+        fontSize: isSimpleMode ? getFontSize(13) : getFontSize(11),
+        fontWeight: isSimpleMode ? '700' : '600',
+      }
+    ]}>
+      {unit}
+    </Text>
+  </View>
+) : (
+  <View style={styles.unitPlaceholder} />
+)}
       <View style={styles.priceCartContainer}>
         <View style={styles.priceContainer}>
           <Text style={[

@@ -10,14 +10,10 @@ frostflow guidlines
 font color for all pages
 backbutton register float
 loading for main page
-condition za proverka pri pagationa ako sa ednakvi publicidata  vtoroto da ne go pokazva
-add remaing time for product detials
-preravni cenite v cart
-kato otide dolu da se razshiri
 map dark mode make it lighter
 hardcoded solution for map for location vs gradove
-fix productbox height
 редактирай профила tekst
+site fix
 
 
 future features:

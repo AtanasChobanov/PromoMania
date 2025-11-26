@@ -486,7 +486,7 @@ export default function ProductPage() {
         </View>
         
         {pricePair.discounted.discount && (
-          <View style={styles.bestDealDiscountPill}>
+          <View style={[styles.bestDealDiscountPill,{backgroundColor:theme.colors.textGreen}]}>
             <Text style={[styles.bestDealDiscountText, { color: theme.colors.textPrimary }]}>
               -{pricePair.discounted.discount}%
             </Text>
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
   bestDealChainInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 5,
     flex: 1,
   },
   bestDealLogo: {

@@ -124,14 +124,19 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   unitContainerAccent: {
-    marginTop: hp(0.5),
+    marginTop: moderateScale(4),
     alignSelf: "flex-start",
     paddingHorizontal: wp(2),
     paddingVertical: wp(0.5),
+        height: moderateScale(22),
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(31, 41, 55, 0.2)",
     backgroundColor: "rgba(31, 41, 55, 0.1)",
+  },
+   unitPlaceholder: {
+    marginTop: moderateScale(4),
+    height: moderateScale(22),
   },
 
   //Buttons

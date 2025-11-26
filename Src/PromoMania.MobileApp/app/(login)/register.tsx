@@ -74,11 +74,6 @@ const Register = () => {
         email: email.trim().toLowerCase(),
         password,
       });
-
-      // SUCCESS!
-      // We do NOT manually navigate here (e.g. router.push).
-      // The AuthContext sets 'isOnboarding' to true, which
-      // automatically redirects the user to the Options screen.
       
     } catch (error: any) {
       Alert.alert(
@@ -95,39 +90,48 @@ const Register = () => {
       )}
     </View>
   );
-
+  const BackButton = () => (
+     <TouchableOpacity
+               onPress={() => router.back()}
+               style={styles.backButton}
+             >
+            
+              <View 
+        
+                style={[styles.tabBarBlur,{backgroundColor:'rgba(46,170,134,1)'}]} 
+              />
+          
+            
+               <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                 <Path
+                   d="M15 18l-6-6 6-6"
+                   stroke={'white'}
+                   strokeWidth={2}
+                   strokeLinecap="round"
+                   strokeLinejoin="round"
+                 />
+               </Svg>
+             </TouchableOpacity>
+  );
   return (
     <ImageBackground
       source={require('@/assets/images/background2.webp')} 
       style={styles.backgroundImage} 
       resizeMode="cover"
     >
+      
+         <BackButton/>
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-            disabled={authLoading}
-          >
-            <View
          
-              style={{backgroundColor:'rgba(46,170,134,1)'}}
-            />
-            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M15 18l-6-6 6-6"
-                stroke={'#000000'}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </TouchableOpacity>
+        
+     
           <Text style={styles.title}>Регистрация</Text>
           <Text style={styles.subtitle}>Създайте нов акаунт</Text>
         </View>
@@ -333,7 +337,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: scale(24),
-    paddingTop: verticalScale(50),
+    paddingTop: verticalScale(100),
     paddingBottom: verticalScale(40),
   },
   header: {
@@ -341,18 +345,23 @@ const styles = StyleSheet.create({
 
   },
   backButton: {
-    width: moderateScale(40),
-    height: moderateScale(40),
-    borderRadius: moderateScale(20),
-    borderColor: 'white',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor:'rgba(103, 218, 191, 1)'
-  
-
+     width: 40,
+     height: 40,
+     top:scale(55),
+    marginHorizontal: 20,
+    position: 'absolute',
+    zIndex: 100,   
+     borderRadius: 20,
+     borderColor: 'white',
+     borderStyle: 'solid',
+     borderWidth: 1,
+     overflow: 'hidden',
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+    backButtonText: {
+    fontSize: moderateScale(16),
+    fontWeight: '600',
   },
   title: {
     fontSize: moderateScale(32),
@@ -534,6 +543,9 @@ const styles = StyleSheet.create({
     color: 'rgba(46, 170, 134, 1)',
     fontSize: moderateScale(14),
     fontWeight: '600',
+  },
+      tabBarBlur: {
+    ...StyleSheet.absoluteFillObject,
   },
 });
 

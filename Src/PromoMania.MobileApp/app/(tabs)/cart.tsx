@@ -38,12 +38,7 @@ interface ProductBoxProps {
   onSaveForLater?: () => void;
 }
 
-interface FinalPriceProps {
-  saves: number;
-  basePrice: number;
-  basePriceEur: number;
-  bestOfferStore?: string;
-}
+
 
 interface OverviewPriceProps {
   priceBgn: number;
@@ -52,6 +47,7 @@ interface OverviewPriceProps {
   basePrice: number;
   basePriceEur: number;
   saves: number;
+  savesEur:number;
   bestOfferStore?: string;
   onToggle: () => void;
 }
@@ -162,6 +158,7 @@ const OptionsMenu: React.FC<OptionsMenuProps> = React.memo(({
     </Modal>
   );
 });
+OptionsMenu.displayName = "OptionsMenu";
 
 const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   publicId,
@@ -385,7 +382,7 @@ const ProductBox: React.FC<ProductBoxProps & { index: number }> = React.memo(({
   prevProps.price === nextProps.price &&
   prevProps.index === nextProps.index
 ));
-
+ProductBox.displayName = "ProductBox";
 const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   priceBgn,
   priceEur,
@@ -393,6 +390,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
   basePrice,
   basePriceEur,
   saves,
+  savesEur,
   bestOfferStore,
   onToggle
 }) => {
@@ -520,7 +518,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
         style={[
           styles.expandedContent,
           isPerformanceMode
-            ? { height: isExpanded ? moderateScale(150) : 0, opacity: isExpanded ? 1 : 0 }
+            ? { height: isExpanded ? moderateScale(120) : 0, opacity: isExpanded ? 1 : 0 }
             : { height: expandedHeight, opacity: opacityAnim }
         ]}
       >
@@ -547,16 +545,21 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
             </View>
           </View>
 
-          {saves > 0 && (
-            <View style={styles.savingsRow}>
-              <Text style={[styles.savingsLabel, { color: '#DC2626' }]}>
-                Спестяваш:
-              </Text>
-              <Text style={[styles.savingsValue, { color: '#DC2626' }]}>
-                {saves.toFixed(2)} лв
-              </Text>
-            </View>
-          )}
+         {saves > 0 && (
+  <View style={styles.savingsRow}>
+    <Text style={[styles.savingsLabel, { color: '#DC2626' }]}>
+      Спестяваш:
+    </Text>
+    <View style={styles.pricesConclusion}>
+      <Text style={[styles.savingsValue, { color: '#DC2626' }]}>
+        {saves.toFixed(2)} лв
+      </Text>
+      <Text style={[styles.savingsValue, { color: '#DC2626' }]}>
+        {savesEur.toFixed(2)} €
+      </Text>
+    </View>
+  </View>
+)}
         </View>
       </ExpandedContent>
 
@@ -583,7 +586,7 @@ const OverviewPrice: React.FC<OverviewPriceProps> = React.memo(({
     </ContainerView>
   );
 });
-
+OverviewPrice.displayName = "OverviewPrice";
 const Cart: React.FC = () => {
   const { isDarkMode } = useSettings();
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -616,6 +619,16 @@ const Cart: React.FC = () => {
       return sum;
     }, 0);
   }, [items]);
+  const totalSavingsEur = useMemo(() => {
+  return items.reduce((sum, item) => {
+    if (item.product.prices[0]?.discount) {
+      const originalPriceEur = item.product.prices[0].priceEur || 0;
+      const discountAmount = (originalPriceEur * Math.abs(item.product.prices[0].discount) / 100);
+      return sum + (discountAmount * item.quantity);
+    }
+    return sum;
+  }, 0);
+}, [items]);
 
   const products = useMemo(() => {
     return items.map(item => ({
@@ -822,21 +835,22 @@ const Cart: React.FC = () => {
   getItemLayout={getItemLayout}
   onScroll={handleScroll}
   scrollEventThrottle={16}
-  onContentSizeChange={handleContentSizeChange}  // Add this
-  onLayout={handleLayout}  // Add this
+  onContentSizeChange={handleContentSizeChange} 
+  onLayout={handleLayout}  
 />
 
         {products.length > 0 && (
-          <OverviewPrice
-            priceBgn={displayPriceBgn}
-            priceEur={displayPriceEur}
-            isExpanded={isPriceExpanded}
-            basePrice={displayPriceBgn + totalSavings}
-            basePriceEur={displayPriceEur + totalSavings}
-            saves={totalSavings}
-            bestOfferStore={bestOffer?.storeChain}
-            onToggle={togglePriceExpansion}
-          />
+      <OverviewPrice
+        priceBgn={displayPriceBgn}
+        priceEur={displayPriceEur}
+        isExpanded={isPriceExpanded}
+        basePrice={displayPriceBgn + totalSavings}
+        basePriceEur={displayPriceEur + totalSavingsEur} 
+        saves={totalSavings}
+        savesEur={totalSavingsEur} 
+        bestOfferStore={bestOffer?.storeChain}
+        onToggle={togglePriceExpansion}
+      />
         )}
       </View>
     </ImageBackground>
@@ -1093,11 +1107,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   totalPriceLabel: {
-    fontSize: 18,
+    fontSize: moderateScale(18),
     fontWeight: 'bold',
   },
   totalPriceValue: {
-    fontSize: 18,
+    fontSize: moderateScale(18),
     fontWeight: '600',
   },
   continueButtonContainer: {
@@ -1198,7 +1212,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(12),
   },
   bestOfferText: {
-    fontSize: moderateScale(13),
+    fontSize: moderateScale(15),
     marginBottom: moderateScale(8),
     opacity: 0.8,
   },
@@ -1209,10 +1223,10 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(6),
   },
   priceLabel: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(18),
   },
   priceValue: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(18),
     fontWeight: '600',
   },
   savingsRow: {
@@ -1225,11 +1239,11 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(220, 38, 38, 0.3)',
   },
   savingsLabel: {
-    fontSize: moderateScale(15),
+    fontSize: moderateScale(18),
     fontWeight: '600',
   },
   savingsValue: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(18),
     fontWeight: 'bold',
   },
 

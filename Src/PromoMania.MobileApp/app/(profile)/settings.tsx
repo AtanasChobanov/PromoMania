@@ -173,7 +173,7 @@ const handleLogout = async () => {
           </Text>
 
           <SettingPageNav
-            title="Редкатирай си профила"
+            title="Редактирай си профила"
             description="Промени си името, местополжението, пароли и др."
             value={isSimpleMode}
             onToggle={toggleSimpleMode}

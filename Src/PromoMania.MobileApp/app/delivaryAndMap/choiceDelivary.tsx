@@ -129,7 +129,7 @@ const ChoiceDelivery = () => {
             }]}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, { backgroundColor: '#rgba(255, 243, 205, 0.2)' , borderColor:theme.colors.textTertiary }]}>
+            <View style={[styles.iconContainer, { backgroundColor: 'rgba(255, 243, 205, 0.2)' , borderColor:theme.colors.textTertiary }]}>
               <TruckIcon height={48} width={48} color="#rgba(255, 205, 27, 0.3)"/>
             </View>
             <View style={styles.textContainer}>
