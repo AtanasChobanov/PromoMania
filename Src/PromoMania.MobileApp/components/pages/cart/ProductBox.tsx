@@ -15,6 +15,7 @@ import {
   View
 } from 'react-native';
 import { moderateScale, scale } from 'react-native-size-matters';
+import Svg, { Path } from "react-native-svg";
 
 type Props = ProductBoxProps & { index: number };
 
@@ -172,7 +173,7 @@ export const ProductBox: React.FC<Props> = React.memo(({
             height: isSimpleMode? moderateScale(200):  moderateScale(170),
             backgroundColor: theme.colors.backgroundColor,
             borderColor: isSimpleMode? theme.colors.textPrimary : '#FFFFFF',
-            borderWidth: isSimpleMode? 5 : 1,
+            borderWidth: isSimpleMode? 3 : 1,
             ...(isPerformanceMode ? {} : { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }),
           },
         ]}
@@ -205,23 +206,103 @@ export const ProductBox: React.FC<Props> = React.memo(({
               <Text style={[cartStyles.price, { color: theme.colors.textOnGradient,fontSize: isSimpleMode? moderateScale(22): moderateScale(17),}]}>{priceEur != null ? priceEur.toFixed(2) : "0.00"} €</Text>
             </View>
 
-            <View style={cartStyles.quantityRow}>
-              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={[cartStyles.blurButton,{borderWidth:isSimpleMode? 2: 0}]}>
-                <TouchableHighlight underlayColor="transparent" style={[cartStyles.buttonTouchable,{   width:isSimpleMode? moderateScale(28): moderateScale(30), height: isSimpleMode?moderateScale(20) : moderateScale(28),}]} onPress={handleDecreaseQuantity}>
-                  <Text style={[cartStyles.buttonText, { color: theme.colors.textPrimary,    fontSize: isSimpleMode?  moderateScale(22): moderateScale(18), }]}>-</Text>
-                </TouchableHighlight>
-              </BlurView>
+        <View style={cartStyles.quantityRow}>
+  <BlurView 
+    intensity={50} 
+    tint={theme.colors.TabBarColors as 'dark' | 'light'} 
+    style={[
+      cartStyles.blurButton,
+      {
+        borderWidth: isSimpleMode ? 2 : 0,
+        width: isSimpleMode ? moderateScale(40) : moderateScale(30),
+        height: isSimpleMode ? moderateScale(40) : moderateScale(30),
+      }
+    ]}
+  >
+    <TouchableHighlight 
+      underlayColor="transparent" 
+      style={[
+        cartStyles.buttonTouchable,
+        {
+          width: isSimpleMode ? moderateScale(40) : moderateScale(30),
+          height: isSimpleMode ? moderateScale(40) : moderateScale(30),
+        }
+      ]} 
+      onPress={handleDecreaseQuantity}
+    >
+      <Svg 
+        width={isSimpleMode ? moderateScale(24) : moderateScale(16)} 
+        height={isSimpleMode ? moderateScale(24) : moderateScale(16)} 
+        viewBox="0 0 24 24"
+        style={{ alignSelf: 'center', marginRight:isSimpleMode ? 0:-2}}
+      >
+        <Path 
+          d="M4 12H17" 
+          stroke={theme.colors.textPrimary} 
+          strokeWidth={isSimpleMode ? "3" : "2.5"} 
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </TouchableHighlight>
+  </BlurView>
 
-              <QuantityText style={[cartStyles.quantityText, { color: theme.colors.textPrimary, ...(isPerformanceMode ? {} : { transform: [{ scale: quantityScaleAnim }] }) }]}>
-                {localQuantity}
-              </QuantityText>
+  <QuantityText 
+    style={[
+      cartStyles.quantityText, 
+      { 
+        color: theme.colors.textPrimary,
+        fontSize: isSimpleMode ? moderateScale(22) : moderateScale(16),
+        marginHorizontal: isSimpleMode ? moderateScale(20) : moderateScale(16),
+        fontWeight: "600",
+        ...(isPerformanceMode ? {} : { transform: [{ scale: quantityScaleAnim }] }) 
+      }
+    ]}
+  >
+    {localQuantity}
+  </QuantityText>
 
-              <BlurView intensity={50} tint={theme.colors.TabBarColors as 'dark' | 'light'} style={[cartStyles.blurButton,{borderWidth:isSimpleMode? 2: 0}]}>
-                <TouchableHighlight underlayColor="transparent" style={cartStyles.buttonTouchable} onPress={handleIncreaseQuantity}>
-                  <Text style={[cartStyles.buttonText, { color: theme.colors.textPrimary,fontSize: isSimpleMode?  moderateScale(22): moderateScale(18) }]}>+</Text>
-                </TouchableHighlight>
-              </BlurView>
-            </View>
+  <BlurView 
+    intensity={50} 
+    tint={theme.colors.TabBarColors as 'dark' | 'light'} 
+    style={[
+      cartStyles.blurButton,
+      {
+        borderWidth: isSimpleMode ? 2 : 0,
+        width: isSimpleMode ? moderateScale(40) : moderateScale(30),
+        height: isSimpleMode ? moderateScale(40) : moderateScale(30),
+      }
+    ]}
+  >
+    <TouchableHighlight 
+      underlayColor="transparent" 
+      style={[
+        cartStyles.buttonTouchable,
+        {
+          width: isSimpleMode ? moderateScale(40) : moderateScale(30),
+          height: isSimpleMode ? moderateScale(40) : moderateScale(30),
+        }
+      ]} 
+      onPress={handleIncreaseQuantity}
+    >
+      <Svg 
+        width={isSimpleMode ? moderateScale(20) : moderateScale(16)} 
+        height={isSimpleMode ? moderateScale(20) : moderateScale(16)} 
+        
+        viewBox="0 0 24 24"
+        style={{ alignSelf: 'center', marginRight:isSimpleMode ? 5 :0 }}
+      >
+        <Path 
+          d="M12 4V20M4 12H20" 
+          stroke={theme.colors.textPrimary} 
+          strokeWidth={isSimpleMode ? "3" : "2.5"} 
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </TouchableHighlight>
+  </BlurView>
+</View>
           </View>
         </View>
       </ProductContainer>

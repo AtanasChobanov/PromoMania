@@ -278,21 +278,8 @@ export const cartStyles = StyleSheet.create({
     fontSize: moderateScale(18),
     fontWeight: 'bold',
   },
-  blurButton: {
-    borderRadius: 9999,
-    width: moderateScale(30),
-    height: moderateScale(30),
-    overflow: "hidden",
-  },
-  buttonTouchable: {
- 
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    fontSize: moderateScale(18),
-    fontWeight: "bold",
-  },
+
+  
   pricesConclusion: {
     flexDirection: 'row',
     gap: moderateScale(10),
@@ -343,5 +330,21 @@ export const cartStyles = StyleSheet.create({
     fontSize: moderateScale(18),
     fontWeight: 'bold',
   },
+  blurButton: {
+  borderRadius: 9999,
+  width: moderateScale(30),
+  height: moderateScale(30),
+  overflow: "hidden",
+},
+buttonTouchable: {
+  width: moderateScale(30),
+  height: moderateScale(30),
+  alignItems: "center",
+  justifyContent: "center",
+},
+buttonText: {
+  fontSize: moderateScale(18),
+  fontWeight: "bold",
+},
 
 });

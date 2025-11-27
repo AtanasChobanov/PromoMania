@@ -62,15 +62,7 @@ export const createStyles = ({
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   unitContainer: { flexDirection: 'column', alignItems: 'flex-start', marginBottom: hp(2) },
   price: { fontSize: 32, fontWeight: 'bold', color: '#006D77' },
-  discountBadge: {
-    backgroundColor: 'rgba(143,228,201,1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 8,
-    alignSelf: 'flex-start',
-  },
-  discountBadgeText: { fontSize: 12, fontWeight: 'bold', color: '#1F2937' },
+
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 10 },
   quantitySection: { marginBottom: 25 },
   quantityContainer: { flexDirection: 'row', alignItems: 'center' },
@@ -178,6 +170,7 @@ export const createStyles = ({
     flexDirection: 'row',
     borderWidth: isSimpleMode ? 3 : 1,
     borderRadius:15,
+        overflow:'hidden',
   },
   retailTitle: {
     fontSize: isSimpleMode? 24 : 20,
@@ -277,7 +270,7 @@ export const createStyles = ({
     borderRadius: 8,
   },
   bestDealChainName: {
-    fontSize: getFontSize(22), 
+    fontSize: getFontSize(20), 
     fontWeight: 'bold',
   },
   bestDealPriceStack: {
@@ -327,4 +320,19 @@ export const createStyles = ({
     fontSize: isSimpleMode? moderateScale(12) :moderateScale(9),
     fontWeight: '600',
   },
+  discountBadge: {
+  position: 'absolute',
+  zIndex: 500,
+  transform: [{ rotateZ: '-0.785398rad' }],
+  left: -67,
+  top:-10,
+  minWidth:150,
+  paddingHorizontal: 10,
+  paddingVertical: 3,
+  alignItems: 'center',
+},
+discountBadgeText: {
+  fontSize: moderateScale(15),
+  fontWeight: "600",
+},
 });

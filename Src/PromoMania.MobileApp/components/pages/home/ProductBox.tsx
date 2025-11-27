@@ -181,10 +181,11 @@ export const ProductBox: React.FC<{
                   style={[
                     styles.productImage, 
                     { 
-                         borderColor:'black',
+                         borderColor:theme.colors.textPrimary,
     borderWidth:isSimpleMode? 3:0,
+    borderBottomWidth: 0,
                       width: cardWidth, 
-                      height: isSimpleMode ? cardWidth * 1.1 : cardWidth, // Slightly taller in simple mode
+                      height: isSimpleMode ? cardWidth * 1.1 : cardWidth,
                       backgroundColor: 'white' 
                     }
                   ]}
@@ -205,7 +206,7 @@ export const ProductBox: React.FC<{
                     width: cardWidth, 
                     backgroundColor: theme.colors.backgroundColor, 
                     borderColor: isSimpleMode ? theme.colors.textPrimary : "#FFFFFF", 
-                    borderWidth: isSimpleMode ? 2 : 1,
+                    borderWidth: isSimpleMode ? 3 : 1,
                     paddingVertical: isSimpleMode ? hp(2) : hp(1.5),
                     paddingHorizontal: isSimpleMode ? wp(3) : wp(2),
                   }

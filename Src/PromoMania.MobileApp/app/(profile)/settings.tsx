@@ -122,11 +122,11 @@ const handleLogout = async () => {
           <Text style={[
             settingStyles.sectionTitle,
             { 
-              fontSize: getFontSize(isSimpleMode ? 12 : 16),
+              fontSize: getFontSize(isSimpleMode ? 18 : 16),
               color: theme.colors.textSecondary,
             }
           ]}>
-            Профил
+            ПРОФИЛ
           </Text>
 
           <SettingPageNav

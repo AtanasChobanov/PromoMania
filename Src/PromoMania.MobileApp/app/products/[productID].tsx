@@ -447,64 +447,63 @@ export default function ProductPage() {
 
       // Other Options
       return (
-        <AnimatedContainer
-          key={chainName}
-          entering={isPerformanceMode ? undefined : FadeIn.delay(350 + index * 50).duration(500)}
-          style={[styles.OneRetailBox,{borderColor:isSimpleMode? theme.colors.textPrimary :theme.colors.textTertiary, borderTopColor:isSimpleMode? theme.colors.textPrimary :theme.colors.textTertiary}]}
-        >
-          <View style={styles.leftSection}>
-            <View style={styles.storeInfo}>
-              <Image
-                style={styles.retailImages}
-                source={chainLogos[chainName] || require('../../assets/icons/icon.png')}
-              />
-              <Text style={[styles.retailText, { color: theme.colors.textPrimary }]}>
-                {chainName}
-              </Text>
-            </View>
-            {pricePair.discounted.discount && (
-              <View style={[styles.discountContainer, { backgroundColor: theme.colors.textGreen }]}>
-                <Text style={[styles.discountText, { color: theme.colors.textPrimary }]}>
-                  -{pricePair.discounted.discount}%
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* BGN Prices Column */}
-          <View style={styles.rightSection}>
-            <Text style={[styles.retailPrice, { color: theme.colors.textBlue }]}>
-              {getNumericPrice(pricePair.discounted.priceBgn)} лв.
-            </Text>
-            {pricePair.original && (
-              <Text style={[styles.originalPrice, { color: theme.colors.textSecondary }]}>
-                {getNumericPrice(pricePair.original.priceBgn)} лв.
-              </Text>
-            )}
-          </View>
-              {/* EUR Prices Column */}
-
-           <View style={styles.rightSection}>
-        <Text
-          style={[
-            styles.retailPrice,
-            { color: theme.colors.textBlue }
-          ]}
-        >
-          {getNumericPrice(pricePair.discounted.priceEur)} €
-        </Text>
-        {pricePair.original && (
-          <Text
-            style={[
-              styles.originalPrice,
-              { color: theme.colors.textSecondary }
-            ]}
-          >
-            {getNumericPrice(pricePair.original.priceEur)} €
+       <AnimatedContainer
+  key={chainName}
+  entering={isPerformanceMode ? undefined : FadeIn.delay(350 + index * 50).duration(500)}
+  style={[styles.OneRetailBox,{borderColor:isSimpleMode? theme.colors.textPrimary :theme.colors.textTertiary, borderTopColor:isSimpleMode? theme.colors.textPrimary :theme.colors.textTertiary}]}
+>
+  <View style={styles.leftSection}>
+    <View style={styles.storeInfo}>
+      <Image
+        style={styles.retailImages}
+        source={chainLogos[chainName] || require('../../assets/icons/icon.png')}
+      />
+      <Text style={[styles.retailText, { color: theme.colors.textPrimary }]}>
+        {chainName}
+      </Text>
+      
+      {pricePair.discounted.discount && isSimpleMode && (
+        <View style={[styles.discountBadge, { backgroundColor: theme.colors.textGreen }]}>
+          <Text style={[styles.discountBadgeText, { color: theme.colors.textPrimary }]}>
+            -{pricePair.discounted.discount}%
           </Text>
-        )}
+        </View>
+      )}
+    </View>
+
+    {pricePair.discounted.discount && !isSimpleMode && (
+      <View style={[styles.discountContainer, { backgroundColor: theme.colors.textGreen }]}>
+        <Text style={[styles.discountText, { color: theme.colors.textPrimary }]}>
+          -{pricePair.discounted.discount}%
+        </Text>
       </View>
-        </AnimatedContainer>
+    )}
+  </View>
+
+  {/* BGN Prices Column */}
+  <View style={styles.rightSection}>
+    <Text style={[styles.retailPrice, { color: theme.colors.textBlue }]}>
+      {getNumericPrice(pricePair.discounted.priceBgn)} лв.
+    </Text>
+    {pricePair.original && (
+      <Text style={[styles.originalPrice, { color: theme.colors.textSecondary }]}>
+        {getNumericPrice(pricePair.original.priceBgn)} лв.
+      </Text>
+    )}
+  </View>
+
+  {/* EUR Prices Column */}
+  <View style={styles.rightSection}>
+    <Text style={[styles.retailPrice, { color: theme.colors.textBlue }]}>
+      {getNumericPrice(pricePair.discounted.priceEur)} €
+    </Text>
+    {pricePair.original && (
+      <Text style={[styles.originalPrice, { color: theme.colors.textSecondary }]}>
+        {getNumericPrice(pricePair.original.priceEur)} €
+      </Text>
+    )}
+  </View>
+</AnimatedContainer>
       );
     })}
   </RetailStoresContainer>

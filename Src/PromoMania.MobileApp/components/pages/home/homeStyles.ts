@@ -90,8 +90,7 @@ export const styles = StyleSheet.create({
   productImage: {
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
-    borderColor:'black',
-    borderWidth:20
+ 
   },
   heartOverlay: {
     position: "absolute",
