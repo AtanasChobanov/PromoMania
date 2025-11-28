@@ -3,7 +3,7 @@ import CategoryService from "../category/category.service.js";
 import prisma from "../../config/prisma-client.config.js";
 
 export default class ProductService {
-  async getOrCreateProduct(product: UnifiedProduct) {
+  async updateOrCreateProduct(product: UnifiedProduct) {
     const categoryService = new CategoryService();
     const category = await categoryService.getOrCreateCategory(
       product.category
@@ -26,6 +26,13 @@ export default class ProductService {
           category_id: category.id,
           barcode: null,
           unit: product.unit,
+        },
+      });
+    } else if (product.imageUrl && existing.image_url !== product.imageUrl) {
+      existing = await prisma.product.update({
+        where: { id: existing.id },
+        data: {
+          image_url: product.imageUrl ?? null,
         },
       });
     }

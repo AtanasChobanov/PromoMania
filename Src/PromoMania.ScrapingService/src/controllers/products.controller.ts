@@ -8,14 +8,19 @@ import PriceService from "../services/price/price.service.js";
 import type { IScrapableProduct } from "../models/scraper.model.js";
 
 export default class ProductsController {
+  private static readonly TMARKET_LOGO_URL =
+    "https://cdncloudcart.com/16398/logo/2_300x300.png?1593192903";
+
   private static async handleScrapedProducts(
     scrapedProducts: IScrapableProduct[]
   ) {
     // 1
     const dataUnifierService = new DataUnifierService();
 
-    const unifiedProducts = await dataUnifierService.unifyAndFilterProducts(
-      scrapedProducts
+    let unifiedProducts = (
+      await dataUnifierService.unifyAndFilterProducts(scrapedProducts)
+    ).filter(
+      (product) => product.imageUrl !== ProductsController.TMARKET_LOGO_URL
     );
 
     // 2
@@ -35,7 +40,7 @@ export default class ProductsController {
       const batchResults = await Promise.all(
         batch.map((productData) =>
           limit(async () => {
-            const product = await productService.getOrCreateProduct(
+            const product = await productService.updateOrCreateProduct(
               productData
             );
 
