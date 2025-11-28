@@ -1,5 +1,3 @@
-import { HeartIcon } from '@/components/boxes/HeartIcon';
-import { styles } from '@/components/styles/homeStyles';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -23,6 +21,8 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 import Svg, { Path } from "react-native-svg";
+import { HeartIcon } from './HeartIcon';
+import { styles } from './homeStyles';
 
 const CartIcon = ({ color = "#1F2937", size = 20 }: { color?: string; size?: number }) => (
   <Svg viewBox="0 0 24 24" width={size} height={size}>
@@ -164,7 +164,9 @@ export const ProductBox: React.FC<{
   return (
     <View style={{ width: cardWidth }}>
       <Animated.View 
-        entering={isPerformanceMode ? undefined : FadeInDown.delay(index * 100).duration(600).springify()}
+        entering={isPerformanceMode ? undefined : FadeInDown.delay((index % 4) * 50) 
+                .duration(300) 
+                .springify()}
       >
         <Animated.View style={isPerformanceMode ? undefined : scaleStyle}>
           <Pressable 
@@ -175,12 +177,15 @@ export const ProductBox: React.FC<{
               {/* Image Section */}
               <View style={styles.imageContainer}>
                 <Image
-                  source={photo ? { uri: photo } : require("../../assets/icons/icon.png")}
+                  source={photo ? { uri: photo } : require("@/assets/icons/logo-for-boxes.png")}
                   style={[
                     styles.productImage, 
                     { 
+                         borderColor:theme.colors.textPrimary,
+    borderWidth:isSimpleMode? 3:0,
+    borderBottomWidth: 0,
                       width: cardWidth, 
-                      height: isSimpleMode ? cardWidth * 1.1 : cardWidth, // Slightly taller in simple mode
+                      height: isSimpleMode ? cardWidth * 1.1 : cardWidth,
                       backgroundColor: 'white' 
                     }
                   ]}
@@ -201,7 +206,7 @@ export const ProductBox: React.FC<{
                     width: cardWidth, 
                     backgroundColor: theme.colors.backgroundColor, 
                     borderColor: isSimpleMode ? theme.colors.textPrimary : "#FFFFFF", 
-                    borderWidth: isSimpleMode ? 2 : 1,
+                    borderWidth: isSimpleMode ? 3 : 1,
                     paddingVertical: isSimpleMode ? hp(2) : hp(1.5),
                     paddingHorizontal: isSimpleMode ? wp(3) : wp(2),
                   }
@@ -444,41 +449,44 @@ const ProductContent = ({
           style={[
             styles.productName, 
             { 
+              
               fontSize: isSimpleMode ? getFontSize(18) : getFontSize(16), 
               color: theme.colors.textOnGradient,
               fontWeight: isSimpleMode ? '700' : '600',
               letterSpacing: isSimpleMode ? 0.3 : 0,
               lineHeight: isSimpleMode ? getFontSize(22) : getFontSize(18),
+              height: isSimpleMode ? getFontSize(22)*2 : getFontSize(18)*2,
             }
           ]} 
           numberOfLines={2}
         >
           {productName}
         </Text>
-        {unit && (
-          <View style={[
-            styles.unitContainerAccent, 
-            { 
-              backgroundColor: theme.colors.unitColor, 
-              borderColor: theme.colors.unitBorderColor,
-              borderWidth: isSimpleMode ? 2 : 1,
-          
-            }
-          ]}>
-            <Text style={[
-              styles.unitTextAccent, 
-              { 
-                color: theme.colors.textOnGradient,
-                fontSize: isSimpleMode ? getFontSize(13) : getFontSize(11),
-                fontWeight: isSimpleMode ? '700' : '600',
-              }
-            ]}>
-              {unit}
-            </Text>
-          </View>
-        )}
+     
       </View>
-      
+         {unit ? (
+  <View style={[
+    styles.unitContainerAccent, 
+    { 
+      backgroundColor: theme.colors.unitColor, 
+      borderColor: theme.colors.unitBorderColor,
+      borderWidth: isSimpleMode ? 2 : 1,
+    }
+  ]}>
+    <Text style={[
+      styles.unitTextAccent, 
+      { 
+        color: theme.colors.textOnGradient,
+        fontSize: isSimpleMode ? getFontSize(13) : getFontSize(11),
+        fontWeight: isSimpleMode ? '700' : '600',
+      }
+    ]}>
+      {unit}
+    </Text>
+  </View>
+) : (
+  <View style={styles.unitPlaceholder} />
+)}
       <View style={styles.priceCartContainer}>
         <View style={styles.priceContainer}>
           <Text style={[

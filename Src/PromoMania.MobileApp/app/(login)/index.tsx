@@ -1,27 +1,79 @@
-import { darkTheme, lightTheme } from '@/components/styles/theme';
-import { useSettings } from '@/contexts/SettingsContext';
+import { FeatureItem } from '@/components/pages/welcome/FeatureItem';
+import { indexStyles } from '@/components/pages/welcome/welcomeStyles';
 import { useAuth } from '@/services/useAuth';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { ActivityIndicator, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  Image,
+  ImageBackground,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const Index = () => {
   const router = useRouter();
   const { isLoading, isAuthenticated } = useAuth();
-  const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
-  // Redirect to main app if already logged in
+  
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const buttonScale = useRef(new Animated.Value(0.95)).current;
+  const featuresFadeAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.replace('/(tabs)/home');
     }
-  }, [isLoading, isAuthenticated]);
+  }, [isLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration:  800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration:  800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(logoScale, {
+          toValue: 1,
+          friction:  4,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.spring(buttonScale, {
+          toValue: 1,
+          friction:  5,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      Animated.timing(featuresFadeAnim, {
+        toValue: 1,
+        duration:  600,
+        delay: 400,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isLoading, isAuthenticated, buttonScale, fadeAnim, featuresFadeAnim, logoScale, slideAnim]);
 
   // Show loading screen while checking auth status
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
+      <View style={[indexStyles.container, indexStyles.loadingContainer]}>
         <ActivityIndicator size="large" color="rgba(103, 218, 191, 1)" />
+        <Text style={indexStyles.loadingText}>Зареждане...</Text>
       </View>
     );
   }
@@ -29,39 +81,96 @@ const Index = () => {
   // Only show welcome screen if not authenticated
   if (!isAuthenticated) {
     return (
-        <ImageBackground
-            source={theme.backgroundImage} 
-            style={styles.backgroundImage} 
-            resizeMode="cover"
-          >
-        <View style={styles.content}>
-          {/* Logo Container */}
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../../assets/icons/icon.png")}            
-              style={styles.logo}
-              resizeMode="contain"
-            />     
-          </View>
+      <ImageBackground
+        source={require('@/assets/images/background2.webp')} 
+        style={indexStyles.backgroundImage} 
+        resizeMode="cover"
+      >
+        <ScrollView 
+          contentContainerStyle={indexStyles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={indexStyles.content}>
+            {/* Logo Container */}
+            <Animated.View 
+              style={[
+                indexStyles.logoContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ scale: logoScale }]
+                }
+              ]}
+            >
+              <View style={indexStyles.logoWrapper}>
+                <Image
+                  source={require("../../assets/icons/logo.png")}            
+                  style={indexStyles.logo}
+                  resizeMode="contain"
+                />
+                  <View style={indexStyles.decorativeCircle} />
+              </View>
+              <Text style={indexStyles.brandName}>ПромоМания</Text>
+            </Animated.View>
 
-          {/* Welcome Text */}
-          <View style={styles.textContainer}>
-            <Text style={styles.welcomeText}>Откривай. Сравнявай. Пести.</Text>
-            <Text style={styles.subText}>
-              Всички намаления на едно място.{"\n"}
-              Сравнявай цени. Спести повече.
-            </Text>
-          </View>
+            {/* Welcome Text */}
+            <Animated.View 
+              style={[
+                indexStyles.textContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }]
+                }
+              ]}
+            >
+              <Text style={indexStyles.welcomeText}>
+                Откривай. Сравнявай. Пести.
+              </Text>
+              <Text style={indexStyles.subText}>
+                Всички намаления на едно място.{"\n"}
+                Сравнявай цени. Спести повече.
+              </Text>
+              
+              <Animated.View 
+                style={[
+                  indexStyles.featuresContainer,
+                  { opacity: featuresFadeAnim }
+                ]}
+              >
+                <FeatureItem text="Оферти от всички големи магазини" />
+                <FeatureItem text="Мигновено сравнение на цени" />
+                <FeatureItem text="Проследяване на най-ниските цени" />
+              </Animated.View>
+            </Animated.View>
 
-          {/* Login Button */}
-          <TouchableOpacity
-            onPress={() => router.push({ pathname: "/(login)/login" })}
-            activeOpacity={0.8}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Започни</Text>
-          </TouchableOpacity>
-        </View>
+            {/* Login Button */}
+            <Animated.View 
+              style={[
+                indexStyles.buttonContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ scale: buttonScale }]
+                }
+              ]}>
+              <TouchableOpacity
+                onPress={() => router.push({ pathname: "/(login)/login" })}
+                activeOpacity={0.8}
+                style={indexStyles.button}>
+                <LinearGradient
+                  colors={['rgba(46, 170, 134, 1)', 'rgba(40, 150, 120, 1)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={indexStyles.buttonGradient}>
+
+                  <Text style={indexStyles.buttonText}>Започни сега</Text>
+
+                  <Text style={indexStyles.buttonText}>-&gt;</Text>
+
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </ScrollView>
       </ImageBackground>
     );
   }
@@ -70,84 +179,9 @@ const Index = () => {
   return null;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-   backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 60,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: 40,
-    borderRadius:15,
-  },
-  logo: {
-    width: 300,
-    height: 300,
-    borderRadius:45,
-    marginBottom: 20,
-  },
-  companyName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    letterSpacing: 0.5,
-  },
-  textContainer: {
-    alignItems: 'center',
-    gap: 12,
-  },
-  welcomeText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    justifyContent:'center',
-    textAlign: 'center',
-    color: '#1a1a1a',
-  },
-  subText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  button: {
-    backgroundColor: 'rgba(46, 170, 134, 1)',
-    paddingVertical: 20,
-    paddingHorizontal: 100,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-});
+
+
+
+
 
 export default Index;

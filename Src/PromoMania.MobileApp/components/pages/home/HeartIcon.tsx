@@ -1,4 +1,3 @@
-import { styles } from '@/components/styles/homeStyles';
 import { useSettings } from '@/contexts/SettingsContext';
 import React, { useCallback, useState } from 'react';
 import {
@@ -12,7 +11,7 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 import Svg, { Path } from "react-native-svg";
-
+import { styles } from './homeStyles';
 
 export const HeartIcon: React.FC<{ filled?: boolean, heartSize: number }> = React.memo(({ filled = false, heartSize }) => {
   const [isFavorite, setIsFavorite] = useState(filled);

@@ -9,7 +9,6 @@ export default function LoginLayout() {
         animation: "slide_from_right",
       }}
     >
-
     </Stack>
   );
 }

@@ -40,8 +40,8 @@ export default class ProductRepository {
         )
       )
       .orderBy(asc(price.priceBgn), asc(price.priceEur))
-      .limit((pagination?.limit || ProductRepository.DEFAULT_LIMIT) + 1)
-      .offset(pagination?.offset || ProductRepository.DEFAULT_OFFSET);
+      .offset(pagination?.offset || ProductRepository.DEFAULT_OFFSET)
+      .limit(pagination?.limit || ProductRepository.DEFAULT_LIMIT);
   }
 
   async getOrderedByDiscount(

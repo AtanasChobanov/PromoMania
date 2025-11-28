@@ -1,12 +1,26 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
-const userSettings = () => {
+const UserSettings = () => {
   return (
-    <View>
-      <Text>userSettings</Text>
+    <View style={styles.container}>
+      <Text style={styles.text}>Очаквайте скоро</Text>
     </View>
   )
 }
 
-export default userSettings
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  text: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#333',
+  }
+})
+
+export default UserSettings

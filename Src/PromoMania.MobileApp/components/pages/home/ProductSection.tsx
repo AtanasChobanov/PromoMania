@@ -1,4 +1,4 @@
-import { styles } from '@/components/styles/homeStyles';
+import { ProductBox } from '@/components/pages/home/ProductBox';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -15,8 +15,7 @@ import Animated, {
   FadeIn
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { ProductBox } from './ProductBox';
-
+import { styles } from './homeStyles';
 // Simple separator component
 const ItemSeparator = () => <View style={{ width: wp(4) }} />;
 

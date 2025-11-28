@@ -1,6 +1,6 @@
+import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { StyleSheet } from "react-native";
 import { moderateScale } from "react-native-size-matters";
-import { getFontSize, hp, wp } from '../utils/dimenstions';
 
 export const styles = StyleSheet.create({
   //Layout & Containers
@@ -46,7 +46,7 @@ export const styles = StyleSheet.create({
   },
   productName: {
     fontWeight: "500",
-    textAlign: "center",
+    textAlign: "left",
   },
   priceLabel: {
     color: "#1F2937",
@@ -85,10 +85,12 @@ export const styles = StyleSheet.create({
   //Product Card
   imageContainer: {
     position: "relative",
+    
   },
   productImage: {
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
+ 
   },
   heartOverlay: {
     position: "absolute",
@@ -102,18 +104,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     paddingBottom: hp(1),
     elevation: 5,
+      minHeight: moderateScale(145), 
    
     
   },
-  productContent: {
-    width: "100%",
-    
-  },
+ productContent: {
+  width: "100%",
+  flex: 1,
+  justifyContent: "space-between",  
+},
   productNameContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: hp(3.6) * 2.4,
-  
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
   },
   priceContainer: {
     alignItems: "flex-start",
@@ -124,14 +126,19 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   unitContainerAccent: {
-    marginTop: hp(0.5),
+    marginTop: moderateScale(4),
     alignSelf: "flex-start",
     paddingHorizontal: wp(2),
     paddingVertical: wp(0.5),
+        height: moderateScale(22),
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(31, 41, 55, 0.2)",
     backgroundColor: "rgba(31, 41, 55, 0.1)",
+  },
+   unitPlaceholder: {
+    marginTop: moderateScale(4),
+    height: moderateScale(22),
   },
 
   //Buttons

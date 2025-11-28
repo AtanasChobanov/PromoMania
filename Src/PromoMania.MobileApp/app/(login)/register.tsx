@@ -1,70 +1,75 @@
-import { darkTheme, lightTheme } from '@/components/styles/theme';
-import { useSettings } from '@/contexts/SettingsContext';
+import { BackButton } from '@/components/common/BackButton';
+import { CheckIcon } from '@/components/icons/CheckIcon';
+import { registerStyles } from '@/components/pages/register/registerStyles';
 import { useAuth } from '@/services/useAuth';
-import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-
+import { moderateScale } from 'react-native-size-matters';
 const Register = () => {
   const router = useRouter();
+  
   const { register, isLoading: authLoading, validatePassword } = useAuth();
-    const { isDarkMode, isPerformanceMode, isSimpleMode } = useSettings();
-  const theme = isDarkMode ? darkTheme : lightTheme;
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Real-time password checks for the UI
+  const passwordChecks = useMemo(() => {
+    return {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>_]/.test(password)
+    };
+  }, [password]);
 
   const handleRegister = async () => {
-    // Validate empty fields
+    //Validation
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Грешка', 'Моля, попълнете всички полета');
       return;
     }
 
-    // Validate password match
     if (password !== confirmPassword) {
       Alert.alert('Грешка', 'Паролите не съвпадат');
       return;
     }
 
-    // Validate password strength
     const passwordError = validatePassword(password);
     if (passwordError) {
       Alert.alert('Грешка', passwordError);
       return;
     }
 
-    // Validate terms acceptance
     if (!acceptTerms) {
       Alert.alert('Грешка', 'Моля, приемете условията за използване');
       return;
     }
 
+    //Registration Logic
     try {
       await register({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
       });
-
-      Alert.alert('Успех', 'Регистрацията беше успешна!', [
-        { text: 'OK', onPress: () => router.push('/(login)/optionsRegister') }
-      ]);
+      
     } catch (error: any) {
       Alert.alert(
         'Грешка при регистрация',
@@ -73,53 +78,37 @@ const Register = () => {
     }
   };
 
+
   return (
-      <ImageBackground
-            source={theme.backgroundImage} 
-            style={styles.backgroundImage} 
-            resizeMode="cover"
-          >
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ImageBackground
+      source={require('@/assets/images/background2.webp')} 
+      style={registerStyles.backgroundImage} 
+      resizeMode="cover"
     >
+      
+         <BackButton />
       <ScrollView 
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={registerStyles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <BlurView
-              intensity={20} 
-              tint={'light'}
-              experimentalBlurMethod="dimezisBlurView"
-              style={StyleSheet.absoluteFillObject}
-            />
-            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M15 18l-6-6 6-6"
-                stroke={'#000000'}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </TouchableOpacity>
-          <Text style={styles.title}>Регистрация</Text>
-          <Text style={styles.subtitle}>Създайте нов акаунт</Text>
+        <View style={registerStyles.header}>
+         
+        
+     
+          <Text style={registerStyles.title}>Регистрация</Text>
+          <Text style={registerStyles.subtitle}>Създайте нов акаунт</Text>
         </View>
 
         {/* Form */}
-        <View style={styles.form}>
+        <View style={registerStyles.form}>
           {/* Name Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Име</Text>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Име</Text>
             <TextInput
-              style={styles.input}
+              style={registerStyles.input}
               placeholder="Вашето име"
               placeholderTextColor="#999"
               value={name}
@@ -131,10 +120,10 @@ const Register = () => {
           </View>
 
           {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Имейл</Text>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Имейл</Text>
             <TextInput
-              style={styles.input}
+              style={registerStyles.input}
               placeholder="example@email.com"
               placeholderTextColor="#999"
               value={email}
@@ -147,247 +136,163 @@ const Register = () => {
           </View>
 
           {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Парола</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Минимум 8 символа"
-              placeholderTextColor="#999"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="password-new"
-              editable={!authLoading}
-            />
-            <Text style={styles.passwordHint}>
-              Паролата трябва да съдържа поне 8 символа, главни и малки букви, цифри и специални символи
-            </Text>
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Парола</Text>
+            <View style={registerStyles.passwordWrapper}>
+              <TextInput
+                style={[registerStyles.input, registerStyles.passwordInput]}
+                placeholder="Минимум 8 символа"
+                placeholderTextColor="#999"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="password-new"
+                editable={!authLoading}
+              />
+              <TouchableOpacity
+                style={registerStyles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+                disabled={authLoading}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={moderateScale(20)} 
+                  color="#666666" 
+                />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Password Requirements Visualization */}
+            {password.length > 0 && (
+              <View style={registerStyles.passwordRequirements}>
+                <View style={registerStyles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.minLength} />
+                  <Text style={[
+                    registerStyles.requirementText,
+                    passwordChecks.minLength && registerStyles.requirementTextValid
+                  ]}>
+                    Минимум 8 символа
+                  </Text>
+                </View>
+                
+                <View style={registerStyles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasUpperCase} />
+                  <Text style={[
+                    registerStyles.requirementText,
+                    passwordChecks.hasUpperCase && registerStyles.requirementTextValid
+                  ]}>
+                    Поне една главна буква
+                  </Text>
+                </View>
+                
+                <View style={registerStyles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasLowerCase} />
+                  <Text style={[
+                    registerStyles.requirementText,
+                    passwordChecks.hasLowerCase && registerStyles.requirementTextValid
+                  ]}>
+                    Поне една малка буква
+                  </Text>
+                </View>
+                
+                <View style={registerStyles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasNumber} />
+                  <Text style={[
+                    registerStyles.requirementText,
+                    passwordChecks.hasNumber && registerStyles.requirementTextValid
+                  ]}>
+                    Поне една цифра
+                  </Text>
+                </View>
+                
+                <View style={registerStyles.requirementRow}>
+                  <CheckIcon isValid={passwordChecks.hasSpecialChar} />
+                  <Text style={[
+                    registerStyles.requirementText,
+                    passwordChecks.hasSpecialChar && registerStyles.requirementTextValid
+                  ]}>
+                    Поне един специален символ (!@#$%^&*)
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Confirm Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Потвърди парола</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Въведете паролата отново"
-              placeholderTextColor="#999"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="password-new"
-              editable={!authLoading}
-            />
+          <View style={registerStyles.inputContainer}>
+            <Text style={registerStyles.label}>Потвърди парола</Text>
+            <View style={registerStyles.passwordWrapper}>
+              <TextInput
+                style={[registerStyles.input, registerStyles.passwordInput]}
+                placeholder="Въведете паролата отново"
+                placeholderTextColor="#999"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                autoComplete="password-new"
+                editable={!authLoading}
+              />
+              <TouchableOpacity
+                style={registerStyles.eyeIcon}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={authLoading}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons 
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={moderateScale(20)} 
+                  color="#666666" 
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Terms and Conditions */}
           <TouchableOpacity 
-            style={styles.checkboxContainer}
+            style={registerStyles.checkboxContainer}
             onPress={() => setAcceptTerms(!acceptTerms)}
             activeOpacity={0.7}
-            disabled={authLoading}
-          >
-            <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
-              {acceptTerms && <Text style={styles.checkmark}>✓</Text>}
+            disabled={authLoading}>
+            <View style={[registerStyles.checkbox, acceptTerms && registerStyles.checkboxChecked]}>
+              {acceptTerms && <Text style={registerStyles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxText}>
-              Приемам <Text style={styles.link}>условията за използване</Text> и{' '}
-              <Text style={styles.link}>политиката за поверителност</Text>
+            <Text style={registerStyles.checkboxText}>
+              Приемам <Text style={registerStyles.link}>условията за използване</Text> и{' '}
+              <Text style={registerStyles.link}>политиката за поверителност</Text>
             </Text>
           </TouchableOpacity>
 
-          {/* Register Button */}
           <TouchableOpacity
-            style={[styles.button, authLoading && styles.buttonDisabled]}
+            style={[registerStyles.button, authLoading && registerStyles.buttonDisabled]}
             onPress={handleRegister}
             disabled={authLoading}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>
+            <Text style={registerStyles.buttonText}>
               {authLoading ? 'Регистриране...' : 'Регистрирай се'}
             </Text>
           </TouchableOpacity>
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ИЛИ</Text>
-            <View style={styles.dividerLine} />
+          <View style={registerStyles.divider}>
+            <View style={registerStyles.dividerLine} />
+            <Text style={registerStyles.dividerText}>ИЛИ</Text>
+            <View style={registerStyles.dividerLine} />
           </View>
 
-          {/* Login Link */}
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Вече имате акаунт? </Text>
+          <View style={registerStyles.loginContainer}>
+            <Text style={registerStyles.loginText}>Вече имате акаунт? </Text>
             <TouchableOpacity onPress={() => router.push('/(login)/login')}>
-              <Text style={styles.loginLink}>Влезте тук</Text>
+              <Text style={registerStyles.loginLink}>Влезте тук</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
 
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 50,
-    paddingBottom: 40,
-  },
-  header: {
-    marginBottom: 32,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderColor: 'gray',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-  },
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#ffff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  passwordHint: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 4,
-    lineHeight: 16,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-    marginRight: 12,
-    marginTop: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: 'rgba(46, 170, 134, 1)',
-    borderColor: 'rgba(46, 170, 134, 1)',
-  },
-  checkmark: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  checkboxText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
-  },
-  link: {
-    color: 'rgba(46, 170, 134, 1)',
-    fontWeight: '500',
-  },
-  button: {
-    backgroundColor: 'rgba(46, 170, 134, 1)',
-    borderColor:'white',
-    borderWidth:1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 32,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e0e0e0',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: '#999999',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  loginContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginText: {
-    color: '#666666',
-    fontSize: 14,
-  },
-  loginLink: {
-    color: 'rgba(46, 170, 134, 1)',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+
 
 export default Register;

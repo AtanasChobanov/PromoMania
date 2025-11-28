@@ -1,4 +1,5 @@
 import { darkTheme, lightTheme } from '@/components/styles/theme';
+import { getFontSize, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
 import React, { useMemo } from 'react';
 import {
@@ -12,9 +13,7 @@ import Animated, {
   useSharedValue,
   withTiming
 } from 'react-native-reanimated';
-import { styles } from '../styles/homeStyles';
-import { getFontSize, wp } from '../utils/dimenstions';
-
+import { styles } from './homeStyles';
 
 
 
@@ -70,7 +69,7 @@ export const CategoryButton: React.FC<{ title: string; index: number }> = React.
               { 
                 width: buttonWidth, 
                 backgroundColor: theme.colors.backgroundColor, 
-                borderColor: isSimpleMode ? theme.colors.textPrimary : "#FFFFFF", // Higher contrast border
+                borderColor: isSimpleMode ? theme.colors.textOnGradient : "#FFFFFF", // Higher contrast border
                 borderWidth: isSimpleMode ? 2 : 1,
               },
               simpleModeStyles
@@ -81,7 +80,7 @@ export const CategoryButton: React.FC<{ title: string; index: number }> = React.
                 styles.categoryText, 
                 { 
                   fontSize: textSize, 
-                  color: theme.colors.textPrimary,
+                  color: theme.colors.textOnGradient,
                   fontWeight: textWeight,
                   letterSpacing: isSimpleMode ? 0.5 : 0, // Better letter spacing for readability
                 }

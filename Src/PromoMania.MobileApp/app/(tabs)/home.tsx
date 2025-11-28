@@ -1,6 +1,6 @@
-import { CategoryButton } from '@/components/boxes/CategoryButton';
-import { ProductSection } from '@/components/boxes/ProductSection';
-import { styles } from '@/components/styles/homeStyles';
+import { CategoryButton } from '@/components/pages/home/CategoryButton';
+import { styles } from '@/components/pages/home/homeStyles';
+import { ProductSection } from '@/components/pages/home/ProductSection';
 import { darkTheme, lightTheme } from '@/components/styles/theme';
 import { getFontSize, hp, wp } from '@/components/utils/dimenstions';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -8,7 +8,6 @@ import { SectionType, useProductSection } from '@/services/useProducts';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, ImageBackground, Text, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-
 type SectionItem = {
   type: 'header' | 'categories' | 'product-section' | 'loading' | 'spacer';
   sectionType?: SectionType;
@@ -53,14 +52,26 @@ const Home: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Check the loading state of the first section to determine initial load
+
   const { loading: topSectionLoading } = useProductSection('top', 4);
+  const { loading: ourChoiceLoading } = useProductSection('our-choice', 4);
+  const { loading: kauflandLoading } = useProductSection('kaufland', 4);
 
-
+  // Update loading state when at least the first few sections finish loading
+  useEffect(() => {
+    const allInitialSectionsLoaded = !topSectionLoading && !ourChoiceLoading && !kauflandLoading;
+    
+    if (allInitialSectionsLoaded && isInitialLoading) {
+      const timer = setTimeout(() => {
+        setIsInitialLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [topSectionLoading, ourChoiceLoading, kauflandLoading, isInitialLoading]);
 
   // Update loading state when top section finishes loading
   useEffect(() => {
     if (!topSectionLoading && isInitialLoading) {
-      // Add a small delay for smoother transition
       const timer = setTimeout(() => {
         setIsInitialLoading(false);
       }, 300);
@@ -83,13 +94,14 @@ const Home: React.FC = () => {
   }[] = useMemo(() => {
     const baseSections = [
       { 
-        sectionType: 'top' as SectionType, 
-        gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
-      },
-      { 
         sectionType: 'our-choice' as SectionType, 
         gradientColors: theme.colors.lavenderPurple as [string, string, ...string[]]
       },
+      { 
+        sectionType: 'top' as SectionType, 
+        gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
+      },
+      
          { 
           sectionType: 'kaufland' as SectionType, 
           gradientColors: theme.colors.blueTeal as [string, string, ...string[]]
