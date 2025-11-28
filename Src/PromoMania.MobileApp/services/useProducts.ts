@@ -5,6 +5,7 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import axios from "axios";
+import React from "react";
 
 // Types
 export interface Product {
@@ -114,8 +115,18 @@ export const useProductSection = (
     enabled: !!accessToken, // Only fetch if user is authenticated
   });
 
-  // Flatten all pages into a single products array
-  const products = data?.pages.flatMap(page => page.products) ?? [];
+  // Flatten all pages into a single products array and remove duplicates by publicId
+  const products = React.useMemo(() => {
+    const allProducts = data?.pages.flatMap(page => page.products) ?? [];
+    const seenIds = new Set<string>();
+    return allProducts.filter(product => {
+      if (seenIds.has(product.publicId)) {
+        return false;
+      }
+      seenIds.add(product.publicId);
+      return true;
+    });
+  }, [data?.pages]);
   const title = data?.pages[0]?.title ?? "";
 
   const loadMore = () => {
@@ -183,12 +194,21 @@ export const useProductSections = (
     enabled: !!accessToken, // Only fetch if user is authenticated
   });
 
-  // Build sectionsData map
+  // Build sectionsData map and remove duplicates by publicId
   const sectionsData = new Map<SectionType, SectionDataMap>();
   if (results.data) {
     results.data.forEach((sectionData, index) => {
+      const seenIds = new Set<string>();
+      const uniqueProducts = sectionData.products.filter(product => {
+        if (seenIds.has(product.publicId)) {
+          return false;
+        }
+        seenIds.add(product.publicId);
+        return true;
+      });
+      
       sectionsData.set(sections[index], {
-        products: sectionData.products,
+        products: uniqueProducts,
         title: sectionData.title,
         hasMore: sectionData.pagination.hasMore
       });

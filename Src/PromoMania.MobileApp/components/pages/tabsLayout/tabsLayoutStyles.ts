@@ -1,0 +1,122 @@
+import { StyleSheet } from "react-native";
+import { moderateScale, scale, verticalScale } from "react-native-size-matters";
+
+export const tabsLayoutStyles = StyleSheet.create({
+  topbar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    zIndex: 1000,
+    pointerEvents: 'box-none',
+  },
+  
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '100%',
+    zIndex: 1,
+    
+  },
+
+  settingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    borderRadius: 20,
+    height: 40,
+    width: 40,
+    borderWidth: 1,
+    borderColor: 'white',
+  },
+
+  focusedTab: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: scale(100),
+    marginTop:  moderateScale(32),
+    height: moderateScale(60),
+    borderColor: "white",
+    borderWidth: 0.5,
+    paddingHorizontal: scale(12),
+    minWidth: scale(90),
+    maxWidth: scale(120),
+    
+  },
+  focusedText: {
+    marginLeft: moderateScale(5),
+    fontSize: moderateScale(14),
+    color: '#000000',
+    fontWeight: '500',
+  },
+  defaultTab: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: moderateScale(38),
+    height: verticalScale(20), 
+    width: scale(70),
+  },
+  defaultText: {
+    fontSize: moderateScale(13),
+    color: '#000000',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  searchButton: {
+    position: 'absolute',
+    right: scale(13),
+    width: scale(58),
+    height: moderateScale(62),
+    borderRadius: scale(202),
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    shadowColor: '#000000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 15,
+    elevation: 20,
+    borderColor: "white",
+    bottom: moderateScale(32)
+  },
+  searchButtonFocused: {
+    position: 'absolute',
+    right: scale(17),
+    width: scale(50),
+    height: moderateScale(52),
+    borderRadius: scale(52),
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    shadowColor: '#000000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 15,
+    elevation: 20,
+    borderColor: "white",
+    bottom: moderateScale(37),
+    zIndex: 10,
+  },
+  searchButtonBlur: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  searchIcon: {
+    width: 24,
+    height: 24,
+    zIndex: 1,
+  },
+  tabBarBlur: {
+    ...StyleSheet.absoluteFillObject,
+  },
+});

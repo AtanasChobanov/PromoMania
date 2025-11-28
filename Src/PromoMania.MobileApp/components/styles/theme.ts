@@ -6,6 +6,7 @@ export const lightTheme = {
     mainBackground: '#FFFFFF',
     cardBackground: 'rgba(255, 255, 255, 1)',
     cardBackgroundAlt: '#F5F5F5',
+    cardBackgroundAlt2:'#E0E0E0',
     
     // Text
     textReverse:'#FFFFFF',
@@ -15,8 +16,8 @@ export const lightTheme = {
     textGreen:'rgba(103, 218, 191, 1)',
     textBlue:'rgba(163, 216, 239, 1)',
     textOnGradient: '#1F2937',
-        textOnGradientReverse:'#1F2937', // Dark gray-blue (better than pure black)
-    textOnGradientAlt: '#111827', // Even darker for less vibrant gradients
+        textOnGradientReverse:'#1F2937', 
+    textOnGradientAlt: '#111827',
         borderColor:'#C8C8C8',
 
     // Borders
@@ -66,7 +67,7 @@ export const darkTheme = {
     mainBackground: '#121212',
     cardBackground: 'rgba(30, 30, 30, 0.9)',
     cardBackgroundAlt: '#1E1E1E',
-    
+      cardBackgroundAlt2:'#B0B0B0',
     // Text
      textReverse:'#000000',
     textPrimary: '#FFFFFF',
@@ -75,9 +76,9 @@ export const darkTheme = {
     textGreen:'rgba(46, 170, 134, 1)',
     textBlue:'rgba(45, 153, 211, 1)',
     borderColor:'#C8C8C8',
-    textOnGradient: '#FFFFFF',
+    textOnGradient: '#F8F8FF',
     textOnGradientReverse:'#1F2937', 
-    textOnGradientAlt: '#F9FAFB', // Slightly off-white for subtle depth
+    textOnGradientAlt: '#F9FAFB',
     // Borders
     border: 'rgba(255, 255, 255, 0.1)',
     borderLight: 'rgba(255, 255, 255, 0.05)',
@@ -93,7 +94,7 @@ export const darkTheme = {
     // Skeleton
     skeletonBackground: '#2a2a2a',
     skeletonForeground: '#3a3a3a',
-
+    
     // Gradients
     blueTeal: ['rgba(45, 153, 211, 1)', 'rgba(46, 170, 134, 1)'] as [string, string, ...string[]],
     peachPink: ['rgba(239, 122, 20, 1)', 'rgba(239, 30, 63, 1)'] as [string, string, ...string[]],
@@ -101,9 +102,9 @@ export const darkTheme = {
     backgroundColor:  'rgba(46, 170, 134, 1)',
     secondaryBackgroundColor:'rgba(45, 153, 211, 1)',
     cancelColor:'rgba(239, 30, 63, 1)',
-//Unit
-unitColor: "rgba(229, 231, 235, 0.1)",
-unitBorderColor: "rgba(229, 231, 235, 0.2)",
+    //Unit
+    unitColor: "rgba(229, 231, 235, 0.1)",
+    unitBorderColor: "rgba(229, 231, 235, 0.2)",
 
             
 GlassColor:'light'as BlurTint,
